@@ -2,17 +2,19 @@ import type { SiteConfig } from "@/types/site-config";
 import { env } from "@/env";
 
 export const siteConfig: SiteConfig = {
-  name: "Rise & Impact Admin Panel",
-  description: "Production-ready Next.js 16+ starter built with Tailwind CSS 4 and TypeScript.",
+  name: "LaundryLink",
+  description:
+    "A modern laundry pickup and delivery platform built with Next.js, TypeScript, and Tailwind CSS. This project serves as a boilerplate for building scalable and maintainable web applications.",
   url: env.NEXT_PUBLIC_SITE_URL,
   author: "",
   locale: "en",
-  themeColor: "#576045",
-  keywords: ["nextjs", "typescript", "tailwindcss", "boilerplate", "starter"],
+  themeColor: "#a6d3e9",
+  keywords: ["laundry", "pickup", "delivery", "platform", "dry cleaning"],
   social: {
     twitter: "",
     github: "",
     linkedin: ""
   },
-  ogImage: "/og.jpg"
+  ogImage: "/logo.png",
+  favicon: "/logo.png"
 } as const;

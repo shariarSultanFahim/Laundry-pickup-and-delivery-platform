@@ -10,6 +10,11 @@ export const seoConfig: Metadata = {
   },
   description: siteConfig.description,
   alternates: { canonical: "/" },
+  icons: {
+    icon: siteConfig.favicon,
+    shortcut: siteConfig.favicon,
+    apple: siteConfig.favicon
+  },
   openGraph: {
     type: "website",
     title: siteConfig.name,

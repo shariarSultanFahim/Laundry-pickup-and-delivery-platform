@@ -1,11 +1,7 @@
 "use client";
 import {
-  BookOpen,
-  ClipboardClock,
-  HeartHandshake,
   LayoutDashboard,
-  LogOut,
-  UserRoundPen
+  LogOut
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -31,48 +27,22 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const data = {
   info: {
-    title: "Rise & Impact",
-    subtitle: "Instructor Portal"
+    title: "LaundryLink",
+    subtitle: ""
   },
   navMain: [
     {
       title: "",
       items: [
         {
-          title: "Overview",
-          url: "/overview",
+          title: "Dashboard",
+          url: "/dashboard",
           icon: LayoutDashboard
         },
-        {
-          title: "User Management",
-          url: "/user-management",
-          icon: ClipboardClock
-        },
-        {
-          title: "Course",
-          url: "/courses",
-          icon: BookOpen
-        }
       ]
     }
   ],
-  navSec: [
-    {
-      title: "Footer",
-      items: [
-        {
-          title: "Profile",
-          url: "#",
-          icon: UserRoundPen
-        },
-        {
-          title: "Support",
-          url: "#",
-          icon: HeartHandshake
-        }
-      ]
-    }
-  ]
+  
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -83,10 +53,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link href="/">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Image src="/logo.png" alt="Logo" width={32} height={32} />
+            <SidebarMenuButton size="lg" asChild >
+              <Link href="/" >
+                <div className="flex items-center justify-center">
+                  <Image src="/logo.png" alt="Logo" width={32} height={32}  />
                 </div>
                 <div className="grid flex-1 text-sm leading-tight">
                   <span className="truncate text-sm font-bold">{data.info.title}</span>
@@ -110,9 +80,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <SidebarMenuButton 
                       asChild 
                       isActive={pathname === item.url}
-                      className="data-[active=true]:bg-white/25 data-[active=true]:shadow-md data-[active=true]:backdrop-blur-sm data-[active=true]:text-primary-foreground"
                     >
-                      <Link href={item.url}>
+                      <Link href={item.url} className="py-5">
                         <item.icon />
                         <span>{item.title}</span>
                       </Link>
@@ -130,24 +99,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem className="space-y-5">
             <div className="hidden flex-col gap-4 group-data-[collapsible=icon]:flex">
               <Avatar size="lg" className="h-8 w-8">
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>CN</AvatarFallback>
+                <AvatarImage src="https://media.licdn.com/dms/image/v2/D5603AQF8VWtOZX4cyA/profile-displayphoto-crop_800_800/B56ZoGTUgUJ4AM-/0/1761042323122?e=1773878400&v=beta&t=vPGLXeorVP2ikZACdWsBZN_u_Me7DlXjQSTTBWtG6tY" />
+                <AvatarFallback>SF</AvatarFallback>
               </Avatar>
             </div>
             <div className="group-data-[collapsible=icon]:hidden">
               <div className="flex items-center justify-start gap-4">
                 <Avatar size="lg">
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>CN</AvatarFallback>
+                  <AvatarImage src="https://media.licdn.com/dms/image/v2/D5603AQF8VWtOZX4cyA/profile-displayphoto-crop_800_800/B56ZoGTUgUJ4AM-/0/1761042323122?e=1773878400&v=beta&t=vPGLXeorVP2ikZACdWsBZN_u_Me7DlXjQSTTBWtG6tY" />
+                  <AvatarFallback>SF</AvatarFallback>
                 </Avatar>
                 <div>
-                  <h2 className="font-semibold">John Doe</h2>
-                  <h3 className="text-sm text-gray-500">john@riseimpact.com</h3>
+                  <h2 className="font-semibold">Shariar Fahim</h2>
+                  <h3 className="text-sm text-gray-500">Product Manager</h3>
                 </div>
               </div>
             </div>
             <SidebarMenuButton asChild className="group-data-[collapsible=icon]:w-full">
-              <Button variant="outline" className="w-full bg-transparent border-secondary group-data-[collapsible=icon]:p-0">
+              <Button variant="outline" className="w-full group-data-[collapsible=icon]:p-0">
                 <LogOut className="size-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
                 <span className="group-data-[collapsible=icon]:hidden">Sign Out</span>
               </Button>
