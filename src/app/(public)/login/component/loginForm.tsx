@@ -42,7 +42,7 @@ export default function LoginForm() {
     } finally {
       setIsLoading(false);
       toast.success("Login successful!");
-      window.location.href = "/";
+      window.location.href = "/admin";
     }
   }
 

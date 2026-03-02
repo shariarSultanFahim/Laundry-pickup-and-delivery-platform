@@ -1,12 +1,13 @@
-import { AppSidebar } from "@/components/layouts/app-sidebar";
 import { Separator } from "@/components/ui";
 import { DynamicBreadcrumb } from "@/components/ui/dynamic-breadcrumb";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
+import { AdminAppSidebar } from "./app-sidebar";
+
 export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AdminAppSidebar />
       <SidebarInset>
         <header className="h-16 gap-2 px-4 flex shrink-0 items-center">
           <SidebarTrigger className="-ml-1" />
