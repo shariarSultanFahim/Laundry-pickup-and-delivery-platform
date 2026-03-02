@@ -35,11 +35,11 @@ export default function StatsCard({
             {change && (
               <div className="mt-2 gap-1 flex items-center">
                 {change.trend === "up" ? (
-                  <ArrowUp className="h-4 w-4 text-green-600" />
+                  <ArrowUp className={cn("h-4 w-4", iconColor)} />
                 ) : (
-                  <ArrowDown className="h-4 w-4 text-green-600" />
+                  <ArrowDown className={cn("h-4 w-4", iconColor)} />
                 )}
-                <span className="text-sm font-medium text-green-600">
+                <span className={cn("text-sm font-medium", iconColor)}>
                   {change.value} {change.period}
                 </span>
               </div>
