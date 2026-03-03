@@ -2,7 +2,7 @@
 
 import { ArrowUpRight } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -12,6 +12,7 @@ interface Operator {
   role: string;
   revenue: string;
   growth: string;
+  avatar: string;
 }
 
 interface OperatorPerformanceProps {
@@ -19,6 +20,13 @@ interface OperatorPerformanceProps {
 }
 
 export function OperatorPerformance({ data }: OperatorPerformanceProps) {
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  };
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -36,12 +44,8 @@ export function OperatorPerformance({ data }: OperatorPerformanceProps) {
             >
               <div className="gap-3 flex items-center">
                 <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-blue-100 text-blue-700">
-                    {operator.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </AvatarFallback>
+                  <AvatarImage src={operator.avatar} alt={operator.name} />
+                  <AvatarFallback>{getInitials(operator.name)}</AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="text-sm font-medium">{operator.name}</p>

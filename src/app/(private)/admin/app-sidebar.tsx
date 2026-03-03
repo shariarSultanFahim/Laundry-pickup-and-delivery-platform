@@ -13,6 +13,7 @@ import {
   FolderKanban,
   LayoutDashboard,
   LogOut,
+  Settings,
   Shield,
   ShieldHalf,
   SquareChartGantt,
@@ -20,8 +21,7 @@ import {
   Ticket,
   User,
   UserLock,
-  UserPen,
-  Users
+  UserPen
 } from "lucide-react";
 
 import { Button } from "@/components/ui";
@@ -71,7 +71,7 @@ const data = {
         {
           title: "General Settings",
           url: "/admin/settings",
-          icon: Users
+          icon: Settings
         },
         {
           title: "Tickets",

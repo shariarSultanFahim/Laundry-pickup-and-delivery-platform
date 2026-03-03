@@ -118,20 +118,23 @@ export const operatorPerformanceData = [
     name: "John Smith",
     role: "Senior Operator",
     revenue: "$142,500",
-    growth: "+15.2%"
+    growth: "+15.2%",
+    avatar: "https://i.pravatar.cc/150?img=5"
   },
   {
     id: "sarah-wilson",
     name: "Sarah Wilson",
     role: "Lead Operator",
     revenue: "$138,750",
-    growth: "+12.8%"
+    growth: "+12.8%",
+    avatar: "https://i.pravatar.cc/150?img=12"
   },
   {
     id: "mike-johnson",
     name: "Mike Johnson",
     role: "Operator",
     revenue: "$125,300",
-    growth: "+9.8%"
+    growth: "+9.8%",
+    avatar: "https://i.pravatar.cc/150?img=13"
   }
 ];
