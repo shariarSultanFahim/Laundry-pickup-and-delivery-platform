@@ -1,4 +1,4 @@
-import { AlertTriangle, Bookmark, Eye, Lock } from "lucide-react";
+import { AlertTriangle, Eye, Lock, Smartphone } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/ui";
@@ -7,7 +7,7 @@ import { securityStats } from "../data/security";
 
 const iconMap = {
   lock: Lock,
-  bookmark: Bookmark,
+  smartphone: Smartphone,
   "alert-triangle": AlertTriangle,
   eye: Eye
 };

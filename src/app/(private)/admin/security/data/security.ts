@@ -30,7 +30,7 @@ export const securityStats: SecurityStatCard[] = [
     title: "2FA Status",
     description: "87% Users Enabled",
     status: "Enabled",
-    icon: "bookmark",
+    icon: "smartphone",
     iconBgColor: "bg-blue-100",
     statusColor: "text-blue-600"
   },
