@@ -199,7 +199,7 @@ export function AdminAppSidebar({ ...props }: React.ComponentProps<typeof Sideba
                 </Avatar>
                 <div>
                   <h2 className="font-semibold">Shariar Fahim</h2>
-                  <h3 className="text-sm text-gray-500">Product Manager</h3>
+                  <h3 className="text-sm text-gray-500">Super Administrator</h3>
                 </div>
               </div>
             </div>

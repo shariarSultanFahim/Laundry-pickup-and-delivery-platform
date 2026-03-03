@@ -62,34 +62,36 @@ export default function UsersFilterSheet({
         </SheetHeader>
 
         <div className="px-4 space-y-6">
-          {/* Role Filter */}
-          <div className="space-y-2">
-            <Label htmlFor="role-filter">Role</Label>
-            <Select value={role} onValueChange={(value) => setRole(value as typeof role)}>
-              <SelectTrigger id="role-filter">
-                <SelectValue placeholder="All roles" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="customer">Customer</SelectItem>
-                <SelectItem value="operator">Operator</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <div className="gap-2 flex items-center justify-center">
+            {/* Role Filter */}
+            <div className="space-y-2 w-full">
+              <Label htmlFor="role-filter">Role</Label>
+              <Select value={role} onValueChange={(value) => setRole(value as typeof role)}>
+                <SelectTrigger className="w-full" id="role-filter">
+                  <SelectValue placeholder="All roles" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="customer">Customer</SelectItem>
+                  <SelectItem value="operator">Operator</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Status Filter */}
-          <div className="space-y-2">
-            <Label htmlFor="status-filter">Status</Label>
-            <Select value={status} onValueChange={(value) => setStatus(value as typeof status)}>
-              <SelectTrigger id="status-filter">
-                <SelectValue placeholder="All statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="suspended">Suspended</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* Status Filter */}
+            <div className="space-y-2 w-full">
+              <Label htmlFor="status-filter">Status</Label>
+              <Select value={status} onValueChange={(value) => setStatus(value as typeof status)}>
+                <SelectTrigger className="w-full" id="status-filter">
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="suspended">Suspended</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Min Order Spent Filter */}
