@@ -1,12 +1,31 @@
+"use client";
+
+import { CheckCheck } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+
 import Header from "../components/header";
+import { markAllNotificationsAsRead } from "./components/notifications-api";
+import NotificationsList from "./components/notifications-list";
 
 export default function NotificationPage() {
+  async function handleMarkAllAsRead() {
+    await markAllNotificationsAsRead();
+  }
+
   return (
-    <div>
+    <div className="space-y-6">
       <Header
         title="Notifications & Alerts"
         subtitle="Manage system notifications and user alerts"
+        Button={
+          <Button onClick={handleMarkAllAsRead}>
+            <CheckCheck /> Mark all as read
+          </Button>
+        }
       />
+
+      <NotificationsList />
     </div>
   );
 }
