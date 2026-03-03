@@ -8,4 +8,5 @@ export * from "./label";
 export * from "./separator";
 export * from "./sonner";
 export * from "./table";
+export * from "./textarea";
 export * from "./tooltip";
