@@ -75,7 +75,6 @@ export default function TermsConditionsForm() {
     "underline",
     "strike",
     "list",
-    "bullet",
     "indent",
     "align",
     "link"

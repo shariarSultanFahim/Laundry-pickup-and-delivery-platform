@@ -10,7 +10,7 @@ import { roleDistributionData } from "../data/users";
 const chartConfig = {
   users: {
     label: "Users",
-    color: "hsl(var(--chart-1))"
+    color: "hsl(217, 91%, 60%)"
   }
 } satisfies ChartConfig;
 

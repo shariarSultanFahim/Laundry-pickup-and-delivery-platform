@@ -72,7 +72,6 @@ export default function PrivacyPolicyForm() {
     "underline",
     "strike",
     "list",
-    "bullet",
     "indent",
     "align",
     "link"

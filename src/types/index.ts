@@ -17,4 +17,12 @@ export type {
   ReviewManagementReview,
   ReviewStats
 } from "./review-management";
+export type {
+  FetchTicketsParams,
+  FetchTicketsResponse,
+  SupportTicket,
+  TicketFilters,
+  TicketMessage,
+  TicketStats
+} from "./ticket-management";
 export type { User } from "./user";
