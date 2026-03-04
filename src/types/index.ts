@@ -7,4 +7,14 @@ export type {
   FetchDisputesParams,
   FetchDisputesResponse
 } from "./dispute-management";
+export type {
+  FetchReviewsParams,
+  FetchReviewsResponse,
+  OperatorRanking,
+  RatingTrend,
+  ReviewByRating,
+  ReviewFilters,
+  ReviewManagementReview,
+  ReviewStats
+} from "./review-management";
 export type { User } from "./user";
