@@ -36,7 +36,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "completed",
     paymentStatus: "paid",
     transactionId: "TXN-789456123",
-    date: "2024-01-15"
+    date: "2024-01-15",
+    pickupAddress: "123 Main St, New York, NY 10001",
+    deliveryAddress: "456 Oak Ave, Brooklyn, NY 11201"
   },
   {
     id: "ORD-2024-002",
@@ -46,7 +48,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "in-progress",
     paymentStatus: "pending",
     transactionId: "TXN-789456124",
-    date: "2024-01-14"
+    date: "2024-01-14",
+    pickupAddress: "789 Elm St, Queens, NY 11354",
+    deliveryAddress: "321 Pine Rd, Manhattan, NY 10005"
   },
   {
     id: "ORD-2024-003",
@@ -56,7 +60,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "pending",
     paymentStatus: "failed",
     transactionId: "TXN-789456125",
-    date: "2024-01-13"
+    date: "2024-01-13",
+    pickupAddress: "555 Maple Dr, Bronx, NY 10451",
+    deliveryAddress: "222 Cedar Ln, Staten Island, NY 10301"
   },
   {
     id: "ORD-2024-004",
@@ -66,7 +72,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "completed",
     paymentStatus: "paid",
     transactionId: "TXN-789456126",
-    date: "2024-01-12"
+    date: "2024-01-12",
+    pickupAddress: "777 Birch Ave, New York, NY 10002",
+    deliveryAddress: "999 Spruce St, Brooklyn, NY 11202"
   },
   {
     id: "ORD-2024-005",
@@ -76,7 +84,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "completed",
     paymentStatus: "paid",
     transactionId: "TXN-789456127",
-    date: "2024-01-11"
+    date: "2024-01-11",
+    pickupAddress: "111 Willow Way, New York, NY 10003",
+    deliveryAddress: "333 Oak St, Manhattan, NY 10006"
   },
   {
     id: "ORD-2024-006",
@@ -86,7 +96,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "cancelled",
     paymentStatus: "refunded",
     transactionId: "TXN-789456128",
-    date: "2024-01-10"
+    date: "2024-01-10",
+    pickupAddress: "444 Ash Blvd, Queens, NY 11355",
+    deliveryAddress: "666 Chestnut Ave, Brooklyn, NY 11203"
   },
   {
     id: "ORD-2024-007",
@@ -96,7 +108,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "in-progress",
     paymentStatus: "pending",
     transactionId: "TXN-789456129",
-    date: "2024-01-09"
+    date: "2024-01-09",
+    pickupAddress: "888 Poplar Ln, New York, NY 10004",
+    deliveryAddress: "777 Fir St, Manhattan, NY 10007"
   },
   {
     id: "ORD-2024-008",
@@ -106,7 +120,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "pending",
     paymentStatus: "pending",
     transactionId: "TXN-789456130",
-    date: "2024-01-08"
+    date: "2024-01-08",
+    pickupAddress: "555 Sycamore Dr, Bronx, NY 10452",
+    deliveryAddress: "444 Walnut Rd, Staten Island, NY 10302"
   },
   {
     id: "ORD-2024-009",
@@ -116,7 +132,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "completed",
     paymentStatus: "paid",
     transactionId: "TXN-789456131",
-    date: "2024-01-07"
+    date: "2024-01-07",
+    pickupAddress: "222 Locust Way, New York, NY 10005",
+    deliveryAddress: "111 Magnolia Ave, Brooklyn, NY 11204"
   },
   {
     id: "ORD-2024-010",
@@ -126,7 +144,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "in-progress",
     paymentStatus: "pending",
     transactionId: "TXN-789456132",
-    date: "2024-01-06"
+    date: "2024-01-06",
+    pickupAddress: "333 Hazel St, Queens, NY 11356",
+    deliveryAddress: "555 Juniper Ln, Manhattan, NY 10008"
   },
   {
     id: "ORD-2024-011",
@@ -136,7 +156,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "completed",
     paymentStatus: "paid",
     transactionId: "TXN-789456133",
-    date: "2024-01-05"
+    date: "2024-01-05",
+    pickupAddress: "666 Laurel Blvd, New York, NY 10006",
+    deliveryAddress: "888 Mulberry Dr, Brooklyn, NY 11205"
   },
   {
     id: "ORD-2024-012",
@@ -146,7 +168,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "cancelled",
     paymentStatus: "failed",
     transactionId: "TXN-789456134",
-    date: "2024-01-04"
+    date: "2024-01-04",
+    pickupAddress: "999 Olive Ave, Bronx, NY 10453",
+    deliveryAddress: "333 Palm Rd, Staten Island, NY 10303"
   },
   {
     id: "ORD-2024-013",
@@ -156,7 +180,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "pending",
     paymentStatus: "pending",
     transactionId: "TXN-789456135",
-    date: "2024-01-03"
+    date: "2024-01-03",
+    pickupAddress: "444 Pecan Way, New York, NY 10007",
+    deliveryAddress: "222 Plum St, Manhattan, NY 10009"
   },
   {
     id: "ORD-2024-014",
@@ -166,7 +192,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "completed",
     paymentStatus: "paid",
     transactionId: "TXN-789456136",
-    date: "2024-01-02"
+    date: "2024-01-02",
+    pickupAddress: "111 Quince Ln, Queens, NY 11357",
+    deliveryAddress: "666 Rosewood Ave, Brooklyn, NY 11206"
   },
   {
     id: "ORD-2024-015",
@@ -176,7 +204,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "in-progress",
     paymentStatus: "pending",
     transactionId: "TXN-789456137",
-    date: "2024-01-01"
+    date: "2024-01-01",
+    pickupAddress: "777 Sequoia Dr, New York, NY 10008",
+    deliveryAddress: "999 Tamarind Ln, Manhattan, NY 10010"
   },
   {
     id: "ORD-2024-016",
@@ -186,7 +216,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "completed",
     paymentStatus: "paid",
     transactionId: "TXN-789456138",
-    date: "2023-12-31"
+    date: "2023-12-31",
+    pickupAddress: "555 Ulex Way, Bronx, NY 10454",
+    deliveryAddress: "888 Verbena St, Staten Island, NY 10304"
   },
   {
     id: "ORD-2024-017",
@@ -196,7 +228,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "pending",
     paymentStatus: "failed",
     transactionId: "TXN-789456139",
-    date: "2023-12-30"
+    date: "2023-12-30",
+    pickupAddress: "222 Viburnum Ave, New York, NY 10009",
+    deliveryAddress: "444 Wisteria Blvd, Brooklyn, NY 11207"
   },
   {
     id: "ORD-2024-018",
@@ -206,7 +240,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "completed",
     paymentStatus: "paid",
     transactionId: "TXN-789456140",
-    date: "2023-12-29"
+    date: "2023-12-29",
+    pickupAddress: "111 Yarrow Ln, Queens, NY 11358",
+    deliveryAddress: "777 Zinnia Dr, Manhattan, NY 10011"
   },
   {
     id: "ORD-2024-019",
@@ -216,7 +252,9 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "cancelled",
     paymentStatus: "refunded",
     transactionId: "TXN-789456141",
-    date: "2023-12-28"
+    date: "2023-12-28",
+    pickupAddress: "333 Alder Way, New York, NY 10010",
+    deliveryAddress: "666 Boxwood St, Brooklyn, NY 11208"
   },
   {
     id: "ORD-2024-020",
@@ -226,6 +264,8 @@ export const ordersData: OrderManagementOrder[] = [
     orderStatus: "in-progress",
     paymentStatus: "pending",
     transactionId: "TXN-789456142",
-    date: "2023-12-27"
+    date: "2023-12-27",
+    pickupAddress: "999 Cottonwood Ave, Bronx, NY 10455",
+    deliveryAddress: "555 Dogwood Ln, Staten Island, NY 10305"
   }
 ];

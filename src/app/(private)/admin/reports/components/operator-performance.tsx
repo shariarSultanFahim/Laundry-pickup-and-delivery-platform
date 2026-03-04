@@ -40,7 +40,7 @@ export function OperatorPerformance({ data }: OperatorPerformanceProps) {
           {data.map((operator) => (
             <div
               key={operator.id}
-              className="rounded-lg p-3 hover:bg-muted flex items-center justify-between transition-colors"
+              className="rounded-lg p-3 bg-muted flex items-center justify-between transition-colors"
             >
               <div className="gap-3 flex items-center">
                 <Avatar className="h-10 w-10">

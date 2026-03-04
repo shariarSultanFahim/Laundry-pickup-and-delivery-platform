@@ -7,6 +7,8 @@ export interface OrderManagementOrder {
   paymentStatus: "paid" | "pending" | "failed" | "refunded";
   transactionId: string;
   date: string;
+  pickupAddress: string;
+  deliveryAddress: string;
 }
 
 export interface OrderPaymentStat {

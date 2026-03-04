@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+const HEX_COLOR_REGEX = /^#([0-9A-F]{3}|[0-9A-F]{6})$/i;
+
 export function PickerExample() {
   const [background, setBackground] = useState("#B4D455");
 
@@ -72,6 +74,10 @@ export function GradientPicker({
     return "solid";
   }, [background]);
 
+  const customSolidColor = useMemo(() => {
+    return HEX_COLOR_REGEX.test(background) ? background : "#ffffff";
+  }, [background]);
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -116,6 +122,21 @@ export function GradientPicker({
                 onClick={() => setBackground(s)}
               />
             ))}
+
+            <div className="gap-2 mt-3 flex w-full items-center">
+              <Input
+                type="color"
+                value={customSolidColor}
+                className="size-12 cursor-pointer"
+                onChange={(e) => setBackground(e.currentTarget.value)}
+              />
+              <Input
+                value={customSolidColor}
+                placeholder="#ffffff"
+                className="flex-1"
+                onChange={(e) => setBackground(e.currentTarget.value)}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="gradient" className="mt-0">

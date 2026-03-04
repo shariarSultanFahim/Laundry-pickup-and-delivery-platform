@@ -13,6 +13,7 @@ import { Input } from "@/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 
+import OrderDetailsSheet from "./order-details-sheet";
 import { fetchOrders } from "./orders-api";
 import OrdersFilterSheet from "./orders-filter-sheet";
 
@@ -52,6 +53,8 @@ export default function OrdersTable() {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<OrderManagementOrder | null>(null);
+  const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -166,7 +169,14 @@ export default function OrdersTable() {
               </TableRow>
             ) : (
               rows.map((order) => (
-                <TableRow key={order.id}>
+                <TableRow
+                  key={order.id}
+                  className="hover:bg-muted/50 cursor-pointer"
+                  onClick={() => {
+                    setSelectedOrder(order);
+                    setDetailsSheetOpen(true);
+                  }}
+                >
                   <TableCell>{order.id}</TableCell>
                   <TableCell>
                     <div>
@@ -270,6 +280,12 @@ export default function OrdersTable() {
           setFilters({});
           setPage(1);
         }}
+      />
+
+      <OrderDetailsSheet
+        open={detailsSheetOpen}
+        onOpenChange={setDetailsSheetOpen}
+        order={selectedOrder}
       />
     </Card>
   );
