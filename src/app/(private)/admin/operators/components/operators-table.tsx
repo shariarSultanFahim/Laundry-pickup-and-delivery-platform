@@ -13,6 +13,7 @@ import { Input } from "@/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 
+import OperatorCommissionSheet from "./operator-commission-sheet";
 import { fetchOperators } from "./operators-api";
 import OperatorsFilterSheet from "./operators-filter-sheet";
 
@@ -40,6 +41,8 @@ export default function OperatorsTable() {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [selectedOperator, setSelectedOperator] = useState<Operator | null>(null);
+  const [commissionSheetOpen, setCommissionSheetOpen] = useState(false);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -150,7 +153,14 @@ export default function OperatorsTable() {
               </TableRow>
             ) : (
               rows.map((operator) => (
-                <TableRow key={operator.id}>
+                <TableRow
+                  key={operator.id}
+                  className="hover:bg-muted/50 cursor-pointer"
+                  onClick={() => {
+                    setSelectedOperator(operator);
+                    setCommissionSheetOpen(true);
+                  }}
+                >
                   <TableCell>{operator.id}</TableCell>
                   <TableCell>{operator.name}</TableCell>
                   <TableCell>
@@ -163,7 +173,7 @@ export default function OperatorsTable() {
                     {operator.store} - {operator.area}
                   </TableCell>
                   <TableCell>{operator.region}</TableCell>
-                  <TableCell>
+                  <TableCell onClick={(event) => event.stopPropagation()}>
                     <Select
                       value={operator.status}
                       onValueChange={(value) =>
@@ -236,6 +246,12 @@ export default function OperatorsTable() {
           setFilters({});
           setPage(1);
         }}
+      />
+
+      <OperatorCommissionSheet
+        open={commissionSheetOpen}
+        onOpenChange={setCommissionSheetOpen}
+        operator={selectedOperator}
       />
     </Card>
   );
