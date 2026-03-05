@@ -80,6 +80,74 @@ export default function DisputeDetailsSheet({
             <p className="text-sm text-muted-foreground leading-relaxed">{dispute.description}</p>
           </div>
 
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-foreground">Order Summary</h3>
+              <span className="text-sm text-muted-foreground">3 Items</span>
+            </div>
+
+            <div className="space-y-2 bg-muted/30 p-3 rounded-lg">
+              <div className="text-sm flex items-center justify-between">
+                <div className="gap-2 flex items-center">
+                  <div className="h-8 w-8 bg-blue-100 rounded text-base flex items-center justify-center">
+                    👕
+                  </div>
+                  <div>
+                    <p className="font-medium">Wash & Fold</p>
+                    <p className="text-xs text-muted-foreground">5 items</p>
+                  </div>
+                </div>
+                <span className="font-medium">$24.50</span>
+              </div>
+
+              <div className="text-sm flex items-center justify-between">
+                <div className="gap-2 flex items-center">
+                  <div className="h-8 w-8 bg-purple-100 rounded text-base flex items-center justify-center">
+                    🧥
+                  </div>
+                  <div>
+                    <p className="font-medium">Dry Cleaning</p>
+                    <p className="text-xs text-muted-foreground">2 items</p>
+                  </div>
+                </div>
+                <span className="font-medium">$18.00</span>
+              </div>
+
+              <div className="text-sm flex items-center justify-between">
+                <div className="gap-2 flex items-center">
+                  <div className="h-8 w-8 bg-cyan-100 rounded text-base flex items-center justify-center">
+                    🔥
+                  </div>
+                  <div>
+                    <p className="font-medium">Iron & Press</p>
+                    <p className="text-xs text-muted-foreground">3 items</p>
+                  </div>
+                </div>
+                <span className="font-medium">$9.00</span>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span>$51.50</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Pickup & Delivery</span>
+                <span>$4.99</span>
+              </div>
+              <div className="text-green-600 flex items-center justify-between">
+                <span>Discount (FIRST20)</span>
+                <span>-$10.30</span>
+              </div>
+            </div>
+
+            <div className="text-lg font-bold pt-2 flex items-center justify-between border-t">
+              <span>Total</span>
+              <span className="text-blue-600">$66.19</span>
+            </div>
+          </div>
+
           {dispute.photos.length > 0 && (
             <div className="space-y-2">
               <h3 className="font-semibold text-foreground">View Photos</h3>

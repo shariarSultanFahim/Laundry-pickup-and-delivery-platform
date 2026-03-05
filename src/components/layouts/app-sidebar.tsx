@@ -1,9 +1,9 @@
 "use client";
 
+import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import * as React from "react";
 
 import {
   Bell,
@@ -16,7 +16,6 @@ import {
   MessageSquare,
   Plus,
   Settings,
-  ShoppingBag,
   Star,
   User,
   Users
@@ -61,11 +60,6 @@ const data = {
           title: "Orders",
           url: "/operator/orders",
           icon: Briefcase
-        },
-        {
-          title: "Order status",
-          url: "/operator/order-status",
-          icon: ShoppingBag
         },
         {
           title: "Task Assignment",

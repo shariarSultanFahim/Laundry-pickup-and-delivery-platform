@@ -13,7 +13,7 @@ import {
   orderStatusData,
   storePerformanceData,
   topOperatorsData
-} from "../data/dashoard";
+} from "../data/dashboard";
 import { ChartGridSkeleton, StatsCardGridSkeleton, TableSkeleton } from "./skeleton-loaders";
 import StorePerformanceTable from "./store-performance-table";
 
