@@ -23,7 +23,7 @@ import {
   TableRow
 } from "@/components/ui/table";
 
-import { StorePerformanceData } from "../data/dashoard";
+import { StorePerformanceData } from "../data/dashboard";
 
 interface StorePerformanceTableProps {
   data: StorePerformanceData[];
