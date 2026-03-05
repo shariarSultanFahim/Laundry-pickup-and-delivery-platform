@@ -76,7 +76,7 @@ export default function OrdersFilterSheet({
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
+                {/* <SelectItem value="all">All Statuses</SelectItem> */}
                 {statusOptions.map((statusOption) => (
                   <SelectItem key={statusOption} value={statusOption}>
                     {statusOption}
