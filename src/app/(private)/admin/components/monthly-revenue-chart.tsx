@@ -13,7 +13,7 @@ import {
   type ChartConfig
 } from "@/components/ui/chart";
 
-import { MonthlyRevenueData } from "../(dashboard)/data/dashoard";
+import { MonthlyRevenueData } from "../(dashboard)/data/dashboard";
 
 interface MonthlyRevenueChartProps {
   data: MonthlyRevenueData[];

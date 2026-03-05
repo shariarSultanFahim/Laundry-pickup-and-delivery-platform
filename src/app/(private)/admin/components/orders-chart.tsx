@@ -14,7 +14,7 @@ import {
   type ChartConfig
 } from "@/components/ui/chart";
 
-import { OrdersData } from "../(dashboard)/data/dashoard";
+import { OrdersData } from "../(dashboard)/data/dashboard";
 
 interface OrdersChartProps {
   data: OrdersData[];

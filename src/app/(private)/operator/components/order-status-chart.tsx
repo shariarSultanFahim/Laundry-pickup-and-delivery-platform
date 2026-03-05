@@ -10,7 +10,7 @@ import {
   type ChartConfig
 } from "@/components/ui/chart";
 
-import { OrderStatusData } from "../(dashboard)/data/dashboard";
+import { OrderStatusData } from "../reporting/data/reporting";
 
 interface OrderStatusChartProps {
   data: OrderStatusData[];

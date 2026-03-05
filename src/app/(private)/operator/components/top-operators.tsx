@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { TopOperatorData } from "../(dashboard)/data/dashoard";
+import { TopOperatorData } from "../../admin/(dashboard)/data/dashboard";
 
 interface TopOperatorsProps {
   data: TopOperatorData[];
