@@ -11,7 +11,6 @@ import {
   CircleDollarSign,
   FileBarChart,
   LayoutDashboard,
-  ListChecks,
   LogOut,
   MessageSquare,
   Plus,
@@ -61,11 +60,11 @@ const data = {
           url: "/operator/orders",
           icon: Briefcase
         },
-        {
-          title: "Task Assignment",
-          url: "/operator/task-assignment",
-          icon: ListChecks
-        },
+        // {
+        //   title: "Task Assignment",
+        //   url: "/operator/task-assignment",
+        //   icon: ListChecks
+        // },
         {
           title: "Reporting",
           url: "/operator/reporting",
