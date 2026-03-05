@@ -1,11 +1,26 @@
 "use client";
 
-import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import * as React from "react";
 
-import { LayoutDashboard, LogOut } from "lucide-react";
+import {
+  Bell,
+  Briefcase,
+  CircleDollarSign,
+  FileBarChart,
+  LayoutDashboard,
+  ListChecks,
+  LogOut,
+  MessageSquare,
+  Plus,
+  Settings,
+  ShoppingBag,
+  Star,
+  User,
+  Users
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -34,8 +49,68 @@ const data = {
       items: [
         {
           title: "Dashboard",
-          url: "/admin",
+          url: "/operator",
           icon: LayoutDashboard
+        },
+        {
+          title: "Earnings",
+          url: "/operator/earnings",
+          icon: CircleDollarSign
+        },
+        {
+          title: "Orders",
+          url: "/operator/orders",
+          icon: Briefcase
+        },
+        {
+          title: "Order status",
+          url: "/operator/order-status",
+          icon: ShoppingBag
+        },
+        {
+          title: "Task Assignment",
+          url: "/operator/task-assignment",
+          icon: ListChecks
+        },
+        {
+          title: "Reporting",
+          url: "/operator/reporting",
+          icon: FileBarChart
+        },
+        {
+          title: "Profile",
+          url: "/operator/profile",
+          icon: User
+        },
+        {
+          title: "Reviews",
+          url: "/operator/reviews",
+          icon: Star
+        },
+        {
+          title: "Membership",
+          url: "/operator/membership",
+          icon: Users
+        },
+        {
+          title: "Notifications",
+          url: "/operator/notifications",
+          icon: Bell
+        },
+        {
+          title: "Add Service",
+          url: "/operator/add-service",
+          icon: Plus
+        },
+        {
+          title: "Disputes",
+          url: "/operator/disputes",
+          icon: MessageSquare
+        },
+        {
+          title: "Operational Controls",
+          url: "/operator/operational-controls",
+          icon: Settings
         }
       ]
     }
@@ -46,8 +121,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
 
   const isItemActive = (itemUrl: string) => {
-    if (itemUrl === "/admin") {
-      return pathname === "/admin";
+    if (itemUrl === "/operator") {
+      return pathname === "/operator";
     }
 
     return pathname === itemUrl || pathname.startsWith(`${itemUrl}/`);
@@ -59,7 +134,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/admin">
+              <Link href="/operator">
                 <div className="flex items-center justify-center">
                   <Image src="/logo.png" alt="Logo" width={32} height={32} />
                 </div>
@@ -113,7 +188,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </Avatar>
                 <div>
                   <h2 className="font-semibold">Shariar Fahim</h2>
-                  <h3 className="text-sm text-gray-500">Product Manager</h3>
+                  <h3 className="text-sm text-gray-500">Outlet Manager</h3>
                 </div>
               </div>
             </div>
