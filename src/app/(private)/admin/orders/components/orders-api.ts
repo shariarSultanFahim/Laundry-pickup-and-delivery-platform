@@ -20,9 +20,13 @@ export async function fetchOrders({
 
   if (normalizedSearch) {
     results = results.filter((order) =>
-      [order.id, order.customerName, order.customerEmail, order.transactionId].some((value) =>
-        includesSearch(value, normalizedSearch)
-      )
+      [
+        order.id,
+        order.customerName,
+        order.customerEmail,
+        order.operatorName,
+        order.transactionId
+      ].some((value) => includesSearch(value, normalizedSearch))
     );
   }
 
@@ -32,6 +36,10 @@ export async function fetchOrders({
 
   if (filters?.paymentStatus) {
     results = results.filter((order) => order.paymentStatus === filters.paymentStatus);
+  }
+
+  if (filters?.operatorId) {
+    results = results.filter((order) => order.operatorId === filters.operatorId);
   }
 
   if (filters?.fromDate) {

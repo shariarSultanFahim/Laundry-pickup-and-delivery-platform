@@ -16,6 +16,7 @@ export async function fetchReviews(params: FetchReviewsParams): Promise<FetchRev
       reviewId: "REV001",
       customerName: "Sarah Johnson",
       customerEmail: "sarah@email.com",
+      operatorId: "opr-001",
       rating: 5,
       review: "Excellent service! My clothes came back perfectly clean and fresh.",
       date: "Dec 15, 2024",
@@ -27,6 +28,7 @@ export async function fetchReviews(params: FetchReviewsParams): Promise<FetchRev
       reviewId: "REV002",
       customerName: "Mike Chen",
       customerEmail: "mike@email.com",
+      operatorId: "opr-002",
       rating: 4,
       review: "Good service overall, but delivery was a bit late.",
       date: "Dec 14, 2024",
@@ -38,6 +40,7 @@ export async function fetchReviews(params: FetchReviewsParams): Promise<FetchRev
       reviewId: "REV003",
       customerName: "Emma Wilson",
       customerEmail: "emma@email.com",
+      operatorId: "opr-003",
       rating: 5,
       review: "Amazing premium service! Worth every penny.",
       date: "Dec 13, 2024",
@@ -49,6 +52,7 @@ export async function fetchReviews(params: FetchReviewsParams): Promise<FetchRev
       reviewId: "REV004",
       customerName: "David Brown",
       customerEmail: "david@email.com",
+      operatorId: "opr-004",
       rating: 3,
       review: "Service was okay, but had some issues with stain removal.",
       date: "Dec 12, 2024",
@@ -60,6 +64,7 @@ export async function fetchReviews(params: FetchReviewsParams): Promise<FetchRev
       reviewId: "REV005",
       customerName: "Lisa Garcia",
       customerEmail: "lisa@email.com",
+      operatorId: "opr-005",
       rating: 5,
       review: "Fast, reliable, and professional. Highly recommend!",
       date: "Dec 11, 2024",
@@ -76,6 +81,7 @@ export async function fetchReviews(params: FetchReviewsParams): Promise<FetchRev
       (r) =>
         r.reviewId.toLowerCase().includes(searchLower) ||
         r.customerName.toLowerCase().includes(searchLower) ||
+        r.operatorName.toLowerCase().includes(searchLower) ||
         r.review.toLowerCase().includes(searchLower) ||
         r.orderId.toLowerCase().includes(searchLower)
     );
@@ -84,6 +90,10 @@ export async function fetchReviews(params: FetchReviewsParams): Promise<FetchRev
   // Filter by rating
   if (params.filters?.rating) {
     filtered = filtered.filter((r) => r.rating === params.filters?.rating);
+  }
+
+  if (params.filters?.operatorId) {
+    filtered = filtered.filter((r) => r.operatorId === params.filters?.operatorId);
   }
 
   // Filter by date range

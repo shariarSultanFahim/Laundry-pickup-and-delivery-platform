@@ -29,7 +29,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "2 hours ago",
     store: "Store A",
     area: "Downtown",
-    region: "North"
+    region: "North",
+    totalOrders: 324,
+    totalRevenue: 12480
   },
   {
     id: "OPR0002",
@@ -38,7 +40,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "5 minutes ago",
     store: "Store B",
     area: "Uptown",
-    region: "East"
+    region: "East",
+    totalOrders: 287,
+    totalRevenue: 10620
   },
   {
     id: "OPR0003",
@@ -47,7 +51,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "1 hour ago",
     store: "Store C",
     area: "Westside",
-    region: "West"
+    region: "West",
+    totalOrders: 301,
+    totalRevenue: 11890
   },
   {
     id: "OPR0004",
@@ -56,7 +62,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "3 days ago",
     store: "Store D",
     area: "Southside",
-    region: "South"
+    region: "South",
+    totalOrders: 154,
+    totalRevenue: 5320
   },
   {
     id: "OPR0005",
@@ -65,7 +73,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "1 week ago",
     store: "Store A",
     area: "Downtown",
-    region: "North"
+    region: "North",
+    totalOrders: 98,
+    totalRevenue: 3410
   },
   {
     id: "OPR0006",
@@ -74,7 +84,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "30 minutes ago",
     store: "Store E",
     area: "Midtown",
-    region: "East"
+    region: "East",
+    totalOrders: 412,
+    totalRevenue: 16240
   },
   {
     id: "OPR0007",
@@ -83,7 +95,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "15 minutes ago",
     store: "Store B",
     area: "Uptown",
-    region: "East"
+    region: "East",
+    totalOrders: 366,
+    totalRevenue: 14110
   },
   {
     id: "OPR0008",
@@ -92,7 +106,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "2 days ago",
     store: "Store F",
     area: "Harbor",
-    region: "South"
+    region: "South",
+    totalOrders: 187,
+    totalRevenue: 6940
   },
   {
     id: "OPR0009",
@@ -101,7 +117,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "45 minutes ago",
     store: "Store C",
     area: "Westside",
-    region: "West"
+    region: "West",
+    totalOrders: 275,
+    totalRevenue: 9980
   },
   {
     id: "OPR0010",
@@ -110,7 +128,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "3 hours ago",
     store: "Store G",
     area: "Heights",
-    region: "North"
+    region: "North",
+    totalOrders: 242,
+    totalRevenue: 8510
   },
   {
     id: "OPR0011",
@@ -119,7 +139,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "10 minutes ago",
     store: "Store D",
     area: "Southside",
-    region: "South"
+    region: "South",
+    totalOrders: 198,
+    totalRevenue: 7420
   },
   {
     id: "OPR0012",
@@ -128,7 +150,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "5 days ago",
     store: "Store H",
     area: "Riverside",
-    region: "West"
+    region: "West",
+    totalOrders: 133,
+    totalRevenue: 4890
   },
   {
     id: "OPR0013",
@@ -137,7 +161,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "1 hour ago",
     store: "Store A",
     area: "Downtown",
-    region: "North"
+    region: "North",
+    totalOrders: 305,
+    totalRevenue: 11230
   },
   {
     id: "OPR0014",
@@ -146,7 +172,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "2 weeks ago",
     store: "Store I",
     area: "Parkside",
-    region: "East"
+    region: "East",
+    totalOrders: 76,
+    totalRevenue: 2650
   },
   {
     id: "OPR0015",
@@ -155,7 +183,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "20 minutes ago",
     store: "Store B",
     area: "Uptown",
-    region: "East"
+    region: "East",
+    totalOrders: 289,
+    totalRevenue: 10440
   },
   {
     id: "OPR0016",
@@ -164,7 +194,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "4 hours ago",
     store: "Store J",
     area: "Lakeside",
-    region: "North"
+    region: "North",
+    totalOrders: 214,
+    totalRevenue: 8230
   },
   {
     id: "OPR0017",
@@ -173,7 +205,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "1 day ago",
     store: "Store C",
     area: "Westside",
-    region: "West"
+    region: "West",
+    totalOrders: 167,
+    totalRevenue: 6180
   },
   {
     id: "OPR0018",
@@ -182,7 +216,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "35 minutes ago",
     store: "Store K",
     area: "Valley",
-    region: "South"
+    region: "South",
+    totalOrders: 258,
+    totalRevenue: 9360
   },
   {
     id: "OPR0019",
@@ -191,7 +227,9 @@ export const operatorsData: Operator[] = [
     lastLogin: "50 minutes ago",
     store: "Store E",
     area: "Midtown",
-    region: "East"
+    region: "East",
+    totalOrders: 221,
+    totalRevenue: 7920
   },
   {
     id: "OPR0020",
@@ -200,6 +238,8 @@ export const operatorsData: Operator[] = [
     lastLogin: "25 minutes ago",
     store: "Store F",
     area: "Harbor",
-    region: "South"
+    region: "South",
+    totalOrders: 243,
+    totalRevenue: 8790
   }
 ];

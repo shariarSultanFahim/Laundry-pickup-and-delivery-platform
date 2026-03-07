@@ -5,6 +5,7 @@ export interface UserManagementUser {
   phone: string;
   role: "customer" | "operator" | "admin";
   status: "active" | "inactive" | "suspended";
+  statusNote?: string;
   totalOrders: number;
   totalSpent: number;
   joinedAt: string;
@@ -31,6 +32,10 @@ export interface UserFilters {
   role?: UserManagementUser["role"];
   status?: UserManagementUser["status"];
   minOrderSpent?: number;
+  dateRange?: {
+    from: Date;
+    to?: Date;
+  };
 }
 
 export interface FetchUsersParams {

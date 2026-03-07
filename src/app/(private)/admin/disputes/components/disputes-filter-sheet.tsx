@@ -5,10 +5,13 @@ import { useState } from "react";
 import type { DisputeFilters, DisputeManagementDispute } from "@/types/dispute-management";
 
 import { Button } from "@/ui/button";
+import { Combobox } from "@/ui/combobox";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/ui/sheet";
+
+import { operatorsData } from "../../common/data/operators";
 
 interface DisputesFilterSheetProps {
   open: boolean;
@@ -24,6 +27,7 @@ export default function DisputesFilterSheet({
   onClearFilters
 }: DisputesFilterSheetProps) {
   const [status, setStatus] = useState<DisputeManagementDispute["status"] | "">("");
+  const [operatorId, setOperatorId] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
@@ -32,6 +36,10 @@ export default function DisputesFilterSheet({
 
     if (status) {
       filters.status = status;
+    }
+
+    if (operatorId) {
+      filters.operatorId = operatorId;
     }
 
     if (fromDate) {
@@ -48,6 +56,7 @@ export default function DisputesFilterSheet({
 
   function handleClearFilters() {
     setStatus("");
+    setOperatorId("");
     setFromDate("");
     setToDate("");
     onClearFilters();
@@ -77,6 +86,21 @@ export default function DisputesFilterSheet({
                 <SelectItem value="resolved">Resolved</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Operator</Label>
+            <Combobox
+              options={operatorsData.map((operator) => ({
+                value: operator.id,
+                label: operator.name
+              }))}
+              value={operatorId}
+              onValueChange={setOperatorId}
+              placeholder="Select an operator"
+              searchPlaceholder="Search operators..."
+              emptyText="No operator found."
+            />
           </div>
 
           <div className="space-y-2">

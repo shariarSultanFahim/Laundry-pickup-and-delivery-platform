@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { Filter, Search } from "lucide-react";
+import { Filter, Pencil, Search } from "lucide-react";
 
 import type { UserFilters, UserManagementUser } from "@/types/user-management";
 
@@ -11,8 +11,12 @@ import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Input } from "@/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
+import { Textarea } from "@/ui/textarea";
 
+import DateRangePicker from "./date-range-picker";
+import UserDetailsSheet from "./user-details-sheet";
 import { fetchUsers } from "./users-api";
 import UsersFilterSheet from "./users-filter-sheet";
 
@@ -40,6 +44,13 @@ export default function UsersTable() {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [editSheetOpen, setEditSheetOpen] = useState(false);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editingUserStatus, setEditingUserStatus] =
+    useState<UserManagementUser["status"]>("active");
+  const [editingUserNote, setEditingUserNote] = useState("");
+  const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserManagementUser | null>(null);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -92,6 +103,49 @@ export default function UsersTable() {
     );
   }
 
+  function handleEditClick(user: UserManagementUser) {
+    setEditingUserId(user.id);
+    setEditingUserStatus(user.status);
+    setEditingUserNote("");
+    setEditSheetOpen(true);
+  }
+
+  function handleEditSheetClose() {
+    setEditSheetOpen(false);
+    setEditingUserId(null);
+    setEditingUserStatus("active");
+    setEditingUserNote("");
+  }
+
+  function handleEditSheetSave() {
+    if (editingUserId) {
+      handleStatusChange(editingUserId, editingUserStatus);
+      handleEditSheetClose();
+    }
+  }
+
+  function handleRowClick(user: UserManagementUser) {
+    setSelectedUser(user);
+    setDetailsSheetOpen(true);
+  }
+
+  function handleApplyDateRange(from: Date, to?: Date) {
+    setFilters((prev) => ({
+      ...prev,
+      dateRange: { from, to }
+    }));
+    setPage(1);
+  }
+
+  function handleClearDateRange() {
+    setFilters((prev) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { dateRange, ...rest } = prev;
+      return rest;
+    });
+    setPage(1);
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -99,6 +153,14 @@ export default function UsersTable() {
           <CardTitle>Users Table</CardTitle>
 
           <div className="gap-2 flex items-center">
+            <div className="md:w-80">
+              <DateRangePicker
+                from={filters.dateRange?.from}
+                to={filters.dateRange?.to}
+                onApply={handleApplyDateRange}
+                onClear={handleClearDateRange}
+              />
+            </div>
             <div className="md:w-72 relative w-full">
               <Search className="left-3 h-4 w-4 text-muted-foreground absolute top-1/2 -translate-y-1/2" />
               <Input
@@ -132,6 +194,7 @@ export default function UsersTable() {
               <TableHead>Status</TableHead>
               <TableHead>Total Orders</TableHead>
               <TableHead>Total Spent</TableHead>
+              <TableHead>AOV</TableHead>
               <TableHead>Joined At</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -139,19 +202,23 @@ export default function UsersTable() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={10} className="h-24 text-muted-foreground text-center">
+                <TableCell colSpan={11} className="h-24 text-muted-foreground text-center">
                   Loading users...
                 </TableCell>
               </TableRow>
             ) : rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="h-24 text-muted-foreground text-center">
+                <TableCell colSpan={11} className="h-24 text-muted-foreground text-center">
                   No users found.
                 </TableCell>
               </TableRow>
             ) : (
               rows.map((user) => (
-                <TableRow key={user.id}>
+                <TableRow
+                  key={user.id}
+                  className="hover:bg-muted/50 cursor-pointer"
+                  onClick={() => handleRowClick(user)}
+                >
                   <TableCell>{user.id}</TableCell>
                   <TableCell>{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
@@ -164,23 +231,25 @@ export default function UsersTable() {
                   </TableCell>
                   <TableCell>{user.totalOrders}</TableCell>
                   <TableCell>${user.totalSpent.toLocaleString()}</TableCell>
+                  <TableCell>
+                    $
+                    {user.totalOrders > 0
+                      ? (user.totalSpent / user.totalOrders).toFixed(2)
+                      : "0.00"}
+                  </TableCell>
                   <TableCell>{user.joinedAt}</TableCell>
                   <TableCell>
-                    <Select
-                      value={user.status}
-                      onValueChange={(value) =>
-                        handleStatusChange(user.id, value as UserManagementUser["status"])
-                      }
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Edit user"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditClick(user);
+                      }}
                     >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                        <SelectItem value="suspended">Suspended</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -238,6 +307,52 @@ export default function UsersTable() {
           setFilters({});
           setPage(1);
         }}
+      />
+
+      <Sheet open={editSheetOpen} onOpenChange={handleEditSheetClose}>
+        <SheetContent className="p-4">
+          <SheetHeader className="p-0">
+            <SheetTitle>Edit User Status</SheetTitle>
+          </SheetHeader>
+          <div className="gap-4 py-4 flex flex-col">
+            <div className="gap-2 flex flex-col">
+              <label className="text-sm font-medium">Status</label>
+              <Select
+                value={editingUserStatus}
+                onValueChange={(value) =>
+                  setEditingUserStatus(value as UserManagementUser["status"])
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="suspended">Suspended</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="gap-2 flex flex-col">
+              <label className="text-sm font-medium">Note</label>
+              <Textarea
+                placeholder="Add a note..."
+                value={editingUserNote}
+                className="border-border"
+                onChange={(event) => setEditingUserNote(event.target.value)}
+              />
+            </div>
+            <Button onClick={handleEditSheetSave} className="mt-4 w-full">
+              Save Changes
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      <UserDetailsSheet
+        open={detailsSheetOpen}
+        onOpenChange={setDetailsSheetOpen}
+        user={selectedUser}
       />
     </Card>
   );

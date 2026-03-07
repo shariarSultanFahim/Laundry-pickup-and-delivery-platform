@@ -6,6 +6,8 @@ export interface Operator {
   store: string;
   area: string;
   region: "North" | "East" | "West" | "South";
+  totalOrders: number;
+  totalRevenue: number;
 }
 
 export interface OperatorStats {

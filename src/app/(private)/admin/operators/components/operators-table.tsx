@@ -135,19 +135,21 @@ export default function OperatorsTable() {
               <TableHead>Last Login</TableHead>
               <TableHead>Store/Area</TableHead>
               <TableHead>Region</TableHead>
+              <TableHead>Total Orders</TableHead>
+              <TableHead>Total Revenue</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-muted-foreground text-center">
+                <TableCell colSpan={9} className="h-24 text-muted-foreground text-center">
                   Loading operators...
                 </TableCell>
               </TableRow>
             ) : rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-muted-foreground text-center">
+                <TableCell colSpan={9} className="h-24 text-muted-foreground text-center">
                   No operators found.
                 </TableCell>
               </TableRow>
@@ -173,6 +175,8 @@ export default function OperatorsTable() {
                     {operator.store} - {operator.area}
                   </TableCell>
                   <TableCell>{operator.region}</TableCell>
+                  <TableCell>{operator.totalOrders.toLocaleString()}</TableCell>
+                  <TableCell>${operator.totalRevenue.toLocaleString()}</TableCell>
                   <TableCell onClick={(event) => event.stopPropagation()}>
                     <Select
                       value={operator.status}

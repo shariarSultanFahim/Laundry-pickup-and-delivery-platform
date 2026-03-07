@@ -4,6 +4,7 @@ export interface DisputeManagementDispute {
   orderId: string;
   customerName: string;
   customerEmail: string;
+  operatorId: string;
   operatorName: string;
   status: "escalated" | "open" | "resolved";
   description: string;
@@ -19,6 +20,7 @@ export interface DisputeAction {
 
 export interface DisputeFilters {
   status?: DisputeManagementDispute["status"];
+  operatorId?: DisputeManagementDispute["operatorId"];
   fromDate?: string;
   toDate?: string;
 }

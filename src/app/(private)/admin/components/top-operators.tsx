@@ -32,7 +32,6 @@ export default function TopOperators({ data }: TopOperatorsProps) {
                 </Avatar>
                 <div>
                   <p className="text-sm font-medium">{operator.name}</p>
-                  <p className="text-xs text-muted-foreground">{operator.role}</p>
                 </div>
               </div>
               <div className="text-right">

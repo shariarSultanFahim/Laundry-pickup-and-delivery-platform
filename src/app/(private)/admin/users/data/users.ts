@@ -81,6 +81,7 @@ export const usersData: UserManagementUser[] = [
     phone: "+1 202-555-0123",
     role: "customer",
     status: "inactive",
+    statusNote: "Account inactive due to no activity for 6 months",
     totalOrders: 12,
     totalSpent: 260,
     joinedAt: "2024-03-03"
@@ -125,6 +126,7 @@ export const usersData: UserManagementUser[] = [
     phone: "+1 202-555-0127",
     role: "customer",
     status: "suspended",
+    statusNote: "Account suspended due to multiple payment failures",
     totalOrders: 18,
     totalSpent: 440,
     joinedAt: "2024-04-09"
@@ -180,6 +182,7 @@ export const usersData: UserManagementUser[] = [
     phone: "+1 202-555-0132",
     role: "customer",
     status: "inactive",
+    statusNote: "Requested account deactivation",
     totalOrders: 9,
     totalSpent: 190,
     joinedAt: "2024-06-04"
@@ -224,6 +227,7 @@ export const usersData: UserManagementUser[] = [
     phone: "+1 202-555-0136",
     role: "customer",
     status: "suspended",
+    statusNote: "Violating terms of service",
     totalOrders: 6,
     totalSpent: 140,
     joinedAt: "2024-07-09"
@@ -246,6 +250,7 @@ export const usersData: UserManagementUser[] = [
     phone: "+1 202-555-0138",
     role: "operator",
     status: "inactive",
+    statusNote: "On temporary leave until 2026-04-01",
     totalOrders: 0,
     totalSpent: 0,
     joinedAt: "2024-04-27"

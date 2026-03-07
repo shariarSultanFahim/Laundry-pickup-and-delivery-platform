@@ -42,6 +42,20 @@ export async function fetchUsers({
     results = results.filter((user) => user.totalSpent >= filters.minOrderSpent!);
   }
 
+  // Apply date range filter
+  if (filters?.dateRange) {
+    results = results.filter((user) => {
+      const userDate = new Date(user.joinedAt);
+      const fromDate = new Date(filters.dateRange!.from);
+      fromDate.setHours(0, 0, 0, 0);
+
+      let toDate = new Date(filters.dateRange!.to || filters.dateRange!.from);
+      toDate.setHours(23, 59, 59, 999);
+
+      return userDate >= fromDate && userDate <= toDate;
+    });
+  }
+
   const safePageSize = Math.max(pageSize, 1);
   const total = results.length;
   const totalPages = Math.max(Math.ceil(total / safePageSize), 1);

@@ -5,10 +5,13 @@ import { useState } from "react";
 import type { OrderFilters, OrderManagementOrder } from "@/types/order-management";
 
 import { Button } from "@/ui/button";
+import { Combobox } from "@/ui/combobox";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/ui/sheet";
+
+import { operatorsData } from "../../common/data/operators";
 
 interface OrdersFilterSheetProps {
   open: boolean;
@@ -27,6 +30,7 @@ export default function OrdersFilterSheet({
   const [paymentStatus, setPaymentStatus] = useState<OrderManagementOrder["paymentStatus"] | "">(
     ""
   );
+  const [operatorId, setOperatorId] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
@@ -39,6 +43,10 @@ export default function OrdersFilterSheet({
 
     if (paymentStatus) {
       filters.paymentStatus = paymentStatus;
+    }
+
+    if (operatorId) {
+      filters.operatorId = operatorId;
     }
 
     if (fromDate) {
@@ -56,6 +64,7 @@ export default function OrdersFilterSheet({
   function handleClearFilters() {
     setOrderStatus("");
     setPaymentStatus("");
+    setOperatorId("");
     setFromDate("");
     setToDate("");
     onClearFilters();
@@ -104,6 +113,21 @@ export default function OrdersFilterSheet({
                 <SelectItem value="refunded">Refunded</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Operator</Label>
+            <Combobox
+              options={operatorsData.map((operator) => ({
+                value: operator.id,
+                label: operator.name
+              }))}
+              value={operatorId}
+              onValueChange={setOperatorId}
+              placeholder="Select an operator"
+              searchPlaceholder="Search operators..."
+              emptyText="No operator found."
+            />
           </div>
 
           <div className="gap-2 grid grid-cols-2">

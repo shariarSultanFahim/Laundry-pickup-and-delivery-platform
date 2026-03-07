@@ -3,6 +3,7 @@ export interface ReviewManagementReview {
   reviewId: string;
   customerName: string;
   customerEmail: string;
+  operatorId: string;
   rating: number;
   review: string;
   date: string;
@@ -39,6 +40,7 @@ export interface OperatorRanking {
 
 export interface ReviewFilters {
   rating?: number;
+  operatorId?: ReviewManagementReview["operatorId"];
   fromDate?: string;
   toDate?: string;
 }

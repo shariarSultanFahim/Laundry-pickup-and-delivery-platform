@@ -201,36 +201,42 @@ export const ordersData: OrdersData[] = [
 
 // Top Operators Data
 export interface TopOperatorData {
+  operatorId: string;
   name: string;
-  role: string;
   successRate: string;
   avatar: string;
 }
 
 export const topOperatorsData: TopOperatorData[] = [
   {
-    name: "Emily Davis",
-    role: "Senior Operator",
+    operatorId: "opr-001",
+    name: "Mike's Laundry",
     successRate: "98.5%",
     avatar: "https://i.pravatar.cc/150?img=5"
   },
   {
-    name: "Michael Chen",
-    role: "Lead Operator",
+    operatorId: "opr-002",
+    name: "QuickWash Pro",
     successRate: "96.2%",
     avatar: "https://i.pravatar.cc/150?img=12"
   },
   {
-    name: "Jessica Wilson",
-    role: "Operations Manager",
+    operatorId: "opr-003",
+    name: "Fresh Clean Co",
     successRate: "94.8%",
     avatar: "https://i.pravatar.cc/150?img=9"
   },
   {
-    name: "David Rodriguez",
-    role: "Junior Operator",
+    operatorId: "opr-004",
+    name: "Express Laundry",
     successRate: "92.1%",
     avatar: "https://i.pravatar.cc/150?img=13"
+  },
+  {
+    operatorId: "opr-005",
+    name: "Sparkle Spin",
+    successRate: "90.4%",
+    avatar: "https://i.pravatar.cc/150?img=15"
   }
 ];
 

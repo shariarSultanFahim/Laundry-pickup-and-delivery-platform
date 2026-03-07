@@ -2,6 +2,8 @@ export interface OrderManagementOrder {
   id: string;
   customerName: string;
   customerEmail: string;
+  operatorId: string;
+  operatorName: string;
   amount: number;
   orderStatus: "completed" | "in-progress" | "pending" | "cancelled";
   paymentStatus: "paid" | "pending" | "failed" | "refunded";
@@ -21,6 +23,7 @@ export interface OrderPaymentStat {
 export interface OrderFilters {
   orderStatus?: OrderManagementOrder["orderStatus"];
   paymentStatus?: OrderManagementOrder["paymentStatus"];
+  operatorId?: OrderManagementOrder["operatorId"];
   fromDate?: string;
   toDate?: string;
 }
