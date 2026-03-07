@@ -1,3 +1,5 @@
+export type MembershipDateRange = "today" | "last-30-days" | "month-year";
+
 export interface MembershipDateFilter {
   fromDate: string;
   toDate: string;
