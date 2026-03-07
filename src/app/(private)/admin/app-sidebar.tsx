@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import {
   Bell,
   ChartArea,
+  ChartBarStacked,
   CreditCard,
   Flag,
   FolderKanban,
@@ -72,6 +73,11 @@ const data = {
           title: "General Settings",
           url: "/admin/settings",
           icon: Settings
+        },
+        {
+          title: "Service",
+          url: "/admin/services",
+          icon: ChartBarStacked
         },
         {
           title: "Tickets",

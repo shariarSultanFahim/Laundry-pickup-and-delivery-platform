@@ -1,3 +1,4 @@
+export type { AdminAddOnService, AdminServiceCategory } from "./admin-services";
 export type { DataTableProps } from "./data-table";
 export type {
   DisputeAction,
