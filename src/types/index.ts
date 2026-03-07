@@ -8,6 +8,15 @@ export type {
   FetchDisputesResponse
 } from "./dispute-management";
 export type {
+  FetchMembershipBreakdownParams,
+  MembershipBreakdownData,
+  MembershipDateFilter,
+  MembershipDistributionItem,
+  MembershipOrdersTrendItem,
+  MembershipSummaryRow,
+  MembershipSummaryTotals
+} from "./membership-breakdown";
+export type {
   FetchReviewsParams,
   FetchReviewsResponse,
   OperatorRanking,
