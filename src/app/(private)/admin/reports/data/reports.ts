@@ -114,6 +114,7 @@ export const paymentSuccessData = [
 
 export const operatorPerformanceData = [
   {
+    operatorId: "opr-001",
     id: "john-smith",
     name: "John Smith",
     role: "Senior Operator",
@@ -122,6 +123,7 @@ export const operatorPerformanceData = [
     avatar: "https://i.pravatar.cc/150?img=5"
   },
   {
+    operatorId: "opr-002",
     id: "sarah-wilson",
     name: "Sarah Wilson",
     role: "Lead Operator",
@@ -130,6 +132,7 @@ export const operatorPerformanceData = [
     avatar: "https://i.pravatar.cc/150?img=12"
   },
   {
+    operatorId: "opr-003",
     id: "mike-johnson",
     name: "Mike Johnson",
     role: "Operator",
