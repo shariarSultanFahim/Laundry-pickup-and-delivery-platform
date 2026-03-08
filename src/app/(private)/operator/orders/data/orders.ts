@@ -72,7 +72,14 @@ export interface Order {
   items: number;
   fulfillmentTime: string;
   amount: number;
-  status: "Processing" | "Delivered" | "Shipped" | "Pending" | "Cancelled";
+  status:
+    | "Processing"
+    | "Delivered"
+    | "Shipped"
+    | "Pending"
+    | "Cancelled"
+    | "Accepted"
+    | "Rejected";
 }
 
 export const operatorOrders: Order[] = [
@@ -165,6 +172,36 @@ export const operatorOrders: Order[] = [
     fulfillmentTime: "4 days",
     amount: 159.99,
     status: "Delivered"
+  }
+];
+
+export const operatorNewOrders: Order[] = [
+  {
+    id: "#ORD-2024-011",
+    customerName: "John Smith",
+    customerAvatar: "https://i.pravatar.cc/150?img=1",
+    items: 3,
+    fulfillmentTime: "0 days",
+    amount: 249.99,
+    status: "Pending"
+  },
+  {
+    id: "#ORD-2024-012",
+    customerName: "Sarah Johnson",
+    customerAvatar: "https://i.pravatar.cc/150?img=5",
+    items: 1,
+    fulfillmentTime: "3 days",
+    amount: 89.5,
+    status: "Pending"
+  },
+  {
+    id: "#ORD-2024-013",
+    customerName: "Mike Davis",
+    customerAvatar: "https://i.pravatar.cc/150?img=3",
+    items: 5,
+    fulfillmentTime: "0 days",
+    amount: 459.99,
+    status: "Pending"
   }
 ];
 

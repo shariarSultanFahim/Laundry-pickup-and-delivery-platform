@@ -1,5 +1,6 @@
 import Header from "../components/header";
 import StatsCard from "../components/statsCard";
+import NewOrdersTable from "./components/new-orders-table";
 import OrdersTable from "./components/orders-table";
 import { operatorOrdersStats } from "./data/orders";
 
@@ -23,6 +24,9 @@ export default function OperatorOrdersPage() {
           />
         ))}
       </div>
+
+      {/* New Orders */}
+      <NewOrdersTable />
 
       {/* Orders Table */}
       <OrdersTable />

@@ -5,51 +5,28 @@ import Image from "next/image";
 
 import { Filter, Search } from "lucide-react";
 
-import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Input } from "@/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 
 import type { Order, OrderFilters } from "../data/orders";
 import OrderDetailsSheet from "./order-details-sheet";
-import { fetchOrders, updateOrderStatus } from "./orders-api";
+import { fetchNewOrders, updateNewOrderStatus } from "./orders-api";
 import OrdersFilterSheet from "./orders-filter-sheet";
 
 const PAGE_SIZE = 10;
-const MAIN_ORDER_STATUS_OPTIONS: Array<Order["status"]> = [
-  "Processing",
-  "Shipped",
-  "Delivered",
-  "Cancelled"
-];
 
-const MAIN_ORDER_STATUS_LABELS: Partial<Record<Order["status"], string>> = {
-  Delivered: "Completed",
-  Processing: "In Progress",
-  Cancelled: "Cancelled",
-  Shipped: "Shipped"
+const NEW_ORDER_STATUS_OPTIONS: Array<Order["status"]> = ["Pending", "Accepted", "Rejected"];
+
+const NEW_ORDER_STATUS_LABELS: Partial<Record<Order["status"], string>> = {
+  Pending: "Pending",
+  Accepted: "Accept",
+  Rejected: "Reject"
 };
 
-function getStatusVariant(
-  status: Order["status"]
-): "default" | "secondary" | "destructive" | "outline" {
-  if (status === "Delivered") {
-    return "default";
-  }
-
-  if (status === "Processing" || status === "Shipped") {
-    return "secondary";
-  }
-
-  if (status === "Cancelled") {
-    return "destructive";
-  }
-
-  return "outline";
-}
-
-export default function OrdersTable() {
+export default function NewOrdersTable() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filters, setFilters] = useState<OrderFilters>({});
@@ -76,7 +53,7 @@ export default function OrdersTable() {
 
     async function loadOrders() {
       setIsLoading(true);
-      const response = await fetchOrders({
+      const response = await fetchNewOrders({
         page,
         pageSize: PAGE_SIZE,
         search: debouncedSearch,
@@ -87,9 +64,11 @@ export default function OrdersTable() {
         return;
       }
 
-      setRows(response.items);
-      setTotal(response.total);
-      setTotalPages(response.totalPages);
+      const newOrderRows = response.items;
+
+      setRows(newOrderRows);
+      setTotal(newOrderRows.length);
+      setTotalPages(newOrderRows.length === 0 ? 1 : Math.ceil(newOrderRows.length / PAGE_SIZE));
       setIsLoading(false);
     }
 
@@ -107,17 +86,41 @@ export default function OrdersTable() {
   const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const rangeEnd = Math.min(page * PAGE_SIZE, total);
 
+  async function handleDecisionChange(orderId: string, decision: Order["status"]) {
+    if (decision !== "Pending" && decision !== "Accepted" && decision !== "Rejected") {
+      return;
+    }
+
+    await updateNewOrderStatus({ orderId, status: decision });
+
+    const response = await fetchNewOrders({
+      page,
+      pageSize: PAGE_SIZE,
+      search: debouncedSearch,
+      filters
+    });
+
+    setRows(response.items);
+    setTotal(response.total);
+    setTotalPages(response.totalPages);
+
+    if (selectedOrder?.id === orderId && decision === "Accepted") {
+      setDetailsSheetOpen(false);
+      setSelectedOrder(null);
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
         <div className="gap-4 md:flex-row md:items-center md:justify-between flex flex-col">
-          <CardTitle>Orders</CardTitle>
+          <CardTitle>Newly Placed Orders</CardTitle>
 
           <div className="gap-2 flex flex-wrap items-center">
             <div className="md:w-72 relative w-full">
               <Search className="left-3 h-4 w-4 text-muted-foreground absolute top-1/2 -translate-y-1/2" />
               <Input
-                placeholder="Search orders..."
+                placeholder="Search new orders..."
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 className="pl-9"
@@ -155,7 +158,7 @@ export default function OrdersTable() {
               ) : rows.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="py-8 text-muted-foreground text-center">
-                    No orders found
+                    No new orders found
                   </TableCell>
                 </TableRow>
               ) : (
@@ -187,14 +190,30 @@ export default function OrdersTable() {
                     <TableCell>{order.fulfillmentTime}</TableCell>
                     <TableCell className="font-medium">${order.amount.toFixed(2)}</TableCell>
                     <TableCell>
-                      <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
+                      <div onClick={(event) => event.stopPropagation()}>
+                        <Select
+                          value={order.status}
+                          onValueChange={(value) =>
+                            handleDecisionChange(order.id, value as Order["status"])
+                          }
+                        >
+                          <SelectTrigger className="w-30">
+                            <SelectValue placeholder="Pending" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Pending">Pending</SelectItem>
+                            <SelectItem value="Accepted">Accept</SelectItem>
+                            <SelectItem value="Rejected">Reject</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Button
                         variant="link"
                         className="text-blue-600 p-0 h-auto"
-                        onClick={(e) => {
-                          e.stopPropagation();
+                        onClick={(event) => {
+                          event.stopPropagation();
                           setSelectedOrder(order);
                           setDetailsSheetOpen(true);
                         }}
@@ -209,7 +228,6 @@ export default function OrdersTable() {
           </Table>
         </div>
 
-        {/* Pagination */}
         <div className="gap-2 mt-6 flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
             Showing {rangeStart} to {rangeEnd} of {total} results
@@ -251,7 +269,8 @@ export default function OrdersTable() {
       <OrdersFilterSheet
         open={filterSheetOpen}
         onOpenChange={setFilterSheetOpen}
-        statusOptions={MAIN_ORDER_STATUS_OPTIONS}
+        title="Filter New Orders"
+        statusOptions={NEW_ORDER_STATUS_OPTIONS}
         onApplyFilters={(newFilters) => {
           setFilters(newFilters);
         }}
@@ -264,21 +283,10 @@ export default function OrdersTable() {
         open={detailsSheetOpen}
         onOpenChange={setDetailsSheetOpen}
         order={selectedOrder}
-        statusOptions={MAIN_ORDER_STATUS_OPTIONS}
-        statusLabelMap={MAIN_ORDER_STATUS_LABELS}
+        statusOptions={NEW_ORDER_STATUS_OPTIONS}
+        statusLabelMap={NEW_ORDER_STATUS_LABELS}
         onStatusChange={(orderId, status) => {
-          if (
-            status !== "Processing" &&
-            status !== "Shipped" &&
-            status !== "Delivered" &&
-            status !== "Cancelled"
-          ) {
-            return;
-          }
-
-          void updateOrderStatus({ orderId, status });
-          setRows((prev) => prev.map((row) => (row.id === orderId ? { ...row, status } : row)));
-          setSelectedOrder((prev) => (prev && prev.id === orderId ? { ...prev, status } : prev));
+          void handleDecisionChange(orderId, status);
         }}
       />
     </Card>

@@ -12,6 +12,9 @@ interface OrderDetailsSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   order: Order | null;
+  statusOptions?: Array<Order["status"]>;
+  statusLabelMap?: Partial<Record<Order["status"], string>>;
+  onStatusChange?: (orderId: string, status: Order["status"]) => void;
 }
 
 function getStatusVariant(
@@ -32,8 +35,22 @@ function getStatusVariant(
   return "outline";
 }
 
-export default function OrderDetailsSheet({ open, onOpenChange, order }: OrderDetailsSheetProps) {
-  const [selectedStatus, setSelectedStatus] = useState<Order["status"]>("Pending");
+const defaultStatusOptions: Array<Order["status"]> = [
+  "Processing",
+  "Shipped",
+  "Delivered",
+  "Cancelled"
+];
+
+export default function OrderDetailsSheet({
+  open,
+  onOpenChange,
+  order,
+  statusOptions = defaultStatusOptions,
+  statusLabelMap,
+  onStatusChange
+}: OrderDetailsSheetProps) {
+  const [selectedStatus, setSelectedStatus] = useState<Order["status"]>("Processing");
 
   useEffect(() => {
     if (order) {
@@ -47,8 +64,7 @@ export default function OrderDetailsSheet({ open, onOpenChange, order }: OrderDe
 
   const handleStatusChange = (status: Order["status"]) => {
     setSelectedStatus(status);
-    // TODO: Call API to update order status
-    console.log("Status changed to:", status);
+    onStatusChange?.(order.id, status);
   };
 
   return (
@@ -161,11 +177,11 @@ export default function OrderDetailsSheet({ open, onOpenChange, order }: OrderDe
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Delivered">Completed</SelectItem>
-                <SelectItem value="Processing">In Progress</SelectItem>
-                <SelectItem value="Pending">Pending</SelectItem>
-                <SelectItem value="Cancelled">Cancelled</SelectItem>
-                <SelectItem value="Shipped">Shipped</SelectItem>
+                {statusOptions.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {statusLabelMap?.[status] ?? status}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

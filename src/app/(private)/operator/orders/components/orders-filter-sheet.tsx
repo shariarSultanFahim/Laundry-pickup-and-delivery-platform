@@ -14,13 +14,14 @@ interface OrdersFilterSheetProps {
   onOpenChange: (open: boolean) => void;
   onApplyFilters: (filters: OrderFilters) => void;
   onClearFilters: () => void;
+  statusOptions?: Array<Order["status"]>;
+  title?: string;
 }
 
-const statusOptions: Array<Order["status"]> = [
+const defaultStatusOptions: Array<Order["status"]> = [
   "Processing",
   "Shipped",
   "Delivered",
-  "Pending",
   "Cancelled"
 ];
 
@@ -28,7 +29,9 @@ export default function OrdersFilterSheet({
   open,
   onOpenChange,
   onApplyFilters,
-  onClearFilters
+  onClearFilters,
+  statusOptions = defaultStatusOptions,
+  title = "Filter Orders"
 }: OrdersFilterSheetProps) {
   const [status, setStatus] = useState<Order["status"] | "">("");
   const [fromDate, setFromDate] = useState("");
@@ -65,7 +68,7 @@ export default function OrdersFilterSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>Filter Orders</SheetTitle>
+          <SheetTitle>{title}</SheetTitle>
         </SheetHeader>
 
         <div className="space-y-6 px-4">
