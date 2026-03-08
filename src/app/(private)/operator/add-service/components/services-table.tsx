@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
-import { Edit, Heart, Loader2, Search, Star, Trash2 } from "lucide-react";
+import { Edit, Eye, Heart, Loader2, Search, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import type { Service } from "@/types/service-management";
@@ -193,15 +193,12 @@ export default function ServicesTable({ onRefresh, onEdit }: ServicesTableProps)
                   <TableHead>Price</TableHead>
                   <TableHead>Add-ons</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredServices.map((service) => (
-                  <TableRow
-                    key={service.id}
-                    className="hover:bg-muted/50 cursor-pointer"
-                    onClick={() => handleRowClick(service)}
-                  >
+                  <TableRow key={service.id}>
                     <TableCell className="font-medium">{service.name}</TableCell>
                     <TableCell>{service.category}</TableCell>
                     <TableCell>${service.price.toFixed(2)}</TableCell>
@@ -237,6 +234,34 @@ export default function ServicesTable({ onRefresh, onEdit }: ServicesTableProps)
                             {service.isActive ? "Active" : "Inactive"}
                           </span>
                         )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="gap-2 flex justify-end">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRowClick(service)}
+                          title="View"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onEdit?.(service)}
+                          title="Edit service"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(service.id)}
+                          title="Delete service"
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -291,27 +316,6 @@ export default function ServicesTable({ onRefresh, onEdit }: ServicesTableProps)
                   </Badge>
                   <Badge variant="outline">{selectedService.category}</Badge>
                 </div>
-              </div>
-
-              <div className="space-y-3">
-                <Button
-                  className="w-full"
-                  onClick={() => {
-                    setPreviewSheetOpen(false);
-                    onEdit?.(selectedService);
-                  }}
-                >
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit Service
-                </Button>
-                <Button
-                  className="w-full"
-                  variant="destructive"
-                  onClick={() => handleDelete(selectedService.id)}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Service
-                </Button>
               </div>
             </div>
           )}

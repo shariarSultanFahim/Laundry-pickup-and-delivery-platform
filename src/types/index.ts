@@ -1,4 +1,11 @@
 export type { AdminAddOnService, AdminServiceCategory } from "./admin-services";
+export type {
+  Bundle,
+  BundleFormData,
+  BundleResponse,
+  BundleService,
+  BundlesListResponse
+} from "./bundle-management";
 export type { DataTableProps } from "./data-table";
 export type {
   DisputeAction,

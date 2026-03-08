@@ -4,36 +4,35 @@ import { useState } from "react";
 
 import { Plus } from "lucide-react";
 
-import type { Service } from "@/types/service-management";
+import type { Bundle } from "@/types/bundle-management";
 
 import { Card } from "@/components/ui";
 import { Button } from "@/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/ui/sheet";
 
-import AddServiceForm from "./add-service-form";
-import BundleManagementContent from "./bundle-management-content";
-import ServicesTable from "./services-table";
+import AddBundleForm from "./add-bundle-form";
+import BundlesTable from "./bundles-table";
 
-export default function AddServiceContent() {
+export default function BundleManagementContent() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [editingService, setEditingService] = useState<Service | null>(null);
+  const [editingBundle, setEditingBundle] = useState<Bundle | null>(null);
 
   function handleFormSuccess() {
     setSheetOpen(false);
-    setEditingService(null);
+    setEditingBundle(null);
     setRefreshTrigger((prev) => prev + 1);
   }
 
-  function handleEdit(service: Service) {
-    setEditingService(service);
+  function handleEdit(bundle: Bundle) {
+    setEditingBundle(bundle);
     setSheetOpen(true);
   }
 
   function handleSheetOpenChange(open: boolean) {
     setSheetOpen(open);
     if (!open) {
-      setEditingService(null);
+      setEditingBundle(null);
     }
   }
 
@@ -43,35 +42,34 @@ export default function AddServiceContent() {
         <Sheet open={sheetOpen} onOpenChange={handleSheetOpenChange}>
           <Card className="p-6 gap-2 w-full flex-row items-center justify-between">
             <div className="gap-2 flex flex-col items-start justify-center">
-              <h1 className="text-2xl font-bold">Add Service</h1>
-              <p className="text-sm text-muted-foreground">Add new services to your offerings</p>
+              <h1 className="text-2xl font-bold">Service Bundles</h1>
+              <p className="text-sm text-muted-foreground">
+                Create and manage service bundles with discounted pricing
+              </p>
             </div>
             <SheetTrigger asChild>
-              <Button onClick={() => setEditingService(null)}>
+              <Button onClick={() => setEditingBundle(null)}>
                 <Plus className="mr-2 h-4 w-4" />
-                Add Service
+                Create Bundle
               </Button>
             </SheetTrigger>
           </Card>
           <SheetContent side="right" className="md:w-96 p-4 w-full">
             <SheetHeader className="p-0">
-              <SheetTitle>{editingService ? "Edit Service" : "Add New Service"}</SheetTitle>
+              <SheetTitle>{editingBundle ? "Edit Bundle" : "Create New Bundle"}</SheetTitle>
             </SheetHeader>
             <div className="mt-6 max-h-[calc(100vh-120px)] overflow-y-auto">
-              <AddServiceForm onSuccess={handleFormSuccess} editingService={editingService} />
+              <AddBundleForm onSuccess={handleFormSuccess} editingBundle={editingBundle} />
             </div>
           </SheetContent>
         </Sheet>
       </div>
 
-      <div className="space-y-12">
-        <ServicesTable
-          key={refreshTrigger}
-          onEdit={handleEdit}
-          onRefresh={() => setRefreshTrigger((prev) => prev + 1)}
-        />
-        <BundleManagementContent />
-      </div>
+      <BundlesTable
+        key={refreshTrigger}
+        onEdit={handleEdit}
+        onRefresh={() => setRefreshTrigger((prev) => prev + 1)}
+      />
     </div>
   );
 }
