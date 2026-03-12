@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Paperclip, Send, Smile } from "lucide-react";
+import { Check, Paperclip, Send, Smile } from "lucide-react";
 
 import type { SupportTicket } from "@/types/ticket-management";
 
@@ -139,7 +139,8 @@ export default function TicketChatSheet({ open, onOpenChange, ticket }: TicketCh
               onClick={handleResolve}
               className="gap-1 text-green-600 hover:text-green-700"
             >
-              ✓ Resolve
+              <Check className="h-4 w-4" />
+              Resolve
             </Button>
           </div>
         </div>

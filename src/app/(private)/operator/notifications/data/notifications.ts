@@ -1,3 +1,6 @@
+import type { LucideIcon } from "lucide-react";
+import { BadgeInfo, CircleAlert, CircleCheck, CircleX } from "lucide-react";
+
 export type NotificationType = "success" | "info" | "warning" | "error";
 
 export interface Notification {
@@ -11,31 +14,31 @@ export interface Notification {
 
 export const notificationTypeConfig: Record<
   NotificationType,
-  { bgColor: string; textColor: string; badgeColor: string; icon: string }
+  { bgColor: string; textColor: string; badgeColor: string; icon: LucideIcon }
 > = {
   success: {
     bgColor: "bg-green-50",
     textColor: "text-green-700",
     badgeColor: "text-green-600",
-    icon: "✓"
+    icon: CircleCheck
   },
   info: {
     bgColor: "bg-blue-50",
     textColor: "text-blue-700",
     badgeColor: "text-blue-600",
-    icon: "ℹ"
+    icon: BadgeInfo
   },
   warning: {
     bgColor: "bg-orange-50",
     textColor: "text-orange-700",
     badgeColor: "text-orange-600",
-    icon: "⚠"
+    icon: CircleAlert
   },
   error: {
     bgColor: "bg-red-50",
     textColor: "text-red-700",
     badgeColor: "text-red-600",
-    icon: "✕"
+    icon: CircleX
   }
 };
 

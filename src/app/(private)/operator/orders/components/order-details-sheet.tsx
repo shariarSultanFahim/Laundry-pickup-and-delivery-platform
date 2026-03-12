@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { Flame, Shirt, Sparkles } from "lucide-react";
+
 import { Badge } from "@/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/ui/sheet";
@@ -109,7 +111,7 @@ export default function OrderDetailsSheet({
               <div className="text-sm flex items-center justify-between">
                 <div className="gap-2 flex items-center">
                   <div className="h-6 w-6 bg-blue-100 rounded text-xs flex items-center justify-center">
-                    👕
+                    <Shirt className="h-3.5 w-3.5 text-blue-700" />
                   </div>
                   <div>
                     <p className="font-medium">Wash & Fold</p>
@@ -122,7 +124,7 @@ export default function OrderDetailsSheet({
               <div className="text-sm flex items-center justify-between">
                 <div className="gap-2 flex items-center">
                   <div className="h-6 w-6 bg-purple-100 rounded text-xs flex items-center justify-center">
-                    🧥
+                    <Sparkles className="h-3.5 w-3.5 text-purple-700" />
                   </div>
                   <div>
                     <p className="font-medium">Dry Cleaning</p>
@@ -135,7 +137,7 @@ export default function OrderDetailsSheet({
               <div className="text-sm flex items-center justify-between">
                 <div className="gap-2 flex items-center">
                   <div className="h-6 w-6 bg-cyan-100 rounded text-xs flex items-center justify-center">
-                    🔥
+                    <Flame className="h-3.5 w-3.5 text-cyan-700" />
                   </div>
                   <div>
                     <p className="font-medium">Iron & Press</p>

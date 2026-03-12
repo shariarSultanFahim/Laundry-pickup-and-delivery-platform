@@ -12,6 +12,7 @@ interface NotificationItemProps {
 
 export default function NotificationItem({ notification, onDelete }: NotificationItemProps) {
   const config = notificationTypeConfig[notification.type];
+  const NotificationIcon = config.icon;
 
   async function handleDelete() {
     await deleteNotification(notification.id);
@@ -26,9 +27,9 @@ export default function NotificationItem({ notification, onDelete }: Notificatio
     >
       {/* Icon */}
       <div
-        className={`size-10 text-lg font-bold flex shrink-0 items-center justify-center rounded-full ${config.textColor}`}
+        className={`size-10 flex shrink-0 items-center justify-center rounded-full ${config.textColor}`}
       >
-        {config.icon}
+        <NotificationIcon className="size-5" />
       </div>
 
       {/* Content */}

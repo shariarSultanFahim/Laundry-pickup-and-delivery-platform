@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 
+import { Flame, Shirt, Sparkles } from "lucide-react";
+
 import type { DisputeManagementDispute } from "@/types/dispute-management";
 
 import { Badge } from "@/ui/badge";
@@ -90,7 +92,7 @@ export default function DisputeDetailsSheet({
               <div className="text-sm flex items-center justify-between">
                 <div className="gap-2 flex items-center">
                   <div className="h-8 w-8 bg-blue-100 rounded text-base flex items-center justify-center">
-                    👕
+                    <Shirt className="h-4 w-4 text-blue-700" />
                   </div>
                   <div>
                     <p className="font-medium">Wash & Fold</p>
@@ -103,7 +105,7 @@ export default function DisputeDetailsSheet({
               <div className="text-sm flex items-center justify-between">
                 <div className="gap-2 flex items-center">
                   <div className="h-8 w-8 bg-purple-100 rounded text-base flex items-center justify-center">
-                    🧥
+                    <Sparkles className="h-4 w-4 text-purple-700" />
                   </div>
                   <div>
                     <p className="font-medium">Dry Cleaning</p>
@@ -116,7 +118,7 @@ export default function DisputeDetailsSheet({
               <div className="text-sm flex items-center justify-between">
                 <div className="gap-2 flex items-center">
                   <div className="h-8 w-8 bg-cyan-100 rounded text-base flex items-center justify-center">
-                    🔥
+                    <Flame className="h-4 w-4 text-cyan-700" />
                   </div>
                   <div>
                     <p className="font-medium">Iron & Press</p>

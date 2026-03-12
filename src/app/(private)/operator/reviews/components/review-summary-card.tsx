@@ -44,7 +44,10 @@ function RatingBar({ stars, count, maxCount }: { stars: number; count: number; m
 
   return (
     <div className="gap-3 flex items-center">
-      <span className="w-8 text-sm font-medium">{stars}★</span>
+      <span className="w-8 gap-1 text-sm font-medium flex items-center">
+        {stars}
+        <Star className="h-3.5 w-3.5 fill-current" />
+      </span>
       <div className="h-2 bg-gray-200 flex-1 overflow-hidden rounded-full">
         <div
           className={`h-full ${starColors[stars]} transition-all duration-300`}
