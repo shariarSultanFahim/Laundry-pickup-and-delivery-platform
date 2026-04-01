@@ -20,8 +20,7 @@ import {
   Input
 } from "@/ui";
 
-import { payoutScheduleOptions } from "../data/settings";
-import { type SettingsFormData } from "./settings-form.schema";
+import { payoutScheduleOptions, type SettingsFormData } from "./settings-form.schema";
 
 type CommissionSettingsCardProps = {
   control: Control<SettingsFormData>;
@@ -56,15 +55,15 @@ export default function CommissionSettingsCard({ control }: CommissionSettingsCa
 
         <FormField
           control={control}
-          name="commissionSettings.paymentProcessingFee"
+          name="commissionSettings.pickupDeliveryFee"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Payment Processing Fee (%)</FormLabel>
+              <FormLabel>Pickup/Delivery Fee ($)</FormLabel>
               <FormControl>
                 <Input
                   type="number"
                   min={0}
-                  step="0.1"
+                  step="0.01"
                   value={field.value}
                   onChange={(event) => field.onChange(Number(event.target.value))}
                 />
@@ -100,7 +99,7 @@ export default function CommissionSettingsCard({ control }: CommissionSettingsCa
           render={({ field }) => (
             <FormItem>
               <FormLabel>Payout Schedule</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
+              <Select key={field.value} defaultValue={field.value} value={field.value} onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select payout schedule" />
@@ -109,7 +108,7 @@ export default function CommissionSettingsCard({ control }: CommissionSettingsCa
                 <SelectContent>
                   {payoutScheduleOptions.map((option) => (
                     <SelectItem key={option} value={option}>
-                      {option.charAt(0).toUpperCase() + option.slice(1)}
+                      {option.charAt(0).toUpperCase() + option.slice(1).toLowerCase()}
                     </SelectItem>
                   ))}
                 </SelectContent>

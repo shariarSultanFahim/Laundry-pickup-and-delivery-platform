@@ -93,18 +93,6 @@ export default function BusinessRulesCard({ control }: BusinessRulesCardProps) {
           )}
         />
 
-        <FormField
-          control={control}
-          name="businessRules.sendBookingConfirmations"
-          render={({ field }) => (
-            <FormItem className="gap-2 space-y-0 flex flex-row items-center">
-              <FormControl>
-                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-              </FormControl>
-              <FormLabel>Send booking confirmations</FormLabel>
-            </FormItem>
-          )}
-        />
       </CardContent>
     </Card>
   );

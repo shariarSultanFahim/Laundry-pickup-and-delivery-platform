@@ -1,6 +1,6 @@
 import zod from "zod";
 
-import { payoutScheduleOptions } from "../data/settings";
+export const payoutScheduleOptions = ["WEEKLY", "MONTHLY", "YEARLY"] as const;
 
 const paymentMethodSchema = zod.object({
   id: zod.string(),
@@ -13,8 +13,7 @@ const businessRulesSchema = zod.object({
   cancellationWindow: zod.number().min(0, "Cancellation window cannot be negative"),
   bookingLeadTime: zod.number().min(0, "Booking lead time cannot be negative"),
   requirePaymentUpfront: zod.boolean(),
-  allowPartialPayments: zod.boolean(),
-  sendBookingConfirmations: zod.boolean()
+  allowPartialPayments: zod.boolean()
 });
 
 const commissionSettingsSchema = zod.object({
@@ -22,10 +21,7 @@ const commissionSettingsSchema = zod.object({
     .number()
     .min(0, "Platform commission must be at least 0")
     .max(100, "Platform commission cannot exceed 100"),
-  paymentProcessingFee: zod
-    .number()
-    .min(0, "Payment processing fee must be at least 0")
-    .max(100, "Payment processing fee cannot exceed 100"),
+  pickupDeliveryFee: zod.number().min(0, "Pickup/Delivery fee must be at least 0"),
   fixedTransactionFee: zod.number().min(0, "Transaction fee must be at least 0"),
   payoutSchedule: zod.enum(payoutScheduleOptions)
 });
