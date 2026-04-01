@@ -42,4 +42,4 @@ export type {
   TicketMessage,
   TicketStats
 } from "./ticket-management";
-export type { User } from "./user";
+export type { UserProfile as User } from "./user";

@@ -40,12 +40,12 @@ export default function LoginForm() {
   });
 
   async function onSubmit(data: LoginFormData) {
-    const toastId = toast.loading("Logging in...");
+    const toastId = toast.loading("Logging in...", { position: "top-center" });
     try {
       const response = await login(data);
       const session = buildSessionFromLoginResponse(response);
       cookie.set(AUTH_SESSION_COOKIE, JSON.stringify(session));
-      toast.success("Login successful!", { id: toastId });
+      toast.success("Login successful!", { id: toastId, position: "top-center" });
       router.push(ROLE_HOME_PATHS[session.role]);
     } catch (error) {
       const message = isAxiosError<{ message?: string }>(error)
@@ -53,7 +53,7 @@ export default function LoginForm() {
         : error instanceof Error
           ? error.message
           : "Login failed. Please try again.";
-      toast.error(message, { id: toastId });
+      toast.error(message, { id: toastId, position: "top-center" });
     }
   }
 

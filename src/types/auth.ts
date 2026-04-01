@@ -47,3 +47,15 @@ export interface ResetPasswordResponse {
   success: boolean;
   message: string;
 }
+
+// ── Change Password ───────────────────────────────────────────────────────────
+
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  success: boolean;
+  message: string;
+}
