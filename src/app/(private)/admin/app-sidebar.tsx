@@ -39,6 +39,7 @@ import {
   SidebarMenuItem,
   SidebarRail
 } from "@/components/ui/sidebar";
+import { useLogout } from "@/hooks/use-logout";
 
 const data = {
   info: {
@@ -136,6 +137,7 @@ const data = {
 
 export function AdminAppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
+  const { logout } = useLogout();
 
   const isItemActive = (itemUrl: string) => {
     if (itemUrl === "/admin") {
@@ -210,7 +212,7 @@ export function AdminAppSidebar({ ...props }: React.ComponentProps<typeof Sideba
               </div>
             </div>
             <SidebarMenuButton asChild className="group-data-[collapsible=icon]:w-full">
-              <Button variant="outline" className="group-data-[collapsible=icon]:p-0 w-full">
+              <Button variant="outline" onClick={logout} className="group-data-[collapsible=icon]:p-0 w-full">
                 <LogOut className="size-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
                 <span className="group-data-[collapsible=icon]:hidden">Sign Out</span>
               </Button>

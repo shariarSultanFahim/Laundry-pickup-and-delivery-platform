@@ -2,8 +2,9 @@ import { AppSidebar } from "@/components/layouts/app-sidebar";
 import { Separator } from "@/components/ui";
 import { DynamicBreadcrumb } from "@/components/ui/dynamic-breadcrumb";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { withPrivateRoute } from "@/lib/hoc/with-route-guard";
 
-export default function OperatorDashboardLayout({ children }: { children: React.ReactNode }) {
+function OperatorDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -20,3 +21,5 @@ export default function OperatorDashboardLayout({ children }: { children: React.
     </SidebarProvider>
   );
 }
+
+export default withPrivateRoute(OperatorDashboardLayout, { allowedRoles: ["operator"] });

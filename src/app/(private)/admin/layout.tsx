@@ -1,10 +1,11 @@
 import { Separator } from "@/components/ui";
 import { DynamicBreadcrumb } from "@/components/ui/dynamic-breadcrumb";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { withPrivateRoute } from "@/lib/hoc/with-route-guard";
 
 import { AdminAppSidebar } from "./app-sidebar";
 
-export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
+function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <AdminAppSidebar />
@@ -21,3 +22,5 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
     </SidebarProvider>
   );
 }
+
+export default withPrivateRoute(AdminDashboardLayout, { allowedRoles: ["admin"] });

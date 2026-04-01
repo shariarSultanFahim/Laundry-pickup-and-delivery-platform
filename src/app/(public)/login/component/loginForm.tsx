@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isAxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -19,10 +21,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
+import { AUTH_SESSION_COOKIE, ROLE_HOME_PATHS } from "@/constants/auth";
+import { buildSessionFromLoginResponse, useLogin } from "@/lib/actions/auth/login";
+import { cookie } from "@/lib/cookie-client";
+
 import { loginSchema, type LoginFormData } from "../schema/login.schema";
 
 export default function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { mutateAsync: login, isPending } = useLogin();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -33,16 +40,20 @@ export default function LoginForm() {
   });
 
   async function onSubmit(data: LoginFormData) {
-    setIsLoading(true);
-    toast.loading("Logging in...");
+    const toastId = toast.loading("Logging in...");
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // TODO: Implement login API call
-      console.log("Login attempt:", data);
-    } finally {
-      setIsLoading(false);
-      toast.success("Login successful!");
-      window.location.href = "/admin";
+      const response = await login(data);
+      const session = buildSessionFromLoginResponse(response);
+      cookie.set(AUTH_SESSION_COOKIE, JSON.stringify(session));
+      toast.success("Login successful!", { id: toastId });
+      router.push(ROLE_HOME_PATHS[session.role]);
+    } catch (error) {
+      const message = isAxiosError<{ message?: string }>(error)
+        ? (error.response?.data?.message ?? error.message)
+        : error instanceof Error
+          ? error.message
+          : "Login failed. Please try again.";
+      toast.error(message, { id: toastId });
     }
   }
 
@@ -60,7 +71,7 @@ export default function LoginForm() {
         {/* Form */}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Username Field */}
+            {/* Email Field */}
             <FormField
               control={form.control}
               name="email"
@@ -69,10 +80,10 @@ export default function LoginForm() {
                   <FormLabel className="text-sm text-foreground">Email</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="hannah.green@test.com"
+                      placeholder="admin@example.com"
                       type="email"
                       className="border-border"
-                      disabled={isLoading}
+                      disabled={isPending}
                       {...field}
                     />
                   </FormControl>
@@ -90,9 +101,9 @@ export default function LoginForm() {
                   <FormLabel className="text-sm text-foreground">Password</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="********"
+                      placeholder="••••••••"
                       type="password"
-                      disabled={isLoading}
+                      disabled={isPending}
                       {...field}
                       className="border-border"
                     />
@@ -102,7 +113,7 @@ export default function LoginForm() {
               )}
             />
 
-            {/* Remember Me Checkbox */}
+            {/* Remember Me + Forgot Password */}
             <div className="flex items-center justify-between">
               <div className="space-x-2 flex items-center">
                 <Checkbox id="remember" className="border-border" />
@@ -122,8 +133,8 @@ export default function LoginForm() {
             </div>
 
             {/* Login Button */}
-            <Button type="submit" disabled={isLoading} className="py-2 font-semibold h-auto w-full">
-              {isLoading ? "Logging in..." : "LOG IN"}
+            <Button type="submit" disabled={isPending} className="py-2 font-semibold h-auto w-full">
+              {isPending ? "Logging in..." : "LOG IN"}
             </Button>
           </form>
         </Form>

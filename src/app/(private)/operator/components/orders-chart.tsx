@@ -67,8 +67,9 @@ export default function OrdersChart({ data }: OrdersChartProps) {
               fillOpacity={0.4}
               stroke="var(--color-orders)"
               strokeWidth={2}
-              dot={({ cx, cy }) => (
+              dot={({ cx, cy, index }: any) => (
                 <Dot
+                  key={`dot-${index}`}
                   cx={cx}
                   cy={cy}
                   r={4}

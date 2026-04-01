@@ -35,6 +35,7 @@ import {
 
 import { Button } from "../ui";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { useLogout } from "@/hooks/use-logout";
 
 const data = {
   info: {
@@ -112,7 +113,7 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
-
+  const { logout } = useLogout();
   const isItemActive = (itemUrl: string) => {
     if (itemUrl === "/operator") {
       return pathname === "/operator";
@@ -186,7 +187,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </div>
             </div>
             <SidebarMenuButton asChild className="group-data-[collapsible=icon]:w-full">
-              <Button variant="outline" className="group-data-[collapsible=icon]:p-0 w-full">
+              <Button variant="outline" onClick={logout} className="group-data-[collapsible=icon]:p-0 w-full">
                 <LogOut className="size-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
                 <span className="group-data-[collapsible=icon]:hidden">Sign Out</span>
               </Button>
