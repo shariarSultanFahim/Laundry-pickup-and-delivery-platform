@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Filter, Search } from "lucide-react";
+import { Filter, Pen, Search, UserRoundPen } from "lucide-react";
 
 import { UserStatus, AdminUserListItem } from "@/types/user";
 import { useGetUsers, UsersQueryParams } from "@/lib/actions/user/use-get-users";
@@ -19,7 +19,7 @@ import { DataValue } from "@/ui/data-value";
 import UserDetailsSheet from "./user-details-sheet";
 import UsersFilterSheet, { UsersFilterParams } from "./users-filter-sheet";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 function getStatusVariant(status: UserStatus) {
   if (status === UserStatus.ACTIVE) return "default";
@@ -136,6 +136,7 @@ export default function UsersTable() {
               <TableHead className="text-center">Total Spent</TableHead>
               <TableHead className="text-center">AOV</TableHead>
               <TableHead>Joined At</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -172,6 +173,9 @@ export default function UsersTable() {
                   <TableCell className="text-center"><DataValue value={user.totalPaymentAmount ? `$${user.totalPaymentAmount.toLocaleString()}` : null} /></TableCell>
                   <TableCell className="text-center"><DataValue value={user.averageOrderValue ? `$${user.averageOrderValue.toFixed(2)}` : null} /></TableCell>
                   <TableCell><DataValue value={new Date(user.createdAt).toLocaleDateString()} /></TableCell>
+                  <TableCell onClick={() => handleEditClick(user)} className="text-center flex items-center justify-center">
+                    <UserRoundPen className="h-4 w-4" />
+                  </TableCell>
                 </TableRow>
               ))
             )}
