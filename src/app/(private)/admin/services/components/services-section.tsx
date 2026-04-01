@@ -1,153 +1,98 @@
 "use client";
 
-import { useMemo, useState } from "react";
-
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
-import { AdminServiceCategory } from "@/types";
 import {
-    Button,
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-    Input,
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-    Textarea
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  Textarea
 } from "@/ui";
 
+import { useGetCategories } from "@/lib/actions/category/get.categories";
+import { useCreateCategory } from "@/lib/actions/category/create.category";
+import { useUpdateCategory } from "@/lib/actions/category/update.category";
+import type { Category } from "@/types/category";
+
 import {
-    serviceCategorySchema,
-    type ServiceCategoryFormData
+  serviceCategorySchema,
+  type ServiceCategoryFormData
 } from "../schema/service-category.schema";
 
-const MOCK_SERVICE_CATEGORIES: AdminServiceCategory[] = [
-  {
-    id: "service-1",
-    name: "Wash",
-    description: "Regular washing service for everyday clothes",
-    status: "active"
-  },
-  {
-    id: "service-2",
-    name: "Dry Wash",
-    description: "Professional dry cleaning for delicate items",
-    status: "active"
-  },
-  {
-    id: "service-3",
-    name: "Fold",
-    description: "Folding and organizing clean clothes",
-    status: "active"
-  },
-  {
-    id: "service-4",
-    name: "Iron",
-    description: "Expert ironing for wrinkle-free garments",
-    status: "inactive"
-  },
-  {
-    id: "service-5",
-    name: "Stain Removal",
-    description: "Targeted stain treatment and fabric care",
-    status: "active"
-  },
-  {
-    id: "service-6",
-    name: "Dry Cleaning",
-    description: "Premium solvent cleaning for special fabrics",
-    status: "active"
-  },
-  {
-    id: "service-7",
-    name: "Alterations",
-    description: "Minor tailoring and fit adjustments",
-    status: "inactive"
-  }
-];
-
-function getNewServiceId() {
-  return `service-${Date.now()}`;
-}
-
-function getStatusClassName(status: AdminServiceCategory["status"]) {
-  if (status === "active") {
+function getStatusClassName(isActive: boolean) {
+  if (isActive) {
     return "text-emerald-600";
   }
-
   return "text-muted-foreground";
 }
 
 export default function ServicesSection() {
-  const [services, setServices] = useState<AdminServiceCategory[]>(MOCK_SERVICE_CATEGORIES);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [editingService, setEditingService] = useState<AdminServiceCategory | null>(null);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+
+  const { data: categoriesResponse, isLoading, isError } = useGetCategories({
+    searchTerm: searchTerm || undefined
+  });
+  
+  const { mutateAsync: createCategory, isPending: isCreating } = useCreateCategory();
+  const { mutateAsync: updateCategory, isPending: isUpdating } = useUpdateCategory();
+
+  const categories = categoriesResponse?.data ?? [];
 
   const form = useForm<ServiceCategoryFormData>({
     resolver: zodResolver(serviceCategorySchema),
     defaultValues: {
       name: "",
       description: "",
-      itemsCount: 0,
       status: "active"
     }
   });
-
-  const filteredServices = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-
-    if (!normalizedSearch) {
-      return services;
-    }
-
-    return services.filter((service) => {
-      return (
-        service.name.toLowerCase().includes(normalizedSearch) ||
-        service.description.toLowerCase().includes(normalizedSearch)
-      );
-    });
-  }, [searchTerm, services]);
 
   function resetForm() {
     form.reset({
       name: "",
       description: "",
-      itemsCount: 0,
       status: "active"
     });
   }
 
   function handleOpenCreate() {
-    setEditingService(null);
+    setEditingCategory(null);
     resetForm();
     setIsSheetOpen(true);
   }
 
-  function handleOpenEdit(service: AdminServiceCategory) {
-    setEditingService(service);
+  function handleOpenEdit(category: Category) {
+    setEditingCategory(category);
     form.reset({
-      name: service.name,
-      description: service.description,
-      status: service.status
+      name: category.name,
+      description: category.description,
+      status: category.isActive ? "active" : "inactive"
     });
     setIsSheetOpen(true);
   }
@@ -156,38 +101,35 @@ export default function ServicesSection() {
     setIsSheetOpen(open);
 
     if (!open) {
-      setEditingService(null);
+      setEditingCategory(null);
       resetForm();
     }
   }
 
-  function onSubmit(values: ServiceCategoryFormData) {
-    if (editingService) {
-      setServices((prev) =>
-        prev.map((service) =>
-          service.id === editingService.id
-            ? {
-                ...service,
-                name: values.name,
-                description: values.description,
-                itemsCount: values.itemsCount,
-                status: values.status
-              }
-            : service
-        )
-      );
-    } else {
-      const newService: AdminServiceCategory = {
-        id: getNewServiceId(),
-        name: values.name,
-        description: values.description,
-        status: values.status
-      };
+  async function onSubmit(values: ServiceCategoryFormData) {
+    const isActive = values.status === "active";
 
-      setServices((prev) => [newService, ...prev]);
+    try {
+      if (editingCategory) {
+        await updateCategory({
+          id: editingCategory.id,
+          name: values.name,
+          description: values.description,
+          isActive
+        });
+        toast.success("Category updated successfully");
+      } else {
+        await createCategory({
+          name: values.name,
+          description: values.description,
+          isActive
+        });
+        toast.success("Category created successfully");
+      }
+      handleSheetOpenChange(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
     }
-
-    handleSheetOpenChange(false);
   }
 
   return (
@@ -205,9 +147,9 @@ export default function ServicesSection() {
             </SheetTrigger>
             <SheetContent side="right" className="sm:max-w-md w-full">
               <SheetHeader>
-                <SheetTitle>{editingService ? "Edit Category" : "Add Category"}</SheetTitle>
+                <SheetTitle>{editingCategory ? "Edit Category" : "Add Category"}</SheetTitle>
                 <SheetDescription>
-                  {editingService
+                  {editingCategory
                     ? "Update category details and status"
                     : "Add a new category for laundry services"}
                 </SheetDescription>
@@ -215,7 +157,7 @@ export default function ServicesSection() {
 
               <div className="px-4 pb-6 overflow-y-auto">
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
                     <FormField
                       control={form.control}
                       name="name"
@@ -270,8 +212,12 @@ export default function ServicesSection() {
                       )}
                     />
 
-                    <Button type="submit" className="w-full">
-                      {editingService ? "Save Changes" : "Add Category"}
+                    <Button type="submit" className="w-full" disabled={isCreating || isUpdating}>
+                      {isCreating || isUpdating
+                        ? "Saving..."
+                        : editingCategory
+                          ? "Save Changes"
+                          : "Add Category"}
                     </Button>
                   </form>
                 </Form>
@@ -288,33 +234,41 @@ export default function ServicesSection() {
           onChange={(event) => setSearchTerm(event.target.value)}
         />
 
-        {filteredServices.length === 0 ? (
+        {isError ? (
+            <div className="rounded-lg p-8 border text-center text-destructive bg-destructive/5">
+                <p>Failed to load categories. Please try again later.</p>
+            </div>
+        ) : isLoading ? (
+            <div className="rounded-lg p-8 border text-center">
+                <p className="text-muted-foreground animate-pulse">Loading categories...</p>
+            </div>
+        ) : categories.length === 0 ? (
           <div className="rounded-lg p-8 border text-center">
             <p className="text-muted-foreground">No categories found.</p>
           </div>
         ) : (
           <div className="gap-4 md:grid-cols-2 xl:grid-cols-3 grid">
-            {filteredServices.map((service) => (
-              <Card key={service.id} className="p-5">
+            {categories.map((category) => (
+              <Card key={category.id} className="p-5">
                 <div className="gap-3 flex items-start justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold">{service.name}</h3>
-                    <p className="text-muted-foreground text-sm mt-1">{service.description}</p>
+                    <h3 className="text-lg font-semibold">{category.name}</h3>
+                    <p className="text-muted-foreground text-sm mt-1">{category.description}</p>
                   </div>
 
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleOpenEdit(service)}
-                    aria-label={`Edit ${service.name}`}
+                    onClick={() => handleOpenEdit(category)}
+                    aria-label={`Edit ${category.name}`}
                   >
                     Edit
                   </Button>
                 </div>
 
                 <div className="mt-5 text-sm flex items-center justify-between">
-                  <span className={getStatusClassName(service.status)}>
-                    {service.status === "active" ? "Active" : "Inactive"}
+                  <span className={getStatusClassName(category.isActive)}>
+                    {category.isActive ? "Active" : "Inactive"}
                   </span>
                 </div>
               </Card>
