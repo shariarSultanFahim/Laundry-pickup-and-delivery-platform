@@ -16,10 +16,10 @@ import { Textarea } from "@/ui/textarea";
 import { toast } from "sonner";
 
 import {
-    escalateToAdmin,
-    offerCredit,
-    offerRefund,
-    submitResponse
+  escalateToAdmin,
+  offerCredit,
+  offerRefund,
+  submitResponse
 } from "./disputes-api";
 
 interface DisputeResponseSheetProps {
@@ -59,12 +59,16 @@ export default function DisputeResponseSheet({
 
   async function handleSubmitResponse() {
     if (!response.trim()) {
-      toast.error("Please enter a response");
+      toast.error("Please enter a response", {
+        position: "top-center"
+      });
       return;
     }
 
     if (!dispute) {
-      toast.error("No dispute selected");
+      toast.error("No dispute selected", {
+        position: "top-center"
+      });
       return;
     }
 
@@ -72,15 +76,21 @@ export default function DisputeResponseSheet({
     try {
       const result = await submitResponse(dispute.id, response);
       if (result.success) {
-        toast.success(result.message);
+        toast.success(result.message, {
+          position: "top-center"
+        });
         setResponse("");
         onRefresh?.();
       } else {
-        toast.error(result.message);
+        toast.error(result.message, {
+          position: "top-center"
+        });
       }
     } catch (error) {
       console.error("Error submitting response:", error);
-      toast.error("Failed to submit response");
+      toast.error("Failed to submit response", {
+        position: "top-center"
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -88,12 +98,16 @@ export default function DisputeResponseSheet({
 
   async function handleOfferRefund() {
     if (!refundAmount || parseFloat(refundAmount) <= 0) {
-      toast.error("Please enter a valid refund amount");
+      toast.error("Please enter a valid refund amount", {
+        position: "top-center"
+      });
       return;
     }
 
     if (!dispute) {
-      toast.error("No dispute selected");
+      toast.error("No dispute selected", {
+        position: "top-center"
+      });
       return;
     }
 
@@ -101,15 +115,21 @@ export default function DisputeResponseSheet({
     try {
       const result = await offerRefund(dispute.id, parseFloat(refundAmount));
       if (result.success) {
-        toast.success(result.message);
+        toast.success(result.message, {
+          position: "top-center"
+        });
         setRefundAmount("");
         onRefresh?.();
       } else {
-        toast.error(result.message);
+        toast.error(result.message, {
+          position: "top-center"
+        });
       }
     } catch (error) {
       console.error("Error offering refund:", error);
-      toast.error("Failed to offer refund");
+      toast.error("Failed to offer refund", {
+        position: "top-center"
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -117,12 +137,16 @@ export default function DisputeResponseSheet({
 
   async function handleOfferCredit() {
     if (!creditAmount || parseFloat(creditAmount) <= 0) {
-      toast.error("Please enter a valid credit amount");
+      toast.error("Please enter a valid credit amount", {
+        position: "top-center"
+      });
       return;
     }
 
     if (!dispute) {
-      toast.error("No dispute selected");
+      toast.error("No dispute selected", {
+        position: "top-center"
+      });
       return;
     }
 
@@ -130,15 +154,21 @@ export default function DisputeResponseSheet({
     try {
       const result = await offerCredit(dispute.id, parseFloat(creditAmount));
       if (result.success) {
-        toast.success(result.message);
+        toast.success(result.message, {
+          position: "top-center"
+        });
         setCreditAmount("");
         onRefresh?.();
       } else {
-        toast.error(result.message);
+        toast.error(result.message, {
+          position: "top-center"
+        });
       }
     } catch (error) {
       console.error("Error offering credit:", error);
-      toast.error("Failed to offer credit");
+      toast.error("Failed to offer credit", {
+        position: "top-center"
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -146,12 +176,16 @@ export default function DisputeResponseSheet({
 
   async function handleEscalateToAdmin() {
     if (!escalateReason.trim()) {
-      toast.error("Please enter a reason for escalation");
+      toast.error("Please enter a reason for escalation", {
+        position: "top-center"
+      });
       return;
     }
 
     if (!dispute) {
-      toast.error("No dispute selected");
+      toast.error("No dispute selected", {
+        position: "top-center"
+      });
       return;
     }
 
@@ -159,16 +193,22 @@ export default function DisputeResponseSheet({
     try {
       const result = await escalateToAdmin(dispute.id, escalateReason);
       if (result.success) {
-        toast.success(result.message);
+        toast.success(result.message, {
+          position: "top-center"
+        });
         setEscalateReason("");
         onOpenChange(false);
         onRefresh?.();
       } else {
-        toast.error(result.message);
+        toast.error(result.message, {
+          position: "top-center"
+        });
       }
     } catch (error) {
       console.error("Error escalating dispute:", error);
-      toast.error("Failed to escalate dispute");
+      toast.error("Failed to escalate dispute", {
+        position: "top-center"
+      });
     } finally {
       setIsSubmitting(false);
     }

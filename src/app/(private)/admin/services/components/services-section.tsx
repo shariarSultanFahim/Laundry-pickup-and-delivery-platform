@@ -58,7 +58,7 @@ export default function ServicesSection() {
   const { data: categoriesResponse, isLoading, isError } = useGetCategories({
     searchTerm: searchTerm || undefined
   });
-  
+
   const { mutateAsync: createCategory, isPending: isCreating } = useCreateCategory();
   const { mutateAsync: updateCategory, isPending: isUpdating } = useUpdateCategory();
 
@@ -117,18 +117,24 @@ export default function ServicesSection() {
           description: values.description,
           isActive
         });
-        toast.success("Category updated successfully");
+        toast.success("Category updated successfully", {
+          position: "top-center"
+        });
       } else {
         await createCategory({
           name: values.name,
           description: values.description,
           isActive
         });
-        toast.success("Category created successfully");
+        toast.success("Category created successfully", {
+          position: "top-center"
+        });
       }
       handleSheetOpenChange(false);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "An error occurred");
+      toast.error(error instanceof Error ? error.message : "An error occurred", {
+        position: "top-center"
+      });
     }
   }
 
@@ -235,13 +241,13 @@ export default function ServicesSection() {
         />
 
         {isError ? (
-            <div className="rounded-lg p-8 border text-center text-destructive bg-destructive/5">
-                <p>Failed to load categories. Please try again later.</p>
-            </div>
+          <div className="rounded-lg p-8 border text-center text-destructive bg-destructive/5">
+            <p>Failed to load categories. Please try again later.</p>
+          </div>
         ) : isLoading ? (
-            <div className="rounded-lg p-8 border text-center">
-                <p className="text-muted-foreground animate-pulse">Loading categories...</p>
-            </div>
+          <div className="rounded-lg p-8 border text-center">
+            <p className="text-muted-foreground animate-pulse">Loading categories...</p>
+          </div>
         ) : categories.length === 0 ? (
           <div className="rounded-lg p-8 border text-center">
             <p className="text-muted-foreground">No categories found.</p>

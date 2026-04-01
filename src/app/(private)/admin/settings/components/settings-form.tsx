@@ -83,7 +83,9 @@ export default function SettingsForm() {
 
   async function onSubmit(data: SettingsFormData) {
     console.log("Settings form data:", data);
-    const toastId = toast.loading("Saving settings...");
+    const toastId = toast.loading("Saving settings...", {
+      position: "top-center"
+    });
     try {
       await updateSettings({
         cancellationWindowHours: data.businessRules.cancellationWindow,

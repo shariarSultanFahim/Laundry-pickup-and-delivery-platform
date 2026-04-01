@@ -8,15 +8,15 @@ import Image from "next/image";
 import { useForm, useWatch } from "react-hook-form";
 
 import {
-    Button,
-    Combobox,
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-    Input
+  Button,
+  Combobox,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Input
 } from "@/ui";
 
 import { toast } from "sonner";
@@ -114,29 +114,39 @@ export default function AddServiceForm({ onSuccess, editingService }: AddService
       if (editingService) {
         const response = await updateService(editingService.id, formData);
         if (response.success) {
-          toast.success("Service updated successfully!");
+          toast.success("Service updated successfully!", {
+            position: "top-center"
+          });
           form.reset();
           form.setValue("bannerImage", null);
           form.setValue("bannerImageFile", null);
           onSuccess?.();
         } else {
-          toast.error(response.message || "Failed to update service");
+          toast.error(response.message || "Failed to update service", {
+            position: "top-center"
+          });
         }
       } else {
         const response = await createService(formData);
         if (response.success) {
-          toast.success("Service added successfully!");
+          toast.success("Service added successfully!", {
+            position: "top-center"
+          });
           form.reset();
           form.setValue("bannerImage", null);
           form.setValue("bannerImageFile", null);
           onSuccess?.();
         } else {
-          toast.error(response.message || "Failed to add service");
+          toast.error(response.message || "Failed to add service", {
+            position: "top-center"
+          });
         }
       }
     } catch (error) {
       console.error("Error submitting service:", error);
-      toast.error(`An error occurred while ${editingService ? "updating" : "adding"} the service`);
+      toast.error(`An error occurred while ${editingService ? "updating" : "adding"} the service`, {
+        position: "top-center"
+      });
     }
   }
 

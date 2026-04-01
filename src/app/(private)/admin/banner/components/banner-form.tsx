@@ -92,28 +92,34 @@ export default function BannerForm({ onSuccess }: BannerFormProps) {
     async (data: BannerFormData) => {
       try {
         if (!data.imageFile) {
-          toast.error("An image file is required");
+          toast.error("An image file is required", {
+            position: "top-center"
+          });
           return;
         }
 
         await createBanner({
-            title: data.title,
-            description: data.description,
-            buttonText: data.buttonText,
-            bannerType: data.bannerType.toUpperCase(),
-            backgroundColor: data.backgroundColor,
-            textColor: data.textColor,
-            isActive: data.isActive,
-            image: data.imageFile,
+          title: data.title,
+          description: data.description,
+          buttonText: data.buttonText,
+          bannerType: data.bannerType.toUpperCase(),
+          backgroundColor: data.backgroundColor,
+          textColor: data.textColor,
+          isActive: data.isActive,
+          image: data.imageFile,
         });
 
-        toast.success("Banner created successfully");
+        toast.success("Banner created successfully", {
+          position: "top-center"
+        });
 
         form.reset();
         setImagePreview("");
         onSuccess?.();
       } catch (error) {
-          toast.error(error instanceof Error ? error.message : "Failed to create banner");
+        toast.error(error instanceof Error ? error.message : "Failed to create banner", {
+          position: "top-center"
+        });
       }
     },
     [form, onSuccess, createBanner]

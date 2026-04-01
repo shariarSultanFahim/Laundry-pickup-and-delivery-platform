@@ -76,25 +76,35 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
       if (editingBundle) {
         const response = await updateBundle(editingBundle.id, values);
         if (response.success) {
-          toast.success("Bundle updated successfully!");
+          toast.success("Bundle updated successfully!", {
+            position: "top-center"
+          });
           form.reset();
           onSuccess?.();
         } else {
-          toast.error(response.message || "Failed to update bundle");
+          toast.error(response.message || "Failed to update bundle", {
+            position: "top-center"
+          });
         }
       } else {
         const response = await createBundle(values);
         if (response.success) {
-          toast.success("Bundle created successfully!");
+          toast.success("Bundle created successfully!", {
+            position: "top-center"
+          });
           form.reset();
           onSuccess?.();
         } else {
-          toast.error(response.message || "Failed to create bundle");
+          toast.error(response.message || "Failed to create bundle", {
+            position: "top-center"
+          });
         }
       }
     } catch (error) {
       console.error("Error submitting bundle:", error);
-      toast.error(`An error occurred while ${editingBundle ? "updating" : "creating"} the bundle`);
+      toast.error(`An error occurred while ${editingBundle ? "updating" : "creating"} the bundle`, {
+        position: "top-center"
+      });
     }
   }
 

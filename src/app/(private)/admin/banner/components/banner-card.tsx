@@ -34,19 +34,27 @@ export default function BannerCard({ banner }: BannerCardProps) {
   async function handleStatusChange(isActive: boolean) {
     try {
       await updateBanner({ id: banner.id, isActive });
-      toast.success("Banner status updated");
+      toast.success("Banner status updated", {
+        position: "top-center"
+      });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to update banner status");
+      toast.error(error instanceof Error ? error.message : "Failed to update banner status", {
+        position: "top-center"
+      });
     }
   }
 
   async function confirmDelete() {
     try {
       await deleteBanner(banner.id);
-      toast.success("Banner deleted successfully");
+      toast.success("Banner deleted successfully", {
+        position: "top-center"
+      });
       setShowDeleteDialog(false);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete banner");
+      toast.error(error instanceof Error ? error.message : "Failed to delete banner", {
+        position: "top-center"
+      });
     }
   }
 

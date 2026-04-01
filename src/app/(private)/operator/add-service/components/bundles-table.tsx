@@ -26,6 +26,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/ui/sheet";
 import { Switch } from "@/ui/switch";
 
 import { deleteBundle, fetchBundles, toggleBundleStatus } from "./bundle-api";
+import DeleteConfirmationModal from "@/components/modals/delete-confirmation-modal";
 
 interface BundlesTableProps {
   onRefresh?: () => void;
@@ -35,10 +36,13 @@ interface BundlesTableProps {
 export default function BundlesTable({ onRefresh, onEdit }: BundlesTableProps) {
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [selectedBundle, setSelectedBundle] = useState<Bundle | null>(null);
   const [previewSheetOpen, setPreviewSheetOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [bundleToDelete, setBundleToDelete] = useState<Bundle | null>(null);
 
   useEffect(() => {
     loadBundles();
@@ -78,26 +82,34 @@ export default function BundlesTable({ onRefresh, onEdit }: BundlesTableProps) {
     }
   }
 
-  async function handleDelete(bundleId: string) {
-    if (!confirm("Are you sure you want to delete this bundle?")) {
-      return;
-    }
+  function handleDeleteClick(bundle: Bundle) {
+    setBundleToDelete(bundle);
+    setDeleteModalOpen(true);
+  }
+
+  async function handleConfirmDelete() {
+    if (!bundleToDelete) return;
 
     try {
-      const response = await deleteBundle(bundleId);
+      setIsDeleting(true);
+      const response = await deleteBundle(bundleToDelete.id);
 
       if (response.success) {
-        setBundles((prev) => prev.filter((b) => b.id !== bundleId));
-        toast.success("Bundle deleted successfully");
+        setBundles((prev) => prev.filter((b) => b.id !== bundleToDelete.id));
+        toast.success("Bundle deleted successfully", { position: "top-center" });
         setPreviewSheetOpen(false);
         setSelectedBundle(null);
         onRefresh?.();
+        setDeleteModalOpen(false);
       } else {
         toast.error(response.message || "Failed to delete bundle");
       }
     } catch (error) {
       console.error("Error deleting bundle:", error);
       toast.error("An error occurred while deleting the bundle");
+    } finally {
+      setIsDeleting(false);
+      setBundleToDelete(null);
     }
   }
 
@@ -197,7 +209,7 @@ export default function BundlesTable({ onRefresh, onEdit }: BundlesTableProps) {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleDelete(bundle.id)}
+                            onClick={() => handleDeleteClick(bundle)}
                             title="Delete bundle"
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
@@ -277,7 +289,7 @@ export default function BundlesTable({ onRefresh, onEdit }: BundlesTableProps) {
                 <Button
                   variant="destructive"
                   className="flex-1"
-                  onClick={() => handleDelete(selectedBundle.id)}
+                  onClick={() => handleDeleteClick(selectedBundle)}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete
@@ -287,6 +299,15 @@ export default function BundlesTable({ onRefresh, onEdit }: BundlesTableProps) {
           )}
         </SheetContent>
       </Sheet>
+
+      <DeleteConfirmationModal
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
+        title="Delete Bundle"
+        description={`Are you sure you want to delete the bundle "${bundleToDelete?.name}"? This action cannot be undone.`}
+      />
     </>
   );
 }

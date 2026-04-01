@@ -13,6 +13,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/ui
 import AddServiceForm from "./add-service-form";
 import BundleManagementContent from "./bundle-management-content";
 import ServicesTable from "./services-table";
+import AddOnServicesSection from "./add-on-services-section";
 
 export default function AddServiceContent() {
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -70,6 +71,7 @@ export default function AddServiceContent() {
           onEdit={handleEdit}
           onRefresh={() => setRefreshTrigger((prev) => prev + 1)}
         />
+        <AddOnServicesSection />
         <BundleManagementContent />
       </div>
     </div>
