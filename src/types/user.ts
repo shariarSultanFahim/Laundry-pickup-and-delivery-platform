@@ -25,7 +25,7 @@ export interface UserProfile {
   role: string;
   status: string;
   isVerified: boolean;
-  avatar?: string | null;
+  avatar: string | null;
   userAddresses: any[];
   orders: any[];
   reviews: any[];

@@ -40,6 +40,7 @@ import {
   SidebarRail
 } from "@/components/ui/sidebar";
 import { useLogout } from "@/hooks/use-logout";
+import { useGetMe } from "@/lib/actions/user/use-get-me";
 
 const data = {
   info: {
@@ -138,6 +139,7 @@ const data = {
 export function AdminAppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const { logout } = useLogout();
+  const { data: user } = useGetMe();
 
   const isItemActive = (itemUrl: string) => {
     if (itemUrl === "/admin") {
@@ -195,19 +197,19 @@ export function AdminAppSidebar({ ...props }: React.ComponentProps<typeof Sideba
           <SidebarMenuItem className="space-y-5">
             <div className="gap-4 hidden flex-col group-data-[collapsible=icon]:flex">
               <Avatar size="lg" className="h-8 w-8">
-                <AvatarImage src="https://media.licdn.com/dms/image/v2/D5603AQF8VWtOZX4cyA/profile-displayphoto-crop_800_800/B56ZoGTUgUJ4AM-/0/1761042323122?e=1773878400&v=beta&t=vPGLXeorVP2ikZACdWsBZN_u_Me7DlXjQSTTBWtG6tY" />
-                <AvatarFallback>SF</AvatarFallback>
+                <AvatarImage src={user?.data?.avatar || ""} />
+                <AvatarFallback>{user?.data?.name.slice(0, 2).toUpperCase()}</AvatarFallback>
               </Avatar>
             </div>
             <div className="group-data-[collapsible=icon]:hidden">
               <div className="gap-4 flex items-center justify-start">
                 <Avatar size="lg">
-                  <AvatarImage src="https://media.licdn.com/dms/image/v2/D5603AQF8VWtOZX4cyA/profile-displayphoto-crop_800_800/B56ZoGTUgUJ4AM-/0/1761042323122?e=1773878400&v=beta&t=vPGLXeorVP2ikZACdWsBZN_u_Me7DlXjQSTTBWtG6tY" />
-                  <AvatarFallback>SF</AvatarFallback>
+                  <AvatarImage src={user?.data?.avatar || ""} />
+                  <AvatarFallback>{user?.data?.name.slice(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <h2 className="font-semibold">Shariar Fahim</h2>
-                  <h3 className="text-sm text-gray-500">Super Administrator</h3>
+                  <h2 className="font-semibold">{user?.data?.name}</h2>
+                  <h3 className="text-sm text-gray-500">{user?.data?.role}</h3>
                 </div>
               </div>
             </div>
