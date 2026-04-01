@@ -52,3 +52,68 @@ export interface UpdateProfileResponse {
   message: string;
   data: UserProfile;
 }
+
+// ── Admin Users Management ────────────────────────────────────────────────────
+
+export enum UserStatus {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+  SUSPENDED = "SUSPENDED",
+  BANNED = "BANNED"
+}
+
+export interface UserAddress {
+  id: string;
+  userId: string;
+  address: string;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  postalCode: string | null;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminUserListItem {
+  id: string;
+  userID: number;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  avatar: string | null;
+  status: UserStatus;
+  isVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+  userAddresses: UserAddress[];
+  paymentCards: any[];
+  _count: {
+    orders: number;
+    reviews: number;
+  };
+  totalPaymentAmount: number;
+  totalOrders: number;
+  averageOrderValue: number;
+}
+
+export interface GetUsersResponse {
+  success: boolean;
+  message: string;
+  data: {
+    meta: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPage: number;
+    };
+    data: AdminUserListItem[];
+  };
+}
+
+export interface GetUserByIdResponse {
+  success: boolean;
+  message: string;
+  data: AdminUserListItem;
+}

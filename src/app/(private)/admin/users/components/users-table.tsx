@@ -1,149 +1,97 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { Filter, Search } from "lucide-react";
 
-import { Filter, Pencil, Search } from "lucide-react";
-
-import type { UserFilters, UserManagementUser } from "@/types/user-management";
+import { UserStatus, AdminUserListItem } from "@/types/user";
+import { useGetUsers, UsersQueryParams } from "@/lib/actions/user/use-get-users";
+import { useUpdateUserStatus } from "@/lib/actions/user/use-update-user-status";
 
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Input } from "@/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
-import { Textarea } from "@/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
+import { DataValue } from "@/ui/data-value";
 
-import DateRangePicker from "./date-range-picker";
 import UserDetailsSheet from "./user-details-sheet";
-import { fetchUsers } from "./users-api";
-import UsersFilterSheet from "./users-filter-sheet";
+import UsersFilterSheet, { UsersFilterParams } from "./users-filter-sheet";
 
 const PAGE_SIZE = 5;
 
-function getStatusVariant(status: UserManagementUser["status"]) {
-  if (status === "active") {
-    return "default";
-  }
-
-  if (status === "inactive") {
-    return "secondary";
-  }
-
+function getStatusVariant(status: UserStatus) {
+  if (status === UserStatus.ACTIVE) return "default";
+  if (status === UserStatus.INACTIVE) return "secondary";
   return "destructive";
 }
 
 export default function UsersTable() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [filters, setFilters] = useState<UserFilters>({});
+  const [filters, setFilters] = useState<UsersFilterParams>({});
   const [page, setPage] = useState(1);
-  const [rows, setRows] = useState<UserManagementUser[]>([]);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
+
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
-  const [editingUserStatus, setEditingUserStatus] =
-    useState<UserManagementUser["status"]>("active");
-  const [editingUserNote, setEditingUserNote] = useState("");
+  const [editingUserStatus, setEditingUserStatus] = useState<UserStatus>(UserStatus.ACTIVE);
+
   const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<UserManagementUser | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       setDebouncedSearch(search);
       setPage(1);
     }, 350);
-
     return () => clearTimeout(timeout);
   }, [search]);
 
-  useEffect(() => {
-    let isMounted = true;
+  const queryParams: UsersQueryParams = {
+    page,
+    limit: PAGE_SIZE,
+    searchTerm: debouncedSearch,
+    ...filters
+  };
 
-    async function loadUsers() {
-      setIsLoading(true);
-      const response = await fetchUsers({
-        page,
-        pageSize: PAGE_SIZE,
-        search: debouncedSearch,
-        filters
-      });
+  const { data, isLoading } = useGetUsers(queryParams);
+  const { mutate: updateStatus, isPending: isUpdating } = useUpdateUserStatus();
 
-      if (!isMounted) {
-        return;
-      }
+  const users = data?.data || [];
+  const meta = data?.meta || { total: 0, totalPage: 1 };
 
-      setRows(response.items);
-      setTotal(response.total);
-      setTotalPages(response.totalPages);
-      setIsLoading(false);
-    }
+  const rangeStart = meta.total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(page * PAGE_SIZE, meta.total);
 
-    void loadUsers();
+  const paginationNumbers = Array.from({ length: meta.totalPage }, (_, index) => index + 1);
 
-    return () => {
-      isMounted = false;
-    };
-  }, [debouncedSearch, page, filters]);
-
-  const paginationNumbers = useMemo(() => {
-    return Array.from({ length: totalPages }, (_, index) => index + 1);
-  }, [totalPages]);
-
-  const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const rangeEnd = Math.min(page * PAGE_SIZE, total);
-
-  function handleStatusChange(userId: string, newStatus: UserManagementUser["status"]) {
-    setRows((prev) =>
-      prev.map((user) => (user.id === userId ? { ...user, status: newStatus } : user))
-    );
-  }
-
-  function handleEditClick(user: UserManagementUser) {
+  function handleEditClick(user: AdminUserListItem) {
     setEditingUserId(user.id);
     setEditingUserStatus(user.status);
-    setEditingUserNote("");
     setEditSheetOpen(true);
   }
 
   function handleEditSheetClose() {
     setEditSheetOpen(false);
     setEditingUserId(null);
-    setEditingUserStatus("active");
-    setEditingUserNote("");
+    setEditingUserStatus(UserStatus.ACTIVE);
   }
 
   function handleEditSheetSave() {
     if (editingUserId) {
-      handleStatusChange(editingUserId, editingUserStatus);
-      handleEditSheetClose();
+      updateStatus({ id: editingUserId, status: editingUserStatus }, {
+        onSuccess: () => {
+          handleEditSheetClose();
+        }
+      });
     }
   }
 
-  function handleRowClick(user: UserManagementUser) {
-    setSelectedUser(user);
+  function handleRowClick(user: AdminUserListItem) {
+    setSelectedUserId(user.id);
     setDetailsSheetOpen(true);
-  }
-
-  function handleApplyDateRange(from: Date, to?: Date) {
-    setFilters((prev) => ({
-      ...prev,
-      dateRange: { from, to }
-    }));
-    setPage(1);
-  }
-
-  function handleClearDateRange() {
-    setFilters((prev) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { dateRange, ...rest } = prev;
-      return rest;
-    });
-    setPage(1);
   }
 
   return (
@@ -153,14 +101,6 @@ export default function UsersTable() {
           <CardTitle>Users Table</CardTitle>
 
           <div className="gap-2 flex items-center">
-            <div className="md:w-80">
-              <DateRangePicker
-                from={filters.dateRange?.from}
-                to={filters.dateRange?.to}
-                onApply={handleApplyDateRange}
-                onClear={handleClearDateRange}
-              />
-            </div>
             <div className="md:w-72 relative w-full">
               <Search className="left-3 h-4 w-4 text-muted-foreground absolute top-1/2 -translate-y-1/2" />
               <Input
@@ -191,66 +131,47 @@ export default function UsersTable() {
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Total Orders</TableHead>
-              <TableHead>Total Spent</TableHead>
-              <TableHead>AOV</TableHead>
+              <TableHead className="text-center">Status</TableHead>
+              <TableHead className="text-center">Total Orders</TableHead>
+              <TableHead className="text-center">Total Spent</TableHead>
+              <TableHead className="text-center">AOV</TableHead>
               <TableHead>Joined At</TableHead>
-              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={11} className="h-24 text-muted-foreground text-center">
+                <TableCell colSpan={10} className="h-24 text-muted-foreground text-center">
                   Loading users...
                 </TableCell>
               </TableRow>
-            ) : rows.length === 0 ? (
+            ) : users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} className="h-24 text-muted-foreground text-center">
+                <TableCell colSpan={10} className="h-24 text-muted-foreground text-center">
                   No users found.
                 </TableCell>
               </TableRow>
             ) : (
-              rows.map((user) => (
+              users.map((user) => (
                 <TableRow
                   key={user.id}
                   className="hover:bg-muted/50 cursor-pointer"
                   onClick={() => handleRowClick(user)}
                 >
-                  <TableCell>{user.id}</TableCell>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.phone}</TableCell>
-                  <TableCell className="capitalize">{user.role}</TableCell>
-                  <TableCell>
+                  <TableCell><DataValue value={user.userID} /></TableCell>
+                  <TableCell><DataValue value={user.name} /></TableCell>
+                  <TableCell><DataValue value={user.email} /></TableCell>
+                  <TableCell><DataValue value={user.phone} /></TableCell>
+                  <TableCell className="capitalize"><DataValue value={user.role} /></TableCell>
+                  <TableCell className="text-center">
                     <Badge variant={getStatusVariant(user.status)} className="capitalize">
-                      {user.status}
+                      {user.status || "UNKNOWN"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{user.totalOrders}</TableCell>
-                  <TableCell>${user.totalSpent.toLocaleString()}</TableCell>
-                  <TableCell>
-                    $
-                    {user.totalOrders > 0
-                      ? (user.totalSpent / user.totalOrders).toFixed(2)
-                      : "0.00"}
-                  </TableCell>
-                  <TableCell>{user.joinedAt}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Edit user"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditClick(user);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+                  <TableCell className="text-center"><DataValue value={user.totalOrders} /></TableCell>
+                  <TableCell className="text-center"><DataValue value={user.totalPaymentAmount ? `$${user.totalPaymentAmount.toLocaleString()}` : null} /></TableCell>
+                  <TableCell className="text-center"><DataValue value={user.averageOrderValue ? `$${user.averageOrderValue.toFixed(2)}` : null} /></TableCell>
+                  <TableCell><DataValue value={new Date(user.createdAt).toLocaleDateString()} /></TableCell>
                 </TableRow>
               ))
             )}
@@ -259,7 +180,7 @@ export default function UsersTable() {
 
         <div className="gap-3 pt-4 text-sm md:flex-row md:items-center md:justify-between flex flex-col border-t">
           <p className="text-muted-foreground">
-            Showing {rangeStart}-{rangeEnd} of {total} users
+            Showing {rangeStart}-{rangeEnd} of {meta.total} users
           </p>
 
           <div className="gap-2 flex items-center">
@@ -287,8 +208,8 @@ export default function UsersTable() {
             <Button
               variant="outline"
               size="sm"
-              disabled={page >= totalPages || isLoading}
-              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={page >= meta.totalPage || isLoading}
+              onClick={() => setPage((prev) => Math.min(prev + 1, meta.totalPage))}
             >
               Next
             </Button>
@@ -299,6 +220,7 @@ export default function UsersTable() {
       <UsersFilterSheet
         open={filterSheetOpen}
         onOpenChange={setFilterSheetOpen}
+        initialFilters={filters}
         onApplyFilters={(appliedFilters) => {
           setFilters(appliedFilters);
           setPage(1);
@@ -309,6 +231,18 @@ export default function UsersTable() {
         }}
       />
 
+      <UserDetailsSheet
+        open={detailsSheetOpen}
+        onOpenChange={setDetailsSheetOpen}
+        userId={selectedUserId}
+        onStatusChangeRequest={(userId, currentStatus) => {
+          setEditingUserId(userId);
+          setEditingUserStatus(currentStatus);
+          setEditSheetOpen(true);
+        }}
+      />
+
+      {/* Edit Status Modal (Called from Details Sidebar or Table optionally) */}
       <Sheet open={editSheetOpen} onOpenChange={handleEditSheetClose}>
         <SheetContent className="p-4">
           <SheetHeader className="p-0">
@@ -320,40 +254,25 @@ export default function UsersTable() {
               <Select
                 value={editingUserStatus}
                 onValueChange={(value) =>
-                  setEditingUserStatus(value as UserManagementUser["status"])
+                  setEditingUserStatus(value as UserStatus)
                 }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="suspended">Suspended</SelectItem>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="INACTIVE">Inactive</SelectItem>
+                  <SelectItem value="SUSPENDED">Suspended</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="gap-2 flex flex-col">
-              <label className="text-sm font-medium">Note</label>
-              <Textarea
-                placeholder="Add a note..."
-                value={editingUserNote}
-                className="border-border"
-                onChange={(event) => setEditingUserNote(event.target.value)}
-              />
-            </div>
-            <Button onClick={handleEditSheetSave} className="mt-4 w-full">
-              Save Changes
+            <Button onClick={handleEditSheetSave} disabled={isUpdating} className="mt-4 w-full">
+              {isUpdating ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </SheetContent>
       </Sheet>
-
-      <UserDetailsSheet
-        open={detailsSheetOpen}
-        onOpenChange={setDetailsSheetOpen}
-        user={selectedUser}
-      />
     </Card>
   );
 }
