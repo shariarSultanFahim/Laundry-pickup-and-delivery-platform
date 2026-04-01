@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import Image from "next/image";
+import { toast } from "sonner";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -24,15 +25,16 @@ import { Switch } from "@/ui/switch";
 
 import { bannerTypeConfig } from "../data/banner";
 import { bannerSchema, type BannerFormData } from "../schema/banner.schema";
-import { createBanner } from "./banner-api";
+import { useCreateBanner } from "@/lib/actions/banner/create.banner";
 
 interface BannerFormProps {
-  onSuccess?: (data: BannerFormData) => void;
+  onSuccess?: () => void;
 }
 
 export default function BannerForm({ onSuccess }: BannerFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
+  const { mutateAsync: createBanner, isPending } = useCreateBanner();
 
   const form = useForm<BannerFormData>({
     resolver: zodResolver(bannerSchema),
@@ -46,8 +48,6 @@ export default function BannerForm({ onSuccess }: BannerFormProps) {
       isActive: true
     } as Partial<BannerFormData>
   });
-
-  //   const bannerType = useWatch({ control: form.control, name: "bannerType" });
 
   function handleImageClick() {
     fileInputRef.current?.click();
@@ -90,12 +90,33 @@ export default function BannerForm({ onSuccess }: BannerFormProps) {
 
   const handleSubmit = useCallback(
     async (data: BannerFormData) => {
-      await createBanner(data);
-      form.reset();
-      setImagePreview("");
-      onSuccess?.(data);
+      try {
+        if (!data.imageFile) {
+          toast.error("An image file is required");
+          return;
+        }
+
+        await createBanner({
+            title: data.title,
+            description: data.description,
+            buttonText: data.buttonText,
+            bannerType: data.bannerType.toUpperCase(),
+            backgroundColor: data.backgroundColor,
+            textColor: data.textColor,
+            isActive: data.isActive,
+            image: data.imageFile,
+        });
+
+        toast.success("Banner created successfully");
+
+        form.reset();
+        setImagePreview("");
+        onSuccess?.();
+      } catch (error) {
+          toast.error(error instanceof Error ? error.message : "Failed to create banner");
+      }
     },
-    [form, onSuccess]
+    [form, onSuccess, createBanner]
   );
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -297,8 +318,8 @@ export default function BannerForm({ onSuccess }: BannerFormProps) {
         />
 
         <div className="gap-3 flex">
-          <Button type="submit" disabled={form.formState.isSubmitting} className="">
-            {form.formState.isSubmitting ? "Creating..." : "Create Banner"}
+          <Button type="submit" disabled={isPending} className="">
+            {isPending ? "Creating..." : "Create Banner"}
           </Button>
           <Button type="reset" variant="outline">
             Clear

@@ -1,33 +1,13 @@
 "use client";
 
-import { useState } from "react";
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
-
-import { defaultBanners, type Banner } from "../data/banner";
 import BannerCard from "./banner-card";
+import { useGetBanners } from "@/lib/actions/banner/get.banners";
 
-interface BannersListProps {
-  onRefresh?: () => void;
-}
+export default function BannersList() {
+  const { data: bannersResponse, isLoading, isError } = useGetBanners();
 
-export default function BannersList({ onRefresh }: BannersListProps) {
-  const [banners, setBanners] = useState<Banner[]>(defaultBanners);
-
-  function handleStatusChange(bannerId: string) {
-    setBanners((prev) =>
-      prev.map((banner) =>
-        banner.id === bannerId ? { ...banner, isActive: !banner.isActive } : banner
-      )
-    );
-    onRefresh?.();
-  }
-
-  function handleDelete(bannerId: string) {
-    setBanners((prev) => prev.filter((banner) => banner.id !== bannerId));
-    onRefresh?.();
-  }
-
+  const banners = bannersResponse?.data ?? [];
   const activeBannersCount = banners.filter((b) => b.isActive).length;
 
   return (
@@ -43,7 +23,15 @@ export default function BannersList({ onRefresh }: BannersListProps) {
         </div>
       </CardHeader>
       <CardContent>
-        {banners.length === 0 ? (
+        {isError ? (
+           <div className="rounded-lg border-border bg-destructive/5 p-12 text-center text-destructive">
+             <p>Failed to load banners. Please try again later.</p>
+           </div>
+        ) : isLoading ? (
+           <div className="rounded-lg border-border bg-muted/30 p-12 text-center">
+              <p className="text-muted-foreground animate-pulse">Loading banners...</p>
+           </div>
+        ) : banners.length === 0 ? (
           <div className="rounded-lg border-border bg-muted/30 p-12 border border-dashed text-center">
             <p className="text-muted-foreground">
               No banners yet. Create your first banner to get started.
@@ -55,8 +43,6 @@ export default function BannersList({ onRefresh }: BannersListProps) {
               <BannerCard
                 key={banner.id}
                 banner={banner}
-                onStatusChange={() => handleStatusChange(banner.id)}
-                onDelete={() => handleDelete(banner.id)}
               />
             ))}
           </div>
@@ -65,3 +51,4 @@ export default function BannersList({ onRefresh }: BannersListProps) {
     </Card>
   );
 }
+
