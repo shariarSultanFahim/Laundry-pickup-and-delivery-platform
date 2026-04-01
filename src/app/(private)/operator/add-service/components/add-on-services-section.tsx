@@ -225,7 +225,7 @@ export default function AddOnServicesSection() {
             <div className="gap-2 flex flex-col items-start justify-center">
               <h1 className="text-2xl font-bold">Add-On Services</h1>
               <p className="text-sm text-muted-foreground">
-                Manage optional add-on services for each category
+                Create and manage optional add-on services
               </p>
             </div>
             <SheetTrigger asChild>

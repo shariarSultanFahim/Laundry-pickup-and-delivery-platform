@@ -44,8 +44,8 @@ export default function AddServiceContent() {
         <Sheet open={sheetOpen} onOpenChange={handleSheetOpenChange}>
           <Card className="p-6 gap-2 w-full flex-row items-center justify-between">
             <div className="gap-2 flex flex-col items-start justify-center">
-              <h1 className="text-2xl font-bold">Add Service</h1>
-              <p className="text-sm text-muted-foreground">Add new services to your offerings</p>
+              <h1 className="text-2xl font-bold">Service</h1>
+              <p className="text-sm text-muted-foreground">Add and manage services</p>
             </div>
             <SheetTrigger asChild>
               <Button onClick={() => setEditingService(null)}>
