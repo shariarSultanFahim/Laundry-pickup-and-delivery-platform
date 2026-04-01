@@ -14,8 +14,8 @@ import { Input } from "@/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
+import { CustomPagination } from "@/components/ui/custom-pagination";
 import { DataValue } from "@/ui/data-value";
-
 import UserDetailsSheet from "./user-details-sheet";
 import UsersFilterSheet, { UsersFilterParams } from "./users-filter-sheet";
 
@@ -163,7 +163,7 @@ export default function UsersTable() {
                   <TableCell><DataValue value={user.name} /></TableCell>
                   <TableCell><DataValue value={user.email} /></TableCell>
                   <TableCell><DataValue value={user.phone} /></TableCell>
-                  <TableCell className="capitalize"><DataValue value={user.role} /></TableCell>
+                  <TableCell className="capitalize py-4"><DataValue value={user.role} /></TableCell>
                   <TableCell className="text-center">
                     <Badge variant={getStatusVariant(user.status)} className="capitalize">
                       {user.status || "UNKNOWN"}
@@ -187,37 +187,12 @@ export default function UsersTable() {
             Showing {rangeStart}-{rangeEnd} of {meta.total} users
           </p>
 
-          <div className="gap-2 flex items-center">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1 || isLoading}
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-            >
-              Previous
-            </Button>
-
-            {paginationNumbers.map((pageNumber) => (
-              <Button
-                key={pageNumber}
-                variant={pageNumber === page ? "default" : "outline"}
-                size="sm"
-                disabled={isLoading}
-                onClick={() => setPage(pageNumber)}
-              >
-                {pageNumber}
-              </Button>
-            ))}
-
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= meta.totalPage || isLoading}
-              onClick={() => setPage((prev) => Math.min(prev + 1, meta.totalPage))}
-            >
-              Next
-            </Button>
-          </div>
+          <CustomPagination
+            page={page}
+            totalPage={meta.totalPage}
+            isLoading={isLoading}
+            setPage={setPage}
+          />
         </div>
       </CardContent>
 
