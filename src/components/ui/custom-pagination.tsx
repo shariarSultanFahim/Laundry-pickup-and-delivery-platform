@@ -29,7 +29,7 @@ export function CustomPagination({
   setPage,
 }: CustomPaginationProps) {
   return (
-    <div className="gap-2 flex items-center w-auto bg-red-500 justify-center sm:justify-end">
+    <div className="gap-2 flex items-center w-auto justify-center sm:justify-end">
       <Pagination>
         <PaginationContent>
           <PaginationItem>

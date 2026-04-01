@@ -67,7 +67,7 @@ export const buildAuthSessionFromLoginResponse = (data: LoginResponse): AuthSess
   }
 
   const role = normalizeAuthRole(data.data?.user?.role) ?? extractRoleFromToken(accessToken);
-  if (!role) throw new Error("Unable to detect user role from login response.");
+  if (!role) throw new Error("You don't have permission to access this page.");
 
   return { accessToken, refreshToken, role };
 };
