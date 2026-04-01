@@ -16,7 +16,7 @@ import {
   FormLabel,
   FormMessage
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Input, PasswordInput } from "@/components/ui";
 
 import { useResetPassword } from "@/lib/actions/auth/reset-password";
 
@@ -87,9 +87,8 @@ export default function ResetPasswordForm() {
                 <FormItem>
                   <FormLabel className="text-sm text-foreground">New Password</FormLabel>
                   <FormControl>
-                    <Input
+                    <PasswordInput
                       placeholder="At least 8 characters"
-                      type="password"
                       disabled={isPending}
                       className="border-border"
                       {...field}
@@ -107,9 +106,8 @@ export default function ResetPasswordForm() {
                 <FormItem>
                   <FormLabel className="text-sm text-foreground">Confirm Password</FormLabel>
                   <FormControl>
-                    <Input
+                    <PasswordInput
                       placeholder="Confirm your new password"
-                      type="password"
                       disabled={isPending}
                       className="border-border"
                       {...field}

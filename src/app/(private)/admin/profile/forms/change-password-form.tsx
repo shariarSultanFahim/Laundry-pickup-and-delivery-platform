@@ -18,7 +18,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  Input
+  PasswordInput
 } from "@/ui";
 
 import { useChangePassword } from "@/lib/actions/auth/change-password";
@@ -75,7 +75,7 @@ export default function ChangePasswordForm() {
                 <FormItem>
                   <FormLabel>Current Password</FormLabel>
                   <FormControl>
-                    <Input disabled={isPending} type="password" placeholder="Enter current password" {...field} />
+                    <PasswordInput disabled={isPending} placeholder="Enter current password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -89,7 +89,7 @@ export default function ChangePasswordForm() {
                 <FormItem>
                   <FormLabel>New Password</FormLabel>
                   <FormControl>
-                    <Input disabled={isPending} type="password" placeholder="Enter new password" {...field} />
+                    <PasswordInput disabled={isPending} placeholder="Enter new password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -103,7 +103,7 @@ export default function ChangePasswordForm() {
                 <FormItem>
                   <FormLabel>Confirm New Password</FormLabel>
                   <FormControl>
-                    <Input disabled={isPending} type="password" placeholder="Confirm new password" {...field} />
+                    <PasswordInput disabled={isPending} placeholder="Confirm new password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

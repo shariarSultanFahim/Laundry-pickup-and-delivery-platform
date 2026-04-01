@@ -19,7 +19,7 @@ import {
   FormLabel,
   FormMessage
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Input, PasswordInput } from "@/components/ui";
 
 import { AUTH_SESSION_COOKIE, ROLE_HOME_PATHS } from "@/constants/auth";
 import { buildSessionFromLoginResponse, useLogin } from "@/lib/actions/auth/login";
@@ -100,9 +100,8 @@ export default function LoginForm() {
                 <FormItem>
                   <FormLabel className="text-sm text-foreground">Password</FormLabel>
                   <FormControl>
-                    <Input
+                    <PasswordInput
                       placeholder="••••••••"
-                      type="password"
                       disabled={isPending}
                       {...field}
                       className="border-border"
