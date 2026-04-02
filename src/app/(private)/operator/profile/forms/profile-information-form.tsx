@@ -1,11 +1,12 @@
 "use client";
 
-import { useRef, type ChangeEvent } from "react";
+import { useRef, useEffect, type ChangeEvent } from "react";
 
 import { Camera, Save } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 
+import { useGetOperatorMe } from "@/lib/actions/user/get.operator-me";
 import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Button,
@@ -23,7 +24,6 @@ import {
 } from "@/ui";
 
 import { updateProfileInformation } from "../components/profile-api";
-import { profileInformationDefaultValues } from "../data/profile";
 import {
   profileInformationSchema,
   type ProfileInformationFormData
@@ -31,11 +31,35 @@ import {
 
 export default function ProfileInformationForm() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { data: operatorMe } = useGetOperatorMe();
+
+  const user = operatorMe?.data;
 
   const form = useForm<ProfileInformationFormData>({
     resolver: zodResolver(profileInformationSchema),
-    defaultValues: profileInformationDefaultValues
+    defaultValues: {
+      fullName: user?.name || "",
+      email: user?.email || "",
+      phoneNumber: user?.phone || "",
+      jobTitle: "Operator",
+      avatarUrl: user?.avatar || "",
+      avatarFile: null
+    }
   });
+
+  // Re-sync form with data once loaded
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        fullName: user.name || "",
+        email: user.email || "",
+        phoneNumber: user.phone || "",
+        jobTitle: "Operator",
+        avatarUrl: user.avatar || "",
+        avatarFile: null
+      });
+    }
+  }, [user, form]);
 
   const avatarUrl = useWatch({ control: form.control, name: "avatarUrl" });
   const fullName = useWatch({ control: form.control, name: "fullName" });
@@ -104,13 +128,13 @@ export default function ProfileInformationForm() {
               >
                 <Avatar size="xl" className="cursor-pointer rounded-none">
                   <AvatarImage src={avatarUrl} alt={fullName} className="rounded-full" />
-                  <AvatarFallback>JM</AvatarFallback>
+                  <AvatarFallback>{fullName?.slice(0, 2).toUpperCase() || "OP"}</AvatarFallback>
                   <AvatarBadge className="size-9">
                     <Camera className="size-5" />
                   </AvatarBadge>
                 </Avatar>
               </button>
-
+ 
               <input
                 ref={fileInputRef}
                 type="file"
@@ -118,7 +142,7 @@ export default function ProfileInformationForm() {
                 className="hidden"
                 onChange={handleAvatarChange}
               />
-
+ 
               <FormField
                 control={form.control}
                 name="avatarFile"
@@ -129,7 +153,7 @@ export default function ProfileInformationForm() {
                 )}
               />
             </div>
-
+ 
             <div className="gap-4 md:grid-cols-2 grid grid-cols-1">
               <FormField
                 control={form.control}
@@ -144,7 +168,7 @@ export default function ProfileInformationForm() {
                   </FormItem>
                 )}
               />
-
+ 
               <FormField
                 control={form.control}
                 name="email"
@@ -158,7 +182,7 @@ export default function ProfileInformationForm() {
                   </FormItem>
                 )}
               />
-
+ 
               <FormField
                 control={form.control}
                 name="phoneNumber"
@@ -172,7 +196,7 @@ export default function ProfileInformationForm() {
                   </FormItem>
                 )}
               />
-
+ 
               <FormField
                 control={form.control}
                 name="jobTitle"

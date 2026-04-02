@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-
+import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-
-import type { Bundle } from "@/types/bundle-management";
+import { ImagePlus, Loader2, X } from "lucide-react";
 
 import {
   Button,
@@ -17,12 +15,15 @@ import {
   FormLabel,
   FormMessage,
   Input,
-  Textarea
+  Textarea,
+  Badge
 } from "@/ui";
 
 import { addBundleSchema, type AddBundleFormData } from "../schema/add-bundle.schema";
-import { createBundle, updateBundle } from "./bundle-api";
+import { useCreateBundle } from "@/lib/actions/bundle/create.bundle";
+import { useUpdateBundle } from "@/lib/actions/bundle/update.bundle";
 import ServiceSelector from "./service-selector";
+import { Bundle } from "@/types/bundle-management";
 
 interface AddBundleFormProps {
   onSuccess?: () => void;
@@ -30,88 +31,146 @@ interface AddBundleFormProps {
 }
 
 export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFormProps) {
+  const [imagePreview, setImagePreview] = useState<string | null>(editingBundle?.image || null);
+
   const form = useForm<AddBundleFormData>({
     resolver: zodResolver(addBundleSchema),
     defaultValues: {
-      name: editingBundle?.name || "",
-      description: editingBundle?.description || "",
-      services: editingBundle?.services || [],
-      bundlePrice: editingBundle?.bundlePrice || 0
+      name: "",
+      description: "",
+      services: [],
+      bundlePrice: 0,
+      image: null
     }
   });
+
+  const { mutateAsync: createBundle, isPending: isCreating } = useCreateBundle();
+  const { mutateAsync: updateBundle, isPending: isUpdating } = useUpdateBundle();
 
   const selectedServices = form.watch("services");
   const bundlePrice = form.watch("bundlePrice");
 
   const totalPrice = useMemo(() => {
-    return selectedServices.reduce((sum, service) => sum + service.servicePrice, 0);
+    return selectedServices.reduce((sum, s) => sum + s.servicePrice, 0);
   }, [selectedServices]);
 
-  const discount = useMemo(() => {
-    if (totalPrice === 0) return 0;
-    return ((totalPrice - bundlePrice) / totalPrice) * 100;
+  const savingsDetails = useMemo(() => {
+    if (totalPrice === 0 || !bundlePrice) return null;
+    const amount = totalPrice - bundlePrice;
+    const percentage = (amount / totalPrice) * 100;
+    return { amount, percentage: Math.max(0, percentage) };
   }, [totalPrice, bundlePrice]);
 
-  // Update form when editing bundle changes
   useEffect(() => {
     if (editingBundle) {
       form.reset({
         name: editingBundle.name,
         description: editingBundle.description,
-        services: editingBundle.services,
-        bundlePrice: editingBundle.bundlePrice
+        services: editingBundle.services.map((s: any) => ({
+          serviceId: s.service.id,
+          serviceName: s.service.name,
+          servicePrice: Number(s.service.basePrice)
+        })),
+        bundlePrice: Number(editingBundle.bundlePrice),
+        image: null
       });
+      setImagePreview(editingBundle.image);
     } else {
       form.reset({
         name: "",
         description: "",
         services: [],
-        bundlePrice: 0
+        bundlePrice: 0,
+        image: null
       });
+      setImagePreview(null);
     }
   }, [editingBundle, form]);
 
   async function onSubmit(values: AddBundleFormData) {
     try {
+      const payload = {
+        name: values.name,
+        description: values.description,
+        bundlePrice: values.bundlePrice.toString(),
+        serviceIds: values.services.map(s => s.serviceId),
+        image: values.image
+      };
+
       if (editingBundle) {
-        const response = await updateBundle(editingBundle.id, values);
-        if (response.success) {
-          toast.success("Bundle updated successfully!", {
-            position: "top-center"
-          });
-          form.reset();
-          onSuccess?.();
-        } else {
-          toast.error(response.message || "Failed to update bundle", {
-            position: "top-center"
-          });
-        }
+        await updateBundle({ id: editingBundle.id, payload });
+        toast.success("Bundle updated successfully!");
       } else {
-        const response = await createBundle(values);
-        if (response.success) {
-          toast.success("Bundle created successfully!", {
-            position: "top-center"
-          });
-          form.reset();
-          onSuccess?.();
-        } else {
-          toast.error(response.message || "Failed to create bundle", {
-            position: "top-center"
-          });
-        }
+        await createBundle(payload);
+        toast.success("Bundle created successfully!");
       }
-    } catch (error) {
-      console.error("Error submitting bundle:", error);
-      toast.error(`An error occurred while ${editingBundle ? "updating" : "creating"} the bundle`, {
-        position: "top-center"
-      });
+
+      form.reset();
+      setImagePreview(null);
+      onSuccess?.();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to save bundle");
     }
   }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, onChange: (...event: any[]) => void) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onChange(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setImagePreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = (onChange: (...event: any[]) => void) => {
+    onChange(null);
+    setImagePreview(null);
+  };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Bundle Name */}
+        <FormField
+          control={form.control}
+          name="image"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Bundle Banner</FormLabel>
+              <FormControl>
+                <div className="space-y-4">
+                  {imagePreview ? (
+                    <div className="relative aspect-video w-full rounded-lg overflow-hidden border">
+                      <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-8 w-8"
+                        onClick={() => removeImage(field.onChange)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center aspect-video w-full rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer">
+                      <ImagePlus className="h-8 w-8 text-muted-foreground mb-2" />
+                      <span className="text-xs font-medium">Upload Bundle Banner</span>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleImageChange(e, field.onChange)}
+                      />
+                    </label>
+                  )}
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="name"
@@ -119,14 +178,13 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
             <FormItem>
               <FormLabel>Bundle Name</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., The Signature" {...field} />
+                <Input placeholder="e.g., Full House Deep Clean" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        {/* Bundle Description */}
         <FormField
           control={form.control}
           name="description"
@@ -135,8 +193,8 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
               <FormLabel>Description</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Describe what this bundle includes..."
-                  className="min-h-20 resize-none"
+                  placeholder="What's included in this bundle?"
+                  className="min-h-[100px] resize-none"
                   {...field}
                 />
               </FormControl>
@@ -145,13 +203,12 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
           )}
         />
 
-        {/* Services Selection */}
         <FormField
           control={form.control}
           name="services"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Services</FormLabel>
+              <FormLabel>Select Services</FormLabel>
               <FormControl>
                 <ServiceSelector selectedServices={field.value} onServicesChange={field.onChange} />
               </FormControl>
@@ -160,34 +217,33 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
           )}
         />
 
-        {/* Price Summary */}
         {selectedServices.length > 0 && (
-          <div className="rounded-lg bg-muted/50 p-4 space-y-2 border">
+          <div className="rounded-xl bg-muted/40 p-4 space-y-2 border shadow-sm">
             <div className="text-sm flex justify-between">
-              <span className="text-muted-foreground">Total Price (all services):</span>
+              <span className="text-muted-foreground">Original Total:</span>
               <span className="font-medium">${totalPrice.toFixed(2)}</span>
             </div>
-            <div className="text-sm flex justify-between">
-              <span className="text-muted-foreground">Discount:</span>
-              <span className={discount > 0 ? "font-medium text-green-600" : "font-medium"}>
-                {discount.toFixed(2)}%
-              </span>
-            </div>
+            {savingsDetails && (
+              <div className="text-sm flex justify-between items-center text-green-600 font-medium">
+                <span>Savings:</span>
+                <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100">
+                  {savingsDetails.percentage.toFixed(0)}% OFF
+                </Badge>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Bundle Price */}
         <FormField
           control={form.control}
           name="bundlePrice"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Bundle Price</FormLabel>
+              <FormLabel>Bundle Price ($)</FormLabel>
               <FormControl>
                 <Input
                   type="number"
                   step="0.01"
-                  min="0"
                   placeholder="0.00"
                   {...field}
                   onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
@@ -198,9 +254,21 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
           )}
         />
 
-        {/* Submit Button */}
-        <Button type="submit" className="w-full">
-          {editingBundle ? "Update Bundle" : "Create Bundle"}
+        <Button
+          type="submit"
+          className="w-full h-11"
+          disabled={isCreating || isUpdating}
+        >
+          {isCreating || isUpdating ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : editingBundle ? (
+            "Update Bundle"
+          ) : (
+            "Create Bundle"
+          )}
         </Button>
       </form>
     </Form>

@@ -20,6 +20,8 @@ export interface CategoryResponse {
 }
 
 export interface CategoryQueryParams {
+  page?: number;
+  limit?: number;
   searchTerm?: string;
   status?: "ACTIVE" | "INACTIVE";
 }

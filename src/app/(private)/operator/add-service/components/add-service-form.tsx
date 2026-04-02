@@ -1,11 +1,11 @@
 "use client";
 
 import { useRef, type ChangeEvent } from "react";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Upload, X } from "lucide-react";
 import Image from "next/image";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm, useWatch, type SubmitHandler } from "react-hook-form";
+import { toast } from "sonner";
 
 import {
   Button,
@@ -19,31 +19,14 @@ import {
   Input
 } from "@/ui";
 
-import { toast } from "sonner";
-
-import type { Service } from "@/types/service-management";
+import { useCreateService } from "@/lib/actions/service/create.service";
+import { useUpdateService } from "@/lib/actions/service/update.service";
+import { useGetCategories } from "@/lib/actions/category/get.categories";
+import { useGetMyAddons } from "@/lib/actions/addon/get.my-addons";
+import { useGetOperatorMe } from "@/lib/actions/user/get.operator-me";
+import type { Service } from "@/types/service";
 import { addServiceSchema, type AddServiceFormData } from "../schema/add-service.schema";
 import { MultiSelectCombobox } from "./multi-select-combobox";
-import { createService, updateService } from "./service-api";
-
-const CATEGORY_OPTIONS = [
-  { value: "Wash", label: "Wash" },
-  { value: "Dry Wash", label: "Dry Wash" },
-  { value: "Fold", label: "Fold" },
-  { value: "Iron", label: "Iron" },
-  { value: "Stain Removal", label: "Stain Removal" },
-  { value: "Dry Cleaning", label: "Dry Cleaning" },
-  { value: "Alterations", label: "Alterations" }
-];
-
-const ADDON_SERVICE_OPTIONS = [
-  { value: "Express Service", label: "Express Service" },
-  { value: "Stain Removal", label: "Stain Removal" },
-  { value: "Heavy Prewash", label: "Heavy Prewash" },
-  { value: "Delicate Wash", label: "Delicate Wash" },
-  { value: "Fabric Softener", label: "Fabric Softener" },
-  { value: "Urgent Service", label: "Urgent Service" }
-];
 
 interface AddServiceFormProps {
   onSuccess?: () => void;
@@ -53,15 +36,33 @@ interface AddServiceFormProps {
 export default function AddServiceForm({ onSuccess, editingService }: AddServiceFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const { data: categoriesResponse } = useGetCategories({ limit: 100 });
+  const { data: addonsResponse } = useGetMyAddons({ limit: 100 });
+
+  const { mutateAsync: createService, isPending: isCreating } = useCreateService();
+  const { mutateAsync: updateService, isPending: isUpdating } = useUpdateService();
+  const { data: operatorData } = useGetOperatorMe();
+
+  const categoryOptions = categoriesResponse?.data.map((c) => ({
+    value: c.id,
+    label: c.name
+  })) ?? [];
+
+  const addonOptions = addonsResponse?.data.map((a) => ({
+    value: a.id,
+    label: a.name
+  })) ?? [];
+
   const form = useForm<AddServiceFormData>({
     resolver: zodResolver(addServiceSchema),
     defaultValues: {
       name: editingService?.name || "",
-      category: editingService?.category,
-      addOnServices: editingService?.addOnServices || [],
-      price: editingService?.price || 0,
-      bannerImage: editingService?.bannerImage || null,
-      bannerImageFile: null
+      categoryId: editingService?.categoryId || "",
+      addOnServices: editingService?.addons?.map((a: any) => a.addonId) || [],
+      price: Number(editingService?.basePrice) || 0,
+      bannerImage: editingService?.image || null,
+      bannerImageFile: null,
+      isActive: editingService?.isActive ?? true
     }
   });
 
@@ -98,62 +99,54 @@ export default function AddServiceForm({ onSuccess, editingService }: AddService
     }
   }
 
-  async function onSubmit(values: AddServiceFormData) {
+  const onSubmit: SubmitHandler<AddServiceFormData> = async (values) => {
     try {
-      const formData = new FormData();
+      const operatorId = editingService?.operatorId || operatorData?.data?.operatorProfile?.id;
 
-      formData.append("name", values.name);
-      formData.append("category", values.category);
-      formData.append("addOnServices", JSON.stringify(values.addOnServices));
-      formData.append("price", values.price.toString());
-
-      if (values.bannerImageFile) {
-        formData.append("bannerImage", values.bannerImageFile);
+      if (!operatorId) {
+        toast.error("Operator ID is missing. Please try again later.", {
+          position: "top-center"
+        });
+        return;
       }
+
+      const payload: any = {
+        operatorId,
+        name: values.name,
+        basePrice: values.price,
+        categoryId: values.categoryId,
+        addons: values.addOnServices,
+        isActive: values.isActive ?? true,
+      };
 
       if (editingService) {
-        const response = await updateService(editingService.id, formData);
-        if (response.success) {
-          toast.success("Service updated successfully!", {
-            position: "top-center"
-          });
-          form.reset();
-          form.setValue("bannerImage", null);
-          form.setValue("bannerImageFile", null);
-          onSuccess?.();
-        } else {
-          toast.error(response.message || "Failed to update service", {
-            position: "top-center"
-          });
-        }
+        await updateService({
+          id: editingService.id,
+          data: payload,
+          image: values.bannerImageFile || undefined
+        });
+        toast.success("Service updated successfully!", { position: "top-center" });
       } else {
-        const response = await createService(formData);
-        if (response.success) {
-          toast.success("Service added successfully!", {
-            position: "top-center"
-          });
-          form.reset();
-          form.setValue("bannerImage", null);
-          form.setValue("bannerImageFile", null);
-          onSuccess?.();
-        } else {
-          toast.error(response.message || "Failed to add service", {
-            position: "top-center"
-          });
-        }
+        await createService({
+          data: payload,
+          image: values.bannerImageFile || undefined
+        });
+        toast.success("Service added successfully!", { position: "top-center" });
       }
-    } catch (error) {
+
+      form.reset();
+      onSuccess?.();
+    } catch (error: any) {
       console.error("Error submitting service:", error);
-      toast.error(`An error occurred while ${editingService ? "updating" : "adding"} the service`, {
+      toast.error(error.message || `An error occurred while ${editingService ? "updating" : "adding"} the service`, {
         position: "top-center"
       });
     }
-  }
+  };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Banner Image */}
         <FormField
           control={form.control}
           name="bannerImage"
@@ -170,6 +163,7 @@ export default function AddServiceForm({ onSuccess, editingService }: AddService
                         width={400}
                         height={128}
                         className="h-32 w-full object-cover rounded-md border border-input"
+                        unoptimized
                       />
                       <button
                         type="button"
@@ -183,7 +177,7 @@ export default function AddServiceForm({ onSuccess, editingService }: AddService
                     <button
                       type="button"
                       onClick={handleBannerClick}
-                      className="border-2 border-dashed border-input rounded-md p-8 text-center hover:border-primary hover:bg-accent transition-colors cursor-pointer"
+                      className="border-2 border-dashed border-input rounded-md p-8 text-center hover:border-primary hover:bg-accent transition-colors cursor-pointer w-full"
                     >
                       <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
                       <p className="text-sm font-medium">Upload banner image</p>
@@ -204,7 +198,6 @@ export default function AddServiceForm({ onSuccess, editingService }: AddService
           )}
         />
 
-        {/* Service Name */}
         <FormField
           control={form.control}
           name="name"
@@ -219,16 +212,15 @@ export default function AddServiceForm({ onSuccess, editingService }: AddService
           )}
         />
 
-        {/* Category */}
         <FormField
           control={form.control}
-          name="category"
+          name="categoryId"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
               <FormControl>
                 <Combobox
-                  options={CATEGORY_OPTIONS}
+                  options={categoryOptions}
                   value={field.value}
                   onValueChange={field.onChange}
                   placeholder="Select a category..."
@@ -240,7 +232,6 @@ export default function AddServiceForm({ onSuccess, editingService }: AddService
           )}
         />
 
-        {/* Price */}
         <FormField
           control={form.control}
           name="price"
@@ -262,7 +253,6 @@ export default function AddServiceForm({ onSuccess, editingService }: AddService
           )}
         />
 
-        {/* Add-on Services */}
         <FormField
           control={form.control}
           name="addOnServices"
@@ -271,7 +261,7 @@ export default function AddServiceForm({ onSuccess, editingService }: AddService
               <FormLabel>Add-on Services</FormLabel>
               <FormControl>
                 <MultiSelectCombobox
-                  options={ADDON_SERVICE_OPTIONS}
+                  options={addonOptions}
                   value={field.value}
                   onValueChange={field.onChange}
                   placeholder="Select add-on services..."
@@ -283,9 +273,15 @@ export default function AddServiceForm({ onSuccess, editingService }: AddService
           )}
         />
 
-        <Button type="submit" className="w-full">
-          <Plus className="mr-2 h-4 w-4" />
-          Add Service
+        <Button type="submit" className="w-full" disabled={isCreating || isUpdating}>
+          {isCreating || isUpdating ? (
+            "Saving..."
+          ) : (
+            <>
+              <Plus className="mr-2 h-4 w-4" />
+              {editingService ? "Update Service" : "Add Service"}
+            </>
+          )}
         </Button>
       </form>
     </Form>

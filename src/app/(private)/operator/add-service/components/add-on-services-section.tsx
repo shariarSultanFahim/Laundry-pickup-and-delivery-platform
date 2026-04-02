@@ -1,13 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PlusIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { AdminAddOnService } from "@/types";
+import { Addon } from "@/types/addon";
+import { useCreateAddon } from "@/lib/actions/addon/create.addon";
+import { useGetMyAddons } from "@/lib/actions/addon/get.my-addons";
+import { useUpdateAddon } from "@/lib/actions/addon/update.addon";
+import { useDeleteAddon } from "@/lib/actions/addon/delete.addon";
+import { CustomPagination } from "@/components/ui/custom-pagination";
 
 import {
   Button,
@@ -37,60 +42,29 @@ import { AddOnServiceFormData, addOnServiceSchema } from "../schema/add-on-servi
 import AddOnServicesTable from "./add-on-services-table";
 import DeleteConfirmationModal from "@/components/modals/delete-confirmation-modal";
 
-const MOCK_ADD_ON_SERVICES: AdminAddOnService[] = [
-  {
-    id: "addon-1",
-    name: "Express Service",
-    price: 5,
-    description: "Faster turnaround option",
-    status: "active"
-  },
-  {
-    id: "addon-2",
-    name: "Stain Removal",
-    price: 3,
-    description: "Targeted stain treatment",
-    status: "active"
-  },
-  {
-    id: "addon-3",
-    name: "Heavy Prewash",
-    price: 4,
-    description: "Deep prewash for heavy soil",
-    status: "inactive"
-  },
-  {
-    id: "addon-4",
-    name: "Delicate Wash",
-    price: 6,
-    description: "Gentle cycle for soft fabrics",
-    status: "active"
-  },
-  {
-    id: "addon-5",
-    name: "Fabric Softener",
-    price: 2,
-    description: "Adds softness and fragrance",
-    status: "active"
-  },
-  {
-    id: "addon-6",
-    name: "Urgent Service",
-    price: 8,
-    description: "Priority processing option",
-    status: "inactive"
-  }
-];
 
-function getNewAddOnServiceId() {
-  return `addon-${Date.now()}`;
-}
 
 export default function AddOnServicesSection() {
-  const [addOnServices, setAddOnServices] = useState<AdminAddOnService[]>(MOCK_ADD_ON_SERVICES);
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [editingAddOnService, setEditingAddOnService] = useState<AdminAddOnService | null>(null);
+  const [editingAddOnService, setEditingAddOnService] = useState<Addon | null>(null);
+
+  // ── API Hooks ─────────────────────────────────────────────────────────────
+  const { data: addonsData, isLoading: isFetchingAddons } = useGetMyAddons({
+    page,
+    limit,
+    searchTerm
+  });
+
+  const { mutateAsync: createAddon, isPending: isCreating } = useCreateAddon();
+  const { mutateAsync: updateAddon } = useUpdateAddon();
+  const { mutateAsync: deleteAddon, isPending: isDeletingAddon } = useDeleteAddon();
+
+  const addOnServices = addonsData?.data ?? [];
+  const meta = addonsData?.meta;
 
   const form = useForm<AddOnServiceFormData>({
     resolver: zodResolver(addOnServiceSchema),
@@ -101,21 +75,6 @@ export default function AddOnServicesSection() {
       status: "active"
     }
   });
-
-  const filteredAddOnServices = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-
-    if (!normalizedSearch) {
-      return addOnServices;
-    }
-
-    return addOnServices.filter((service) => {
-      return (
-        service.name.toLowerCase().includes(normalizedSearch) ||
-        service.description.toLowerCase().includes(normalizedSearch)
-      );
-    });
-  }, [addOnServices, searchTerm]);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [serviceToDeleteId, setServiceToDeleteId] = useState<string | null>(null);
@@ -135,40 +94,53 @@ export default function AddOnServicesSection() {
     setIsSheetOpen(true);
   }
 
-  function handleOpenEdit(service: AdminAddOnService) {
+  function handleOpenEdit(service: Addon) {
     setEditingAddOnService(service);
     form.reset({
       name: service.name,
-      price: service.price,
-      description: service.description,
-      status: service.status
+      price: Number(service.price),
+      description: service.description || "",
+      status: service.isActive ? "active" : "inactive"
     });
     setIsSheetOpen(true);
   }
 
-  function handleToggleStatus(service: AdminAddOnService) {
-    const newStatus = service.status === "active" ? "inactive" : "active";
-    setAddOnServices((prev) =>
-      prev.map((s) => (s.id === service.id ? { ...s, status: newStatus as "active" | "inactive" } : s))
-    );
-    toast.success(`${service.name} status updated to ${newStatus}`, {
-      position: "top-center"
-    });
-  }
+  const handleToggleStatus = async (service: Addon) => {
+    try {
+      const newIsActive = !service.isActive;
+      await updateAddon({
+        id: service.id,
+        payload: { isActive: newIsActive }
+      });
+      toast.success(`${service.name} status updated successfully`, {
+        position: "top-center"
+      });
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update status");
+    }
+  };
 
   function handleDelete(id: string) {
+    // Note: User didn't request DELETE API, so keeping local state or placeholder
+    // But since we are moving to real API, maybe we should skip for now or use update for soft delete
     setServiceToDeleteId(id);
     setDeleteModalOpen(true);
   }
 
-  function handleConfirmDelete() {
+  async function handleConfirmDelete() {
     if (serviceToDeleteId) {
-      setAddOnServices((prev) => prev.filter((s) => s.id !== serviceToDeleteId));
-      toast.success("Add-on service deleted successfully", {
-        position: "top-center"
-      });
-      setDeleteModalOpen(false);
-      setServiceToDeleteId(null);
+      try {
+        await deleteAddon(serviceToDeleteId);
+        toast.success("Add-on service deleted successfully", {
+          position: "top-center"
+        });
+        setDeleteModalOpen(false);
+        setServiceToDeleteId(null);
+      } catch (error: any) {
+        toast.error(error.message || "Failed to delete service", {
+          position: "top-center"
+        });
+      }
     }
   }
 
@@ -181,40 +153,33 @@ export default function AddOnServicesSection() {
     }
   }
 
-  function onSubmit(values: AddOnServiceFormData) {
-    if (editingAddOnService) {
-      setAddOnServices((prev) =>
-        prev.map((service) =>
-          service.id === editingAddOnService.id
-            ? {
-              ...service,
-              name: values.name,
-              price: values.price,
-              description: values.description,
-              status: values.status
-            }
-            : service
-        )
-      );
-      toast.success("Add-on service updated successfully", {
-        position: "top-center"
-      });
-    } else {
-      const newAddOnService: AdminAddOnService = {
-        id: getNewAddOnServiceId(),
+  async function onSubmit(values: AddOnServiceFormData) {
+    try {
+      const payload = {
         name: values.name,
         price: values.price,
         description: values.description,
-        status: values.status
+        isActive: values.status === "active"
       };
 
-      setAddOnServices((prev) => [newAddOnService, ...prev]);
-      toast.success("Add-on service added successfully", {
-        position: "top-center"
-      });
+      if (editingAddOnService) {
+        await updateAddon({
+          id: editingAddOnService.id,
+          payload
+        });
+        toast.success("Add-on service updated successfully", {
+          position: "top-center"
+        });
+      } else {
+        await createAddon(payload);
+        toast.success("Add-on service added successfully", {
+          position: "top-center"
+        });
+      }
+      handleSheetOpenChange(false);
+    } catch (error: any) {
+      toast.error(error.message || "Something went wrong");
     }
-
-    handleSheetOpenChange(false);
   }
 
   return (
@@ -339,17 +304,24 @@ export default function AddOnServicesSection() {
       </div>
 
       <AddOnServicesTable
-        services={filteredAddOnServices}
+        services={addOnServices}
         onEdit={handleOpenEdit}
         onDelete={handleDelete}
         onToggleStatus={handleToggleStatus}
-        searchQuery={searchTerm}
-        onSearchChange={setSearchTerm}
+        onSearchChange={(val) => {
+          setSearchTerm(val);
+          setPage(1);
+        }}
+        page={page}
+        totalPage={meta?.totalPage || 0}
+        setPage={setPage}
+        isLoading={isFetchingAddons}
       />
       <DeleteConfirmationModal
         open={deleteModalOpen}
         onOpenChange={setDeleteModalOpen}
         onConfirm={handleConfirmDelete}
+        isLoading={isDeletingAddon}
         title="Delete Add-on Service"
         description={`Are you sure you want to delete this add-on service? This action cannot be undone.`}
       />

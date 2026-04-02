@@ -38,6 +38,32 @@ export interface GetMeResponse {
   data: UserProfile;
 }
 
+export interface OperatorProfile {
+  id: string;
+  userId: string;
+  storeName: string;
+  address: string;
+  latitude: number | null;
+  longitude: number | null;
+  platformFee: string;
+  stripeConnectId: string;
+  onboardingComplete: boolean;
+  chargesEnabled: boolean;
+  payoutsEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OperatorMeData extends UserProfile {
+  operatorProfile: OperatorProfile;
+}
+
+export interface OperatorMeResponse {
+  success: boolean;
+  message: string;
+  data: OperatorMeData;
+}
+
 // ── Update Profile ────────────────────────────────────────────────────────────
 
 export interface UpdateProfileRequest {

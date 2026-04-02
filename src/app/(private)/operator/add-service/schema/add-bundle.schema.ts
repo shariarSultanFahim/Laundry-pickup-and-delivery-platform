@@ -9,8 +9,9 @@ const bundleServiceSchema = zod.object({
 export const addBundleSchema = zod.object({
   name: zod.string().min(2, "Bundle name must be at least 2 characters").max(100),
   description: zod.string().min(10, "Description must be at least 10 characters").max(500),
-  services: zod.array(bundleServiceSchema).min(2, "Bundle must include at least 2 services"),
-  bundlePrice: zod.number().positive("Bundle price must be greater than 0")
+  services: zod.array(bundleServiceSchema).min(1, "Bundle must include at least 1 service"),
+  bundlePrice: zod.number().positive("Bundle price must be greater than 0"),
+  image: zod.instanceof(File).optional().nullable()
 });
 
 export type AddBundleFormData = zod.infer<typeof addBundleSchema>;

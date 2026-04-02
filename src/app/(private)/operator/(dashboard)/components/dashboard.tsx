@@ -1,3 +1,6 @@
+"use client";
+
+import { useGetOperatorMe } from "@/lib/actions/user/get.operator-me";
 import Header from "../../components/header";
 import MonthlyRevenueChart from "../../components/monthly-revenue-chart";
 import StatsCard from "../../components/statsCard";
@@ -11,11 +14,15 @@ import RecentOrdersTable from "./recent-orders-table";
 import TopSellingServices from "./top-selling-services";
 
 export default function DashboardPage() {
+  const { data: operatorMe } = useGetOperatorMe();
+  const operatorName = operatorMe?.data?.name || "Operator";
+  const storeName = operatorMe?.data?.operatorProfile?.storeName || "your store";
+
   return (
     <div className="space-y-6">
       <Header
-        title="Welcome back, Shariar!"
-        subtitle="Here's what's happening with your store today."
+        title={`Welcome back, ${operatorName}!`}
+        subtitle={`Here's what's happening with ${storeName} today.`}
       />
 
       {/* Stats Cards */}

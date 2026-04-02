@@ -21,4 +21,5 @@ export * from "./switch";
 export * from "./table";
 export * from "./textarea";
 export * from "./tooltip";
-export * from "./data-value";
+export * from "./skeleton";
+export * from "./tabs";

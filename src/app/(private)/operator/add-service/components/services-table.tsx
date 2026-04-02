@@ -1,13 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
-
+import { useState } from "react";
 import { Edit, Eye, Heart, Loader2, Search, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import type { Service } from "@/types/service-management";
-
+import type { Service } from "@/types/service";
 import {
   Button,
   Card,
@@ -26,65 +24,55 @@ import { Badge } from "@/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/ui/sheet";
 import { Switch } from "@/ui/switch";
 
-import { deleteService, fetchServices, toggleServiceStatus } from "./service-api";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useGetServices } from "@/lib/actions/service/get.services";
+import { useDeleteService } from "@/lib/actions/service/delete.service";
+import { useUpdateService } from "@/lib/actions/service/update.service";
 import DeleteConfirmationModal from "@/components/modals/delete-confirmation-modal";
+import { CustomPagination } from "@/components/ui/custom-pagination";
 
 interface ServicesTableProps {
   onRefresh?: () => void;
   onEdit?: (service: Service) => void;
 }
 
-export default function ServicesTable({ onRefresh, onEdit }: ServicesTableProps) {
-  const [services, setServices] = useState<Service[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDeleting, setIsDeleting] = useState(false);
+export default function ServicesTable({ onEdit }: ServicesTableProps) {
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const debouncedSearch = useDebounce(searchQuery, 500);
+
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [previewSheetOpen, setPreviewSheetOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
 
-  useEffect(() => {
-    loadServices();
-  }, []);
+  const { data: servicesResponse, isLoading } = useGetServices({
+    page,
+    limit,
+    searchTerm: debouncedSearch || undefined
+  });
 
-  async function loadServices() {
-    try {
-      setIsLoading(true);
-      const data = await fetchServices();
-      setServices(data);
-    } catch (error) {
-      console.error("Error loading services:", error);
-      toast.error("Failed to load services", {
-        position: "top-center"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  const { mutateAsync: deleteService, isPending: isDeleting } = useDeleteService();
+  const { mutateAsync: updateService } = useUpdateService();
+
+  const services = servicesResponse?.data ?? [];
+  const meta = servicesResponse?.meta;
 
   async function handleToggleStatus(service: Service) {
     try {
       setTogglingId(service.id);
-      const response = await toggleServiceStatus(service.id, !service.isActive);
-
-      if (response.success) {
-        setServices((prev) =>
-          prev.map((s) => (s.id === service.id ? { ...s, isActive: !s.isActive } : s))
-        );
-        toast.success(`Service ${!service.isActive ? "activated" : "deactivated"} successfully`, {
-          position: "top-center"
-        });
-      } else {
-        toast.error(response.message || "Failed to update service", {
-          position: "top-center"
-        });
-      }
-    } catch (error) {
+      await updateService({
+        id: service.id,
+        data: { isActive: !service.isActive }
+      });
+      toast.success(`Service ${!service.isActive ? "activated" : "deactivated"} successfully`, {
+        position: "top-center"
+      });
+    } catch (error: any) {
       console.error("Error updating service:", error);
-      toast.error("An error occurred while updating the service", {
+      toast.error(error.message || "Failed to update service status", {
         position: "top-center"
       });
     } finally {
@@ -101,28 +89,17 @@ export default function ServicesTable({ onRefresh, onEdit }: ServicesTableProps)
     if (!serviceToDelete) return;
 
     try {
-      setIsDeleting(true);
-      const response = await deleteService(serviceToDelete.id);
-
-      if (response.success) {
-        setServices((prev) => prev.filter((s) => s.id !== serviceToDelete.id));
-        toast.success("Service deleted successfully", { position: "top-center" });
-        setPreviewSheetOpen(false);
-        setSelectedService(null);
-        onRefresh?.();
-        setDeleteModalOpen(false);
-      } else {
-        toast.error(response.message || "Failed to delete service", {
-          position: "top-center"
-        });
-      }
-    } catch (error) {
+      await deleteService(serviceToDelete.id);
+      toast.success("Service deleted successfully", { position: "top-center" });
+      setPreviewSheetOpen(false);
+      setSelectedService(null);
+      setDeleteModalOpen(false);
+    } catch (error: any) {
       console.error("Error deleting service:", error);
-      toast.error("An error occurred while deleting the service", {
+      toast.error(error.message || "Failed to delete service", {
         position: "top-center"
       });
     } finally {
-      setIsDeleting(false);
       setServiceToDelete(null);
     }
   }
@@ -140,26 +117,14 @@ export default function ServicesTable({ onRefresh, onEdit }: ServicesTableProps)
   }
 
   function getDemoImage(service: Service) {
-    if (service.bannerImage) {
-      return service.bannerImage;
+    if (service.image) {
+      return service.image;
     }
 
     return "https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?w=800";
   }
 
-  const filteredServices = services.filter((service) => {
-    const matchesSearch =
-      service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      service.category.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesCategory = !selectedCategory || service.category === selectedCategory;
-
-    return matchesSearch && matchesCategory;
-  });
-
-  const categories = Array.from(new Set(services.map((s) => s.category)));
-
-  if (isLoading) {
+  if (isLoading && page === 1) {
     return (
       <Card>
         <CardContent className="h-40 flex items-center justify-center">
@@ -187,26 +152,17 @@ export default function ServicesTable({ onRefresh, onEdit }: ServicesTableProps)
                 className="pl-10"
               />
             </div>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 border-input rounded-md bg-background border"
-            >
-              <option value="">All Categories</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
           </div>
 
           {/* Table */}
-          {filteredServices.length === 0 ? (
-            <div className="py-10 text-center">
-              <p className="text-muted-foreground">
-                {services.length === 0 ? "No services yet" : "No services match your filters"}
-              </p>
+          {services.length === 0 ? (
+            <div className="py-10 text-center text-muted-foreground">
+              {isLoading ? (
+                <div className="flex justify-center items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Searching...</span>
+                </div>
+              ) : "No services found"}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -222,22 +178,22 @@ export default function ServicesTable({ onRefresh, onEdit }: ServicesTableProps)
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredServices.map((service) => (
+                  {services.map((service) => (
                     <TableRow key={service.id}>
-                      <TableCell className="font-medium">{service.name}</TableCell>
-                      <TableCell>{service.category}</TableCell>
-                      <TableCell>${service.price.toFixed(2)}</TableCell>
+                      <TableCell className="font-medium underline decoration-primary decoration-dotted underline-offset-4 cursor-pointer" onClick={() => handleRowClick(service)}>{service.name}</TableCell>
+                      <TableCell>{service.category?.name}</TableCell>
+                      <TableCell>${Number(service.basePrice).toFixed(2)}</TableCell>
                       <TableCell>
-                        {service.addOnServices.length > 0 ? (
+                        {service.addons && service.addons.length > 0 ? (
                           <div className="gap-1 flex flex-wrap">
-                            {service.addOnServices.slice(0, 2).map((addon) => (
-                              <Badge key={addon} variant="outline" className="text-xs">
-                                {addon}
+                            {service.addons.slice(0, 2).map((addon: any) => (
+                              <Badge key={addon.id} variant="outline" className="text-xs">
+                                {addon.addon.name}
                               </Badge>
                             ))}
-                            {service.addOnServices.length > 2 && (
+                            {service.addons.length > 2 && (
                               <Badge variant="outline" className="text-xs">
-                                +{service.addOnServices.length - 2}
+                                +{service.addons.length - 2}
                               </Badge>
                             )}
                           </div>
@@ -295,6 +251,17 @@ export default function ServicesTable({ onRefresh, onEdit }: ServicesTableProps)
               </Table>
             </div>
           )}
+
+          {meta && meta.totalPage > 1 && (
+            <div className="pt-4 border-t">
+              <CustomPagination
+                page={page}
+                totalPage={meta.totalPage}
+                setPage={setPage}
+                isLoading={isLoading}
+              />
+            </div>
+          )}
         </CardContent>
 
         <Sheet open={previewSheetOpen} onOpenChange={handleSheetOpenChange}>
@@ -312,6 +279,7 @@ export default function ServicesTable({ onRefresh, onEdit }: ServicesTableProps)
                     src={getDemoImage(selectedService)}
                     alt={selectedService.name}
                     className="h-44 rounded-xl w-full object-cover"
+                    unoptimized
                   />
 
                   <div className="mt-3 flex items-center justify-between">
@@ -328,7 +296,7 @@ export default function ServicesTable({ onRefresh, onEdit }: ServicesTableProps)
                   </div>
 
                   <div className="mt-3 text-xl">
-                    <span className="font-semibold">${selectedService.price.toFixed(2)}/lb</span>
+                    <span className="font-semibold">${Number(selectedService.basePrice).toFixed(2)}/lb</span>
                     <span className="text-muted-foreground ml-2">delivery fee on $2.00</span>
                   </div>
 
@@ -339,8 +307,21 @@ export default function ServicesTable({ onRefresh, onEdit }: ServicesTableProps)
                     >
                       {selectedService.isActive ? "Active" : "Inactive"}
                     </Badge>
-                    <Badge variant="outline">{selectedService.category}</Badge>
+                    <Badge variant="outline">{selectedService.category?.name}</Badge>
                   </div>
+
+                  {selectedService.addons && selectedService.addons.length > 0 && (
+                    <div className="mt-6 space-y-2">
+                      <h4 className="text-sm font-medium">Included Add-ons:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedService.addons.map((addon: any) => (
+                          <Badge key={addon.id} variant="secondary" className="text-xs">
+                            {addon.addon?.name || addon.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

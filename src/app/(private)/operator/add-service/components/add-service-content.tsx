@@ -1,11 +1,9 @@
 "use client";
 
 import { useState } from "react";
-
 import { Plus } from "lucide-react";
 
-import type { Service } from "@/types/service-management";
-
+import type { Service } from "@/types/service";
 import { Card } from "@/components/ui";
 import { Button } from "@/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/ui/sheet";
@@ -17,13 +15,11 @@ import AddOnServicesSection from "./add-on-services-section";
 
 export default function AddServiceContent() {
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [editingService, setEditingService] = useState<Service | null>(null);
 
   function handleFormSuccess() {
     setSheetOpen(false);
     setEditingService(null);
-    setRefreshTrigger((prev) => prev + 1);
   }
 
   function handleEdit(service: Service) {
@@ -66,11 +62,7 @@ export default function AddServiceContent() {
       </div>
 
       <div className="space-y-12">
-        <ServicesTable
-          key={refreshTrigger}
-          onEdit={handleEdit}
-          onRefresh={() => setRefreshTrigger((prev) => prev + 1)}
-        />
+        <ServicesTable onEdit={handleEdit} />
         <AddOnServicesSection />
         <BundleManagementContent />
       </div>
