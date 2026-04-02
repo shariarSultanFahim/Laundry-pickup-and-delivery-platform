@@ -131,14 +131,14 @@ export default function AddOnServicesTable({
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button
+                          {/* <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => onDelete(service.id)}
                             title="Delete service"
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          </Button> */}
                         </div>
                       </TableCell>
                     </TableRow>

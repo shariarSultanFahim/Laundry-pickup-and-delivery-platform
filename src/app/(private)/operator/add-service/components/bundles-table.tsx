@@ -186,14 +186,14 @@ export default function BundlesTable({ onEdit }: BundlesTableProps) {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button
+                            {/* <Button
                               variant="ghost"
                               size="icon"
                               onClick={() => handleDeleteClick(bundle)}
                               title="Delete bundle"
                             >
                               <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                            </Button> */}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -290,7 +290,7 @@ export default function BundlesTable({ onEdit }: BundlesTableProps) {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-3 pt-4">
+              <div className="grid grid-cols-1 gap-0 pt-4">
                 <Button
                   variant="outline"
                   className="w-full"
@@ -302,7 +302,7 @@ export default function BundlesTable({ onEdit }: BundlesTableProps) {
                   <Edit className="mr-2 h-4 w-4" />
                   Edit Bundle
                 </Button>
-                <Button
+                {/* <Button
                   variant="destructive"
                   className="w-full"
                   onClick={() => {
@@ -311,7 +311,7 @@ export default function BundlesTable({ onEdit }: BundlesTableProps) {
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete
-                </Button>
+                </Button> */}
               </div>
             </div>
           )}

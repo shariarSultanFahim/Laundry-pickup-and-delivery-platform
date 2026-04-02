@@ -142,7 +142,7 @@ export default function ServicesTable({ onEdit }: ServicesTableProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Filters */}
-          <div className="gap-4 md:grid-cols-2 grid grid-cols-1">
+          <div className="gap-4 grid grid-cols-1">
             <div className="relative">
               <Search className="left-3 top-2.5 h-4 w-4 text-muted-foreground absolute" />
               <Input
@@ -235,14 +235,14 @@ export default function ServicesTable({ onEdit }: ServicesTableProps) {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button
+                          {/* <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => handleDeleteClick(service)}
                             title="Delete service"
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          </Button> */}
                         </div>
                       </TableCell>
                     </TableRow>
