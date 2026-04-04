@@ -4,8 +4,12 @@ import { api } from "@/lib/api";
 import { AdminSettings, AdminSettingsResponse } from "@/types/settings";
 
 async function getSettings(): Promise<AdminSettings> {
-  const response = await api.get<AdminSettingsResponse>("/admin/settings");
-  return response.data.data;
+  const response = await api.get<AdminSettingsResponse>("/adminsetting");
+  const data = response.data.data;
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Error("Settings not found");
+  }
+  return data[0];
 }
 
 export function useGetSettings() {

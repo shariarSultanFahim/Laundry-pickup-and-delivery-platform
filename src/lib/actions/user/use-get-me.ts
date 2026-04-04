@@ -4,7 +4,7 @@ import { api } from "@/lib/api";
 import { GetMeResponse } from "@/types/user";
 
 export async function fetchMe(): Promise<GetMeResponse> {
-  const response = await api.get<GetMeResponse>("/user/me");
+  const response = await api.get<GetMeResponse>("/user/get-me");
   return response.data;
 }
 

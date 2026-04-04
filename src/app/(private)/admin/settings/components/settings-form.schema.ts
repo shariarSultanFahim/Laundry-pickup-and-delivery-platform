@@ -10,10 +10,10 @@ const paymentMethodSchema = zod.object({
 });
 
 const businessRulesSchema = zod.object({
-  cancellationWindow: zod.number().min(0, "Cancellation window cannot be negative"),
+  calcellationWindow: zod.number().min(0, "Cancellation window cannot be negative"),
   bookingLeadTime: zod.number().min(0, "Booking lead time cannot be negative"),
-  requirePaymentUpfront: zod.boolean(),
-  allowPartialPayments: zod.boolean()
+  requirePaymentUpFront: zod.boolean(),
+  allowPartialPayment: zod.boolean()
 });
 
 const commissionSettingsSchema = zod.object({
@@ -21,7 +21,7 @@ const commissionSettingsSchema = zod.object({
     .number()
     .min(0, "Platform commission must be at least 0")
     .max(100, "Platform commission cannot exceed 100"),
-  pickupDeliveryFee: zod.number().min(0, "Pickup/Delivery fee must be at least 0"),
+  paymentProcessingFee: zod.number().min(0, "Payment processing fee must be at least 0"),
   fixedTransactionFee: zod.number().min(0, "Transaction fee must be at least 0"),
   payoutSchedule: zod.enum(payoutScheduleOptions)
 });

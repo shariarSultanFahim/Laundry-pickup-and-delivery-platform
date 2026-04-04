@@ -1,31 +1,34 @@
 export interface AdminSettingsResponse {
   success: boolean;
   message: string;
-  data: AdminSettings;
+  data: AdminSettings[];
 }
+
+export type PayoutSchedule = "WEEKLY" | "MONTHLY" | "YEARLY";
 
 export interface AdminSettings {
   id: string;
-  cancellationWindowHours: number;
-  bookingLeadTimeHours: number;
-  requirePaymentUpfront: boolean;
-  allowPartialPayments: boolean;
   platformCommissionRate: string;
+  calcellationWindowHours: number;
+  bookingLeadTimeHours: number;
+  requirePaymentUpFront: boolean;
+  allowPartialPayment: boolean;
   fixedTransactionFee: string;
-  pickupDeliveryFee: string;
-  payoutSchedule: "WEEKLY" | "MONTHLY" | "YEARLY";
+  paymentProcessingFee: string;
+  payoutSchedule: PayoutSchedule;
+  createdAt: string;
   updatedAt: string;
 }
 
 export interface UpdateAdminSettingsRequest {
-  cancellationWindowHours: number;
-  bookingLeadTimeHours: number;
-  requirePaymentUpfront: boolean;
-  allowPartialPayments: boolean;
   platformCommissionRate: number;
+  calcellationWindowHours: number;
+  bookingLeadTimeHours: number;
+  requirePaymentUpFront: boolean;
+  allowPartialPayment: boolean;
   fixedTransactionFee: number;
-  pickupDeliveryFee: number;
-  payoutSchedule: "WEEKLY" | "MONTHLY" | "YEARLY";
+  paymentProcessingFee: number;
+  payoutSchedule: PayoutSchedule;
 }
 
 export interface UpdateAdminSettingsResponse {

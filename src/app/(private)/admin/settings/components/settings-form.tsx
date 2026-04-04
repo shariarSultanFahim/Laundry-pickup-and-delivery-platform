@@ -39,14 +39,14 @@ const initialPaymentMethods = [
 const defaultValues: SettingsFormData = {
   paymentMethods: initialPaymentMethods,
   businessRules: {
-    cancellationWindow: 0,
+    calcellationWindow: 0,
     bookingLeadTime: 0,
-    requirePaymentUpfront: false,
-    allowPartialPayments: false
+    requirePaymentUpFront: false,
+    allowPartialPayment: false
   },
   commissionSettings: {
     platformCommission: 0,
-    pickupDeliveryFee: 0,
+    paymentProcessingFee: 0,
     fixedTransactionFee: 0,
     payoutSchedule: "WEEKLY"
   }
@@ -66,15 +66,15 @@ export default function SettingsForm() {
       form.reset({
         paymentMethods: initialPaymentMethods,
         businessRules: {
-          cancellationWindow: settingsData.cancellationWindowHours,
-          bookingLeadTime: settingsData.bookingLeadTimeHours,
-          requirePaymentUpfront: settingsData.requirePaymentUpfront,
-          allowPartialPayments: settingsData.allowPartialPayments
+          calcellationWindow: Number(settingsData.calcellationWindowHours) || 0,
+          bookingLeadTime: Number(settingsData.bookingLeadTimeHours) || 0,
+          requirePaymentUpFront: !!settingsData.requirePaymentUpFront,
+          allowPartialPayment: !!settingsData.allowPartialPayment
         },
         commissionSettings: {
-          platformCommission: Number(settingsData.platformCommissionRate),
-          fixedTransactionFee: Number(settingsData.fixedTransactionFee),
-          pickupDeliveryFee: Number(settingsData.pickupDeliveryFee),
+          platformCommission: Number(settingsData.platformCommissionRate) || 0,
+          fixedTransactionFee: Number(settingsData.fixedTransactionFee) || 0,
+          paymentProcessingFee: Number(settingsData.paymentProcessingFee) || 0,
           payoutSchedule: (settingsData.payoutSchedule?.trim().toUpperCase() as any) || "WEEKLY"
         }
       });
@@ -88,13 +88,13 @@ export default function SettingsForm() {
     });
     try {
       await updateSettings({
-        cancellationWindowHours: data.businessRules.cancellationWindow,
+        calcellationWindowHours: data.businessRules.calcellationWindow,
         bookingLeadTimeHours: data.businessRules.bookingLeadTime,
-        requirePaymentUpfront: data.businessRules.requirePaymentUpfront,
-        allowPartialPayments: data.businessRules.allowPartialPayments,
+        requirePaymentUpFront: data.businessRules.requirePaymentUpFront,
+        allowPartialPayment: data.businessRules.allowPartialPayment,
         platformCommissionRate: data.commissionSettings.platformCommission,
         fixedTransactionFee: data.commissionSettings.fixedTransactionFee,
-        pickupDeliveryFee: data.commissionSettings.pickupDeliveryFee,
+        paymentProcessingFee: data.commissionSettings.paymentProcessingFee,
         payoutSchedule: data.commissionSettings.payoutSchedule
       });
       toast.success("Settings saved successfully!", { id: toastId, position: "top-center" });

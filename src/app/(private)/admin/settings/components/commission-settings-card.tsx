@@ -55,15 +55,15 @@ export default function CommissionSettingsCard({ control }: CommissionSettingsCa
 
         <FormField
           control={control}
-          name="commissionSettings.pickupDeliveryFee"
+          name="commissionSettings.paymentProcessingFee"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Pickup/Delivery Fee ($)</FormLabel>
+              <FormLabel>Payment Processing Fee (%)</FormLabel>
               <FormControl>
                 <Input
                   type="number"
                   min={0}
-                  step="0.01"
+                  step="0.1"
                   value={field.value}
                   onChange={(event) => field.onChange(Number(event.target.value))}
                 />

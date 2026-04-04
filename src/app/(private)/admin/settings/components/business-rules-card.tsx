@@ -30,7 +30,7 @@ export default function BusinessRulesCard({ control }: BusinessRulesCardProps) {
         <div className="gap-4 md:grid-cols-2 grid grid-cols-1">
           <FormField
             control={control}
-            name="businessRules.cancellationWindow"
+            name="businessRules.calcellationWindow"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Cancellation Window (hours)</FormLabel>
@@ -69,7 +69,7 @@ export default function BusinessRulesCard({ control }: BusinessRulesCardProps) {
 
         <FormField
           control={control}
-          name="businessRules.requirePaymentUpfront"
+          name="businessRules.requirePaymentUpFront"
           render={({ field }) => (
             <FormItem className="gap-2 space-y-0 flex flex-row items-center">
               <FormControl>
@@ -82,7 +82,7 @@ export default function BusinessRulesCard({ control }: BusinessRulesCardProps) {
 
         <FormField
           control={control}
-          name="businessRules.allowPartialPayments"
+          name="businessRules.allowPartialPayment"
           render={({ field }) => (
             <FormItem className="gap-2 space-y-0 flex flex-row items-center">
               <FormControl>
