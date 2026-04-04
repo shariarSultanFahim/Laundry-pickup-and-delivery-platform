@@ -6,6 +6,7 @@ export const LOGIN_PATH = "/login";
 export const UNAUTHORIZED_PATH = "/";
 
 export const ROLE_HOME_PATHS: Record<AuthRole, string> = {
+  super_admin: "/admin",
   admin: "/admin",
   operator: "/operator"
 };

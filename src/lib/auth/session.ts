@@ -6,7 +6,7 @@ import type { AuthSession } from "@/types/auth-session";
 
 const normalizeAuthRole = (role: string | null | undefined): AuthRole | null => {
   const n = role?.toLowerCase();
-  if (n === "admin" || n === "operator") return n;
+  if (n === "admin" || n === "operator" || n === "super_admin") return n;
   return null;
 };
 

@@ -20,7 +20,12 @@ export const requirePrivateRole = async (allowedRoles: AuthRole[]) => {
     redirect(LOGIN_PATH);
   }
 
-  if (!allowedRoles.includes(session.role)) {
+  // Admin routes can be accessed by both "admin" and "super_admin".
+  const effectiveAllowedRoles = allowedRoles.includes("admin")
+    ? Array.from(new Set([...allowedRoles, "super_admin" as const]))
+    : allowedRoles;
+
+  if (!effectiveAllowedRoles.includes(session.role)) {
     redirect(UNAUTHORIZED_PATH);
   }
 
