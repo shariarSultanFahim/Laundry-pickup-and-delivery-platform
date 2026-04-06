@@ -66,9 +66,9 @@ export default function BundlesTable({ onEdit }: BundlesTableProps) {
         id: bundle.id,
         payload: { isActive: !bundle.isActive }
       });
-      toast.success(`Bundle ${!bundle.isActive ? "activated" : "deactivated"} successfully`);
+      toast.success(`Bundle ${!bundle.isActive ? "activated" : "deactivated"} successfully`, { position: "top-center" });
     } catch (error: any) {
-      toast.error(error.message || "Failed to update bundle");
+      toast.error(error.message || "Failed to update bundle", { position: "top-center" });
     } finally {
       setTogglingId(null);
     }
@@ -149,7 +149,7 @@ export default function BundlesTable({ onEdit }: BundlesTableProps) {
                         0
                       );
                       const bundlePriceNum = Number(bundle.bundlePrice);
-                      const discountPercentage = totalOriginalPrice > 0 
+                      const discountPercentage = totalOriginalPrice > 0
                         ? Math.max(0, Math.round(((totalOriginalPrice - bundlePriceNum) / totalOriginalPrice) * 100))
                         : 0;
 
@@ -231,7 +231,7 @@ export default function BundlesTable({ onEdit }: BundlesTableProps) {
             );
             const bundlePriceNum = Number(selectedBundle.bundlePrice);
             const discountAmount = totalOriginalPrice - bundlePriceNum;
-            const discountPercentage = totalOriginalPrice > 0 
+            const discountPercentage = totalOriginalPrice > 0
               ? Math.max(0, Math.round((discountAmount / totalOriginalPrice) * 100))
               : 0;
 

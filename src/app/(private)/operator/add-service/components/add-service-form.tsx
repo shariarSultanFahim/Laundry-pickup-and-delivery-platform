@@ -115,7 +115,7 @@ export default function AddServiceForm({ onSuccess, editingService }: AddService
         name: values.name,
         basePrice: values.price,
         categoryId: values.categoryId,
-        addons: values.addOnServices,
+        addonIds: values.addOnServices,
         isActive: values.isActive ?? true,
       };
 
