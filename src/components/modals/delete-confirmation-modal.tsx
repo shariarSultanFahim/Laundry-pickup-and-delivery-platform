@@ -43,7 +43,7 @@ export default function DeleteConfirmationModal({
           </div>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <DialogFooter className="gap-2 sm:gap-0 mt-4">
+        <DialogFooter className="flex justify-end gap-3 mt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
             {cancelText}
           </Button>

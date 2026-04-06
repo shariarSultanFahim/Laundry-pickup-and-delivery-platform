@@ -19,9 +19,10 @@ export const getBundlesAction = async (params: GetBundlesParams): Promise<Bundle
   return response.data;
 };
 
-export const useGetBundles = (params: GetBundlesParams) => {
+export const useGetBundles = (params: GetBundlesParams, enabled = true) => {
   return useQuery({
     queryKey: ["bundles", params],
+    enabled,
     queryFn: () => getBundlesAction(params)
   });
 };

@@ -29,10 +29,12 @@ export interface Store {
 }
 
 export interface StoreService {
+  id: string;
   service: Service;
 }
 
 export interface StoreBundle {
+  id: string;
   bundle: Bundle;
 }
 

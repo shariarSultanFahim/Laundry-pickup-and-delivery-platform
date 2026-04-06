@@ -58,6 +58,7 @@ export interface ServiceQueryParams {
   searchTerm?: string;
   categoryId?: string;
   operatorId?: string;
+  isActive?: boolean;
 }
 
 export interface CreateServicePayload {

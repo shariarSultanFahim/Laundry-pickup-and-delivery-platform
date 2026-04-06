@@ -1,19 +1,68 @@
 "use client";
 
 import { useGetStoreDetails } from "@/lib/actions/store/get.store-details";
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Skeleton, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui";
-import { ArrowLeft, MapPin, Phone, Mail, CheckCircle2, XCircle } from "lucide-react";
+import { useDeleteServiceFromStore } from "@/lib/actions/store/store-service";
+import { useDeleteBundleFromStore } from "@/lib/actions/store/store-bundle";
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Skeleton,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/ui";
+import { ArrowLeft, MapPin, CheckCircle2, XCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import AddServiceToStoreDialog from "../components/add-service-to-store-dialog";
+import AddBundleToStoreDialog from "../components/add-bundle-to-store-dialog";
+import DeleteConfirmationModal from "@/components/modals/delete-confirmation-modal";
 
 export default function StoreDetailsPage() {
   const params = useParams();
   const storeId = params.storeId as string;
 
-  const { data: response, isLoading } = useGetStoreDetails(storeId);
+  const [deleteServiceId, setDeleteServiceId] = useState<string | null>(null);
+  const [deleteBundleId, setDeleteBundleId] = useState<string | null>(null);
+
+  const { data: response, isLoading: isDetailsLoading } = useGetStoreDetails(storeId);
   const store = response?.data;
 
-  if (isLoading) {
+  const { mutateAsync: deleteService, isPending: isDeletingService } = useDeleteServiceFromStore();
+  const { mutateAsync: deleteBundle, isPending: isDeletingBundle } = useDeleteBundleFromStore();
+
+  const handleDeleteService = async () => {
+    if (!deleteServiceId) return;
+    try {
+      await deleteService(deleteServiceId);
+      toast.success("Service removed from store");
+      setDeleteServiceId(null);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to remove service");
+    }
+  };
+
+  const handleDeleteBundle = async () => {
+    if (!deleteBundleId) return;
+    try {
+      await deleteBundle(deleteBundleId);
+      toast.success("Bundle removed from store");
+      setDeleteBundleId(null);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to remove bundle");
+    }
+  };
+
+  if (isDetailsLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-48 w-full rounded-xl" />
@@ -28,6 +77,9 @@ export default function StoreDetailsPage() {
   if (!store) {
     return <div className="text-center py-20 text-muted-foreground">Store not found</div>;
   }
+
+  const existingServiceIds = store.storeServices?.map(ss => ss.service.id) || [];
+  const existingBundleIds = store.storeBundles?.map(sb => sb.bundle.id) || [];
 
   return (
     <div className="space-y-8 pb-10">
@@ -100,8 +152,9 @@ export default function StoreDetailsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Services Table */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-xl">Available Services</CardTitle>
+            <AddServiceToStoreDialog storeId={storeId} existingServiceIds={existingServiceIds} />
           </CardHeader>
           <CardContent>
             <Table>
@@ -110,12 +163,13 @@ export default function StoreDetailsPage() {
                   <TableHead>Service</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {store.storeServices && store.storeServices.length > 0 ? (
-                  store.storeServices.map((ss, i) => (
-                    <TableRow key={i}>
+                  store.storeServices.map((ss) => (
+                    <TableRow key={ss.id}>
                       <TableCell className="font-medium">{ss.service.name}</TableCell>
                       <TableCell className="font-bold text-primary">${ss.service.basePrice}</TableCell>
                       <TableCell>
@@ -125,11 +179,21 @@ export default function StoreDetailsPage() {
                           <XCircle className="h-4 w-4 text-slate-300" />
                         )}
                       </TableCell>
+                      <TableCell className="text-right">
+                         <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setDeleteServiceId(ss.id)}
+                         >
+                            <Trash2 className="h-4 w-4" />
+                         </Button>
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center py-4 text-muted-foreground italic">
+                    <TableCell colSpan={4} className="text-center py-4 text-muted-foreground italic">
                       No services assigned to this store.
                     </TableCell>
                   </TableRow>
@@ -141,8 +205,9 @@ export default function StoreDetailsPage() {
 
         {/* Bundles Table */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-xl">Available Bundles</CardTitle>
+            <AddBundleToStoreDialog storeId={storeId} existingBundleIds={existingBundleIds} />
           </CardHeader>
           <CardContent>
             <Table>
@@ -151,12 +216,13 @@ export default function StoreDetailsPage() {
                   <TableHead>Bundle</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {store.storeBundles && store.storeBundles.length > 0 ? (
-                  store.storeBundles.map((sb, i) => (
-                    <TableRow key={i}>
+                  store.storeBundles.map((sb) => (
+                    <TableRow key={sb.id}>
                       <TableCell className="font-medium">{sb.bundle.name}</TableCell>
                       <TableCell className="font-bold text-primary">${sb.bundle.bundlePrice}</TableCell>
                       <TableCell>
@@ -166,11 +232,21 @@ export default function StoreDetailsPage() {
                           <XCircle className="h-4 w-4 text-slate-300" />
                         )}
                       </TableCell>
+                      <TableCell className="text-right">
+                         <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setDeleteBundleId(sb.id)}
+                         >
+                            <Trash2 className="h-4 w-4" />
+                         </Button>
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center py-4 text-muted-foreground italic">
+                    <TableCell colSpan={4} className="text-center py-4 text-muted-foreground italic">
                       No bundles assigned to this store.
                     </TableCell>
                   </TableRow>
@@ -180,6 +256,24 @@ export default function StoreDetailsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <DeleteConfirmationModal
+        open={!!deleteServiceId}
+        onOpenChange={(open) => !open && setDeleteServiceId(null)}
+        onConfirm={handleDeleteService}
+        isLoading={isDeletingService}
+        title="Remove Service"
+        description="Are you sure you want to remove this service from the store?"
+      />
+
+      <DeleteConfirmationModal
+        open={!!deleteBundleId}
+        onOpenChange={(open) => !open && setDeleteBundleId(null)}
+        onConfirm={handleDeleteBundle}
+        isLoading={isDeletingBundle}
+        title="Remove Bundle"
+        description="Are you sure you want to remove this bundle from the store?"
+      />
     </div>
   );
 }

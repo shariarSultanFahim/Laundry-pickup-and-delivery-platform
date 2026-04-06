@@ -23,3 +23,4 @@ export * from "./textarea";
 export * from "./tooltip";
 export * from "./skeleton";
 export * from "./tabs";
+export * from "./checkbox";
