@@ -4,10 +4,12 @@ import { BundleResponse } from "@/types/bundle-management";
 
 
 interface CreateBundlePayload {
+  operatorId: string;
   name: string;
   description: string;
-  bundlePrice: string;
+  bundlePrice: number;
   serviceIds: string[];
+  isActive?: boolean;
   image?: File | null;
 }
 
@@ -16,11 +18,12 @@ export const createBundleAction = async (payload: CreateBundlePayload): Promise<
 
   // Construct the data object exactly as requested by backend
   const data = {
+    operatorId: payload.operatorId,
     name: payload.name,
     description: payload.description,
     bundlePrice: payload.bundlePrice,
     serviceIds: payload.serviceIds,
-    isActive: true
+    isActive: payload.isActive ?? true
   };
 
   formData.append("data", JSON.stringify(data));
@@ -28,7 +31,7 @@ export const createBundleAction = async (payload: CreateBundlePayload): Promise<
     formData.append("image", payload.image);
   }
 
-  const response = await api.post<BundleResponse>("/service-bundle", formData, {
+  const response = await api.post<BundleResponse>("/bundle", formData, {
     headers: {
       "Content-Type": "multipart/form-data"
     }

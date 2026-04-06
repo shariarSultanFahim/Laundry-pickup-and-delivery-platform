@@ -11,6 +11,7 @@ export const addBundleSchema = zod.object({
   description: zod.string().min(10, "Description must be at least 10 characters").max(500),
   services: zod.array(bundleServiceSchema).min(1, "Bundle must include at least 1 service"),
   bundlePrice: zod.number().positive("Bundle price must be greater than 0"),
+  isActive: zod.boolean(),
   image: zod.instanceof(File).optional().nullable()
 });
 

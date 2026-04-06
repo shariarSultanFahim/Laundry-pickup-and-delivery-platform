@@ -1,22 +1,43 @@
 import { OperatorProfile } from "./user";
 
-export interface BundleService {
+export interface Category {
   id: string;
-  bundleId: string;
-  serviceId: string;
+  name: string;
+  description: string;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  service: {
-    id: string;
-    operatorId: string;
-    categoryId: string;
-    name: string;
-    basePrice: string;
-    image: string | null;
-    isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
-  };
+}
+
+export interface ServiceOperator {
+  id: string;
+  operatorId: string | null;
+  userId: string;
+  approvalStatus: string;
+  stripeConnectedAccountId: string;
+  onboardingUrl: string;
+  onboardingComplete: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Service {
+  id: string;
+  name: string;
+  basePrice: string;
+  image: string | null;
+  description: string;
+  category: Category;
+  operator: ServiceOperator;
+  reviews: any[]; // Adjust if you have a Review type
+  bundleServices?: any[];
+  storeServices?: any[];
+}
+
+export interface BundleService {
+  serviceId: string;
+  service: Service;
+  store: any | null; // Adjust if you have a Store type
 }
 
 export interface Bundle {
@@ -29,29 +50,7 @@ export interface Bundle {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  services: BundleService[];
-  operator: {
-    id: string;
-    userId: string;
-    storeName: string;
-    address: string;
-    latitude: number | null;
-    longitude: number | null;
-    platformFee: string | null;
-    stripeConnectId: string;
-    onboardingComplete: boolean;
-    chargesEnabled: boolean;
-    payoutsEnabled: boolean;
-    createdAt: string;
-    updatedAt: string;
-    user: {
-      name: string;
-      email: string;
-    };
-  };
-  totalOriginalPrice: number;
-  discountAmount: number;
-  discountPercentage: number;
+  bundleServices: BundleService[];
 }
 
 export interface BundleResponse {
@@ -67,7 +66,7 @@ export interface BundlesListResponse {
     page: number;
     limit: number;
     total: number;
-    totalPage: number;
+    // totalPage: number; // The new res doesn't show totalPage, but it might be there. I'll keep it simple for now based on res.
   };
   data: Bundle[];
 }

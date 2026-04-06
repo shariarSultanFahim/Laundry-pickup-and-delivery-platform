@@ -23,12 +23,18 @@ export interface UserProfile {
   email: string;
   phone: string;
   role: string;
-  status: string;
-  isVerified: boolean;
   avatar: string | null;
-  userAddresses: any[];
-  orders: any[];
-  reviews: any[];
+  addresses: any[];
+  isDeleted: boolean;
+  lat: number | null;
+  lng: number | null;
+  isTwoFactorEnabled: boolean;
+  stripeCustomerId: string | null;
+  isSubscribed: boolean;
+  userId: string;
+  isVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
   _count?: UserCount;
 }
 
@@ -38,20 +44,35 @@ export interface GetMeResponse {
   data: UserProfile;
 }
 
-export interface OperatorProfile {
+export interface Store {
   id: string;
-  userId: string;
-  storeName: string;
+  operatorId: string;
+  name: string;
+  logo: string;
+  banner: string;
   address: string;
-  latitude: number | null;
-  longitude: number | null;
-  platformFee: string;
-  stripeConnectId: string;
-  onboardingComplete: boolean;
-  chargesEnabled: boolean;
-  payoutsEnabled: boolean;
+  country: string;
+  state: string;
+  city: string;
+  postalCode: string;
+  lat: number;
+  lng: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface OperatorProfile {
+  id: string;
+  operatorId: string | null;
+  userId: string;
+  approvalStatus: string;
+  stripeConnectedAccountId: string;
+  onboardingUrl: string;
+  onboardingComplete: boolean;
+  createdAt: string;
+  updatedAt: string;
+  stores: Store[];
+  operatorWallet: any | null;
 }
 
 export interface OperatorMeData extends UserProfile {

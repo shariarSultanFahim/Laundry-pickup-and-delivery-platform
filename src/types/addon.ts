@@ -2,36 +2,20 @@ export interface Addon {
   id: string;
   operatorId: string;
   name: string;
-  price: string | number;
-  description?: string;
+  description: string;
+  price: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  operator?: {
-    id: string;
-    userId: string;
-    storeName: string;
-    address: string;
-    latitude: number | null;
-    longitude: number | null;
-    platformFee: number | null;
-    stripeConnectId: string;
-    onboardingComplete: boolean;
-    chargesEnabled: boolean;
-    payoutsEnabled: boolean;
-    createdAt: string;
-    updatedAt: string;
-  };
 }
 
 export interface AddonListResponse {
   success: boolean;
   message: string;
   meta: {
+    total: number;
     page: number;
     limit: number;
-    total: number;
-    totalPage: number;
   };
   data: Addon[];
 }

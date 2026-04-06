@@ -3,9 +3,10 @@ import { api } from "@/lib/api";
 import { BundleResponse } from "@/types/bundle-management";
 
 interface UpdateBundlePayload {
+  operatorId?: string;
   name?: string;
   description?: string;
-  bundlePrice?: string;
+  bundlePrice?: number;
   serviceIds?: string[];
   isActive?: boolean;
   image?: File | null;
@@ -22,6 +23,7 @@ export const updateBundleAction = async ({
 
   // Construct data partial
   const data = {
+    operatorId: payload.operatorId,
     name: payload.name,
     description: payload.description,
     bundlePrice: payload.bundlePrice,
@@ -34,7 +36,7 @@ export const updateBundleAction = async ({
     formData.append("image", payload.image);
   }
 
-  const response = await api.patch<BundleResponse>(`/service-bundle/${id}`, formData, {
+  const response = await api.patch<BundleResponse>(`/bundle/${id}`, formData, {
     headers: {
       "Content-Type": "multipart/form-data"
     }

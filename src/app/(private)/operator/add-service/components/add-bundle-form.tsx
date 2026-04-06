@@ -16,12 +16,14 @@ import {
   FormMessage,
   Input,
   Textarea,
-  Badge
+  Badge,
+  Switch
 } from "@/ui";
 
 import { addBundleSchema, type AddBundleFormData } from "../schema/add-bundle.schema";
 import { useCreateBundle } from "@/lib/actions/bundle/create.bundle";
 import { useUpdateBundle } from "@/lib/actions/bundle/update.bundle";
+import { useGetOperatorMe } from "@/lib/actions/user/get.operator-me";
 import ServiceSelector from "./service-selector";
 import { Bundle } from "@/types/bundle-management";
 
@@ -33,6 +35,9 @@ interface AddBundleFormProps {
 export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFormProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(editingBundle?.image || null);
 
+  const { data: operatorMe } = useGetOperatorMe();
+  const operatorId = operatorMe?.data?.operatorProfile?.id;
+
   const form = useForm<AddBundleFormData>({
     resolver: zodResolver(addBundleSchema),
     defaultValues: {
@@ -40,6 +45,7 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
       description: "",
       services: [],
       bundlePrice: 0,
+      isActive: true,
       image: null
     }
   });
@@ -66,12 +72,13 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
       form.reset({
         name: editingBundle.name,
         description: editingBundle.description,
-        services: editingBundle.services.map((s: any) => ({
+        services: editingBundle.bundleServices.map((s: any) => ({
           serviceId: s.service.id,
           serviceName: s.service.name,
           servicePrice: Number(s.service.basePrice)
         })),
         bundlePrice: Number(editingBundle.bundlePrice),
+        isActive: editingBundle.isActive,
         image: null
       });
       setImagePreview(editingBundle.image);
@@ -81,6 +88,7 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
         description: "",
         services: [],
         bundlePrice: 0,
+        isActive: true,
         image: null
       });
       setImagePreview(null);
@@ -88,12 +96,19 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
   }, [editingBundle, form]);
 
   async function onSubmit(values: AddBundleFormData) {
+    if (!operatorId && !editingBundle) {
+      toast.error("Operator ID not found. Please try again later.");
+      return;
+    }
+
     try {
       const payload = {
+        operatorId: operatorId || editingBundle?.operatorId || "",
         name: values.name,
         description: values.description,
-        bundlePrice: values.bundlePrice.toString(),
+        bundlePrice: values.bundlePrice,
         serviceIds: values.services.map(s => s.serviceId),
+        isActive: values.isActive,
         image: values.image
       };
 
@@ -250,6 +265,27 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
                 />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="isActive"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm bg-muted/30">
+              <div className="space-y-0.5">
+                <FormLabel>Active Status</FormLabel>
+                <div className="text-xs text-muted-foreground">
+                  Is this bundle available for customers?
+                </div>
+              </div>
+              <FormControl>
+                <Switch 
+                  checked={field.value} 
+                  onCheckedChange={field.onChange} 
+                />
+              </FormControl>
             </FormItem>
           )}
         />

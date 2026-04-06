@@ -5,7 +5,7 @@ import { api } from "@/lib/api";
 import { OperatorMeResponse } from "@/types/user";
 
 export const getOperatorMe = async (): Promise<OperatorMeResponse> => {
-  const response = await api.get<OperatorMeResponse>("/user/operator-getme");
+  const response = await api.get<OperatorMeResponse>("/user/get-me");
   return response.data;
 };
 

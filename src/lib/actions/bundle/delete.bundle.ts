@@ -3,7 +3,7 @@ import { api } from "@/lib/api";
 import { BundleResponse } from "@/types/bundle-management";
 
 export const deleteBundleAction = async (id: string): Promise<BundleResponse> => {
-  const response = await api.delete<BundleResponse>(`/service-bundle/${id}`);
+  const response = await api.delete<BundleResponse>(`/bundle/${id}`);
   return response.data;
 };
 

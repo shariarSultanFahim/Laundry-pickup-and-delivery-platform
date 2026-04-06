@@ -9,7 +9,7 @@ interface GetBundlesParams {
 }
 
 export const getBundlesAction = async (params: GetBundlesParams): Promise<BundlesListResponse> => {
-  const response = await api.get<BundlesListResponse>("/service-bundle", {
+  const response = await api.get<BundlesListResponse>("/bundle", {
     params: {
       page: params.page,
       limit: params.limit,

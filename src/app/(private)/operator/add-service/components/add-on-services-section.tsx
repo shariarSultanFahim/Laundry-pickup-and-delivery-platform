@@ -313,7 +313,7 @@ export default function AddOnServicesSection() {
           setPage(1);
         }}
         page={page}
-        totalPage={meta?.totalPage || 0}
+        totalPage={meta ? Math.ceil(meta.total / 10) : 1}
         setPage={setPage}
         isLoading={isFetchingAddons}
       />
