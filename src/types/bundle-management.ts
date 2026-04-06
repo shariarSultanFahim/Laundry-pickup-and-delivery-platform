@@ -22,6 +22,7 @@ export interface ServiceOperator {
 }
 
 export interface Service {
+  isActive: any;
   id: string;
   name: string;
   basePrice: string;

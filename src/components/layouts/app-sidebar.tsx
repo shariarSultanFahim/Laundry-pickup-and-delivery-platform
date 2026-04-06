@@ -16,6 +16,7 @@ import {
   Plus,
   Settings,
   Star,
+  Store,
   User,
   Users
 } from "lucide-react";
@@ -36,6 +37,7 @@ import {
 import { Button } from "../ui";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useLogout } from "@/hooks/use-logout";
+import { useGetOperatorMe } from "@/lib/actions/user/get.operator-me";
 
 const data = {
   info: {
@@ -92,6 +94,11 @@ const data = {
           icon: Bell
         },
         {
+          title: "Store Management",
+          url: "/operator/store-management",
+          icon: Store
+        },
+        {
           title: "Add Service",
           url: "/operator/add-service",
           icon: Plus
@@ -114,6 +121,8 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const { logout } = useLogout();
+  const { data: userResponse } = useGetOperatorMe();
+  const user = userResponse?.data;
   const isItemActive = (itemUrl: string) => {
     if (itemUrl === "/operator") {
       return pathname === "/operator";
@@ -168,21 +177,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem className="space-y-5">
-            <div className="gap-4 hidden flex-col group-data-[collapsible=icon]:flex">
-              <Avatar size="lg" className="h-8 w-8">
-                <AvatarImage src="https://media.licdn.com/dms/image/v2/D5603AQF8VWtOZX4cyA/profile-displayphoto-crop_800_800/B56ZoGTUgUJ4AM-/0/1761042323122?e=1773878400&v=beta&t=vPGLXeorVP2ikZACdWsBZN_u_Me7DlXjQSTTBWtG6tY" />
-                <AvatarFallback>SF</AvatarFallback>
+            <div className="gap-4 hidden flex-col group-data-[collapsible=icon]:flex px-1">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={user?.avatar || ""} />
+                <AvatarFallback>{user?.name?.substring(0, 2).toUpperCase() || "OP"}</AvatarFallback>
               </Avatar>
             </div>
             <div className="group-data-[collapsible=icon]:hidden">
               <div className="gap-4 flex items-center justify-start">
                 <Avatar size="lg">
-                  <AvatarImage src="https://media.licdn.com/dms/image/v2/D5603AQF8VWtOZX4cyA/profile-displayphoto-crop_800_800/B56ZoGTUgUJ4AM-/0/1761042323122?e=1773878400&v=beta&t=vPGLXeorVP2ikZACdWsBZN_u_Me7DlXjQSTTBWtG6tY" />
-                  <AvatarFallback>SF</AvatarFallback>
+                  <AvatarImage src={user?.avatar || ""} />
+                  <AvatarFallback>{user?.name?.substring(0, 2).toUpperCase() || "OP"}</AvatarFallback>
                 </Avatar>
-                <div>
-                  <h2 className="font-semibold">Shariar Fahim</h2>
-                  <h3 className="text-sm text-gray-500">Outlet Manager</h3>
+                <div className="truncate">
+                  <h2 className="font-semibold truncate">{user?.name || "Loading..."}</h2>
+                  <h3 className="text-xs text-sidebar-foreground/60 truncate capitalize">
+                    {user?.role?.toLowerCase() || "Operator"}
+                  </h3>
                 </div>
               </div>
             </div>
