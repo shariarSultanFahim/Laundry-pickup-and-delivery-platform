@@ -58,14 +58,11 @@ export default function UsersTable() {
 
   const { data, isLoading } = useGetUsers(queryParams);
   const { mutate: updateStatus, isPending: isUpdating } = useUpdateUserStatus();
-
   const users = data?.data || [];
   const meta = data?.meta || { total: 0, totalPage: 1 };
 
   const rangeStart = meta.total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const rangeEnd = Math.min(page * PAGE_SIZE, meta.total);
-
-  const paginationNumbers = Array.from({ length: meta.totalPage }, (_, index) => index + 1);
 
   function handleEditClick(user: AdminUserListItem) {
     setEditingUserId(user.id);
@@ -136,7 +133,7 @@ export default function UsersTable() {
               <TableHead className="text-center">Total Spent</TableHead>
               <TableHead className="text-center">AOV</TableHead>
               <TableHead>Joined At</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -159,7 +156,7 @@ export default function UsersTable() {
                   className="hover:bg-muted/50 cursor-pointer"
                   onClick={() => handleRowClick(user)}
                 >
-                  <TableCell><DataValue value={user.userID} /></TableCell>
+                  <TableCell><DataValue value={user.userId} /></TableCell>
                   <TableCell><DataValue value={user.name} /></TableCell>
                   <TableCell><DataValue value={user.email} /></TableCell>
                   <TableCell><DataValue value={user.phone} /></TableCell>
@@ -173,7 +170,7 @@ export default function UsersTable() {
                   <TableCell className="text-center"><DataValue value={user.totalPaymentAmount ? `$${user.totalPaymentAmount.toLocaleString()}` : null} /></TableCell>
                   <TableCell className="text-center"><DataValue value={user.averageOrderValue ? `$${user.averageOrderValue.toFixed(2)}` : null} /></TableCell>
                   <TableCell><DataValue value={new Date(user.createdAt).toLocaleDateString()} /></TableCell>
-                  <TableCell onClick={() => handleEditClick(user)} className="text-center flex items-center justify-center">
+                  <TableCell onClick={() => handleEditClick(user)} className="text-center flex h-full justify-center items-center">
                     <UserRoundPen className="h-4 w-4" />
                   </TableCell>
                 </TableRow>

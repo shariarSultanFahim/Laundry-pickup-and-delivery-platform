@@ -24,7 +24,7 @@ export function useGetUsers(params: UsersQueryParams) {
       if (params.isVerified !== undefined) searchParams.append("isVerified", params.isVerified.toString());
 
       const { data } = await api.get<GetUsersResponse>(`/user?${searchParams.toString()}`);
-      return data.data;
+      return data;
     }
   });
 }

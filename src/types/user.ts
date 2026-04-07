@@ -124,7 +124,7 @@ export interface UserAddress {
 
 export interface AdminUserListItem {
   id: string;
-  userID: number;
+  userId: number;
   name: string;
   email: string;
   phone: string;
@@ -148,15 +148,14 @@ export interface AdminUserListItem {
 export interface GetUsersResponse {
   success: boolean;
   message: string;
-  data: {
-    meta: {
-      page: number;
-      limit: number;
-      total: number;
-      totalPage: number;
-    };
-    data: AdminUserListItem[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPage: number;
   };
+  data: AdminUserListItem[];
+
 }
 
 export interface GetUserByIdResponse {

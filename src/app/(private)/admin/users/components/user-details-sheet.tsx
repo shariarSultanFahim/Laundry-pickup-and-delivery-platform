@@ -57,7 +57,7 @@ export default function UserDetailsSheet({ open, onOpenChange, userId, onStatusC
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">User ID</p>
-                <p className="font-mono text-sm font-semibold"><DataValue value={user.userID} /></p>
+                <p className="font-mono text-sm font-semibold"><DataValue value={user.userId} /></p>
               </div>
 
               <div className="space-y-2 text-right">
