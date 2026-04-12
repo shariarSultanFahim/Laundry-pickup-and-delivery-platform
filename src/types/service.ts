@@ -1,4 +1,14 @@
+import { Addon } from "./addon";
 import { Category } from "./category";
+
+export interface ServiceAddon {
+  id: string;
+  serviceId: string;
+  addonId: string;
+  createdAt: string;
+  updatedAt: string;
+  addon?: Addon;
+}
 
 export interface Service {
   id: string;
@@ -6,11 +16,12 @@ export interface Service {
   categoryId: string;
   name: string;
   basePrice: string | number;
+  description?: string;
   image: string | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  addons: any[]; // Using any[] for now as defined in the response
+  serviceAddons: ServiceAddon[];
   category?: Category;
   operator?: {
     id: string;
@@ -41,7 +52,7 @@ export interface ServiceListResponse {
     page: number;
     limit: number;
     total: number;
-    totalPage: number;
+    totalPage?: number;
   };
   data: Service[];
 }
@@ -67,5 +78,5 @@ export interface CreateServicePayload {
   name: string;
   basePrice: number;
   isActive: boolean;
-  addons: string[];
+  addonIds: string[];
 }

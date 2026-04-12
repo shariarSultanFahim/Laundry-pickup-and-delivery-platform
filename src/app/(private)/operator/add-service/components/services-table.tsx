@@ -1,11 +1,22 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
-import { Edit, Eye, Heart, Loader2, Search, Star, Trash2 } from "lucide-react";
+import Image from "next/image";
+
+import { Edit, Eye, Heart, Loader2, Search, Star } from "lucide-react";
 import { toast } from "sonner";
 
 import type { Service } from "@/types/service";
+
+import { useGetMyAddons } from "@/lib/actions/addon/get.my-addons";
+import { useDeleteService } from "@/lib/actions/service/delete.service";
+import { useGetServices } from "@/lib/actions/service/get.services";
+import { useUpdateService } from "@/lib/actions/service/update.service";
+
+import { useDebounce } from "@/hooks/use-debounce";
+
+import DeleteConfirmationModal from "@/components/modals/delete-confirmation-modal";
+import { CustomPagination } from "@/components/ui/custom-pagination";
 import {
   Button,
   Card,
@@ -23,13 +34,6 @@ import {
 import { Badge } from "@/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/ui/sheet";
 import { Switch } from "@/ui/switch";
-
-import { useDebounce } from "@/hooks/use-debounce";
-import { useGetServices } from "@/lib/actions/service/get.services";
-import { useDeleteService } from "@/lib/actions/service/delete.service";
-import { useUpdateService } from "@/lib/actions/service/update.service";
-import DeleteConfirmationModal from "@/components/modals/delete-confirmation-modal";
-import { CustomPagination } from "@/components/ui/custom-pagination";
 
 interface ServicesTableProps {
   onRefresh?: () => void;
@@ -53,12 +57,20 @@ export default function ServicesTable({ onEdit }: ServicesTableProps) {
     limit,
     searchTerm: debouncedSearch || undefined
   });
+  const { data: addonsResponse } = useGetMyAddons({ limit: 200 });
 
   const { mutateAsync: deleteService, isPending: isDeleting } = useDeleteService();
   const { mutateAsync: updateService } = useUpdateService();
 
   const services = servicesResponse?.data ?? [];
   const meta = servicesResponse?.meta;
+  const totalPages =
+    meta?.totalPage ?? Math.max(1, Math.ceil((meta?.total ?? 0) / (meta?.limit ?? limit)));
+  const addonNameMap = new Map((addonsResponse?.data ?? []).map((addon) => [addon.id, addon.name]));
+
+  function getAddonLabel(addonId: string) {
+    return addonNameMap.get(addonId) ?? addonId;
+  }
 
   async function handleToggleStatus(service: Service) {
     try {
@@ -70,19 +82,13 @@ export default function ServicesTable({ onEdit }: ServicesTableProps) {
       toast.success(`Service ${!service.isActive ? "activated" : "deactivated"} successfully`, {
         position: "top-center"
       });
-    } catch (error: any) {
-      console.error("Error updating service:", error);
-      toast.error(error.message || "Failed to update service status", {
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update service status", {
         position: "top-center"
       });
     } finally {
       setTogglingId(null);
     }
-  }
-
-  function handleDeleteClick(service: Service) {
-    setServiceToDelete(service);
-    setDeleteModalOpen(true);
   }
 
   async function handleConfirmDelete() {
@@ -94,9 +100,8 @@ export default function ServicesTable({ onEdit }: ServicesTableProps) {
       setPreviewSheetOpen(false);
       setSelectedService(null);
       setDeleteModalOpen(false);
-    } catch (error: any) {
-      console.error("Error deleting service:", error);
-      toast.error(error.message || "Failed to delete service", {
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete service", {
         position: "top-center"
       });
     } finally {
@@ -156,13 +161,15 @@ export default function ServicesTable({ onEdit }: ServicesTableProps) {
 
           {/* Table */}
           {services.length === 0 ? (
-            <div className="py-10 text-center text-muted-foreground">
+            <div className="py-10 text-muted-foreground text-center">
               {isLoading ? (
-                <div className="flex justify-center items-center gap-2">
+                <div className="gap-2 flex items-center justify-center">
                   <Loader2 className="h-4 w-4 animate-spin" />
                   <span>Searching...</span>
                 </div>
-              ) : "No services found"}
+              ) : (
+                "No services found"
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -180,20 +187,25 @@ export default function ServicesTable({ onEdit }: ServicesTableProps) {
                 <TableBody>
                   {services.map((service) => (
                     <TableRow key={service.id}>
-                      <TableCell className="font-medium underline decoration-primary decoration-dotted underline-offset-4 cursor-pointer" onClick={() => handleRowClick(service)}>{service.name}</TableCell>
+                      <TableCell
+                        className="font-medium decoration-primary cursor-pointer underline decoration-dotted underline-offset-4"
+                        onClick={() => handleRowClick(service)}
+                      >
+                        {service.name}
+                      </TableCell>
                       <TableCell>{service.category?.name}</TableCell>
                       <TableCell>${Number(service.basePrice).toFixed(2)}</TableCell>
                       <TableCell>
-                        {service.addons && service.addons.length > 0 ? (
+                        {service.serviceAddons && service.serviceAddons.length > 0 ? (
                           <div className="gap-1 flex flex-wrap">
-                            {service.addons.slice(0, 2).map((addon: any) => (
+                            {service.serviceAddons.slice(0, 2).map((addon) => (
                               <Badge key={addon.id} variant="outline" className="text-xs">
-                                {addon.addon.name}
+                                {getAddonLabel(addon.addonId)}
                               </Badge>
                             ))}
-                            {service.addons.length > 2 && (
+                            {service.serviceAddons.length > 2 && (
                               <Badge variant="outline" className="text-xs">
-                                +{service.addons.length - 2}
+                                +{service.serviceAddons.length - 2}
                               </Badge>
                             )}
                           </div>
@@ -252,11 +264,11 @@ export default function ServicesTable({ onEdit }: ServicesTableProps) {
             </div>
           )}
 
-          {meta && meta.totalPage > 1 && (
+          {meta && totalPages > 1 && (
             <div className="pt-4 border-t">
               <CustomPagination
                 page={page}
-                totalPage={meta.totalPage}
+                totalPage={totalPages}
                 setPage={setPage}
                 isLoading={isLoading}
               />
@@ -296,7 +308,9 @@ export default function ServicesTable({ onEdit }: ServicesTableProps) {
                   </div>
 
                   <div className="mt-3 text-xl">
-                    <span className="font-semibold">${Number(selectedService.basePrice).toFixed(2)}/lb</span>
+                    <span className="font-semibold">
+                      ${Number(selectedService.basePrice).toFixed(2)}/lb
+                    </span>
                     <span className="text-muted-foreground ml-2">delivery fee on $2.00</span>
                   </div>
 
@@ -310,13 +324,13 @@ export default function ServicesTable({ onEdit }: ServicesTableProps) {
                     <Badge variant="outline">{selectedService.category?.name}</Badge>
                   </div>
 
-                  {selectedService.addons && selectedService.addons.length > 0 && (
+                  {selectedService.serviceAddons && selectedService.serviceAddons.length > 0 && (
                     <div className="mt-6 space-y-2">
                       <h4 className="text-sm font-medium">Included Add-ons:</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedService.addons.map((addon: any) => (
+                      <div className="gap-2 flex flex-wrap">
+                        {selectedService.serviceAddons.map((addon) => (
                           <Badge key={addon.id} variant="secondary" className="text-xs">
-                            {addon.addon?.name || addon.name}
+                            {getAddonLabel(addon.addonId)}
                           </Badge>
                         ))}
                       </div>

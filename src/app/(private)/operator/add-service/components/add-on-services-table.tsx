@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Edit, Search, Trash2 } from "lucide-react";
+
+import { Edit, Search } from "lucide-react";
 
 import { Addon } from "@/types/addon";
-import { useDebounce } from "@/hooks/use-debounce";
-import { CustomPagination } from "@/components/ui/custom-pagination";
 
+import { useDebounce } from "@/hooks/use-debounce";
+
+import { CustomPagination } from "@/components/ui/custom-pagination";
 import {
   Button,
   Card,
@@ -40,7 +42,6 @@ interface AddOnServicesTableProps {
 export default function AddOnServicesTable({
   services,
   onEdit,
-  onDelete,
   onToggleStatus,
   onSearchChange,
   page,
@@ -75,7 +76,7 @@ export default function AddOnServicesTable({
         {isLoading ? (
           <div className="space-y-4">
             {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full rounded-md" />
+              <Skeleton key={i} className="h-12 rounded-md w-full" />
             ))}
           </div>
         ) : services.length === 0 ? (
@@ -104,7 +105,7 @@ export default function AddOnServicesTable({
                       <TableCell className="max-w-xs truncate">{service.description}</TableCell>
                       <TableCell>${Number(service.price).toFixed(2)}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="gap-2 flex items-center">
                           <Switch
                             checked={service.isActive}
                             onCheckedChange={() => onToggleStatus(service)}

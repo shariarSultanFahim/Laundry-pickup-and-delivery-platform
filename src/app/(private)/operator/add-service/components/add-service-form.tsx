@@ -1,11 +1,21 @@
 "use client";
 
 import { useRef, type ChangeEvent } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Upload, X } from "lucide-react";
 import Image from "next/image";
+
+import { Plus, Upload, X } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { isAxiosError } from "axios";
 import { useForm, useWatch, type SubmitHandler } from "react-hook-form";
 import { toast } from "sonner";
+
+import type { CreateServicePayload, Service } from "@/types/service";
+
+import { useGetMyAddons } from "@/lib/actions/addon/get.my-addons";
+import { useGetCategories } from "@/lib/actions/category/get.categories";
+import { useCreateService } from "@/lib/actions/service/create.service";
+import { useUpdateService } from "@/lib/actions/service/update.service";
+import { useGetOperatorMe } from "@/lib/actions/user/get.operator-me";
 
 import {
   Button,
@@ -19,12 +29,6 @@ import {
   Input
 } from "@/ui";
 
-import { useCreateService } from "@/lib/actions/service/create.service";
-import { useUpdateService } from "@/lib/actions/service/update.service";
-import { useGetCategories } from "@/lib/actions/category/get.categories";
-import { useGetMyAddons } from "@/lib/actions/addon/get.my-addons";
-import { useGetOperatorMe } from "@/lib/actions/user/get.operator-me";
-import type { Service } from "@/types/service";
 import { addServiceSchema, type AddServiceFormData } from "../schema/add-service.schema";
 import { MultiSelectCombobox } from "./multi-select-combobox";
 
@@ -43,22 +47,24 @@ export default function AddServiceForm({ onSuccess, editingService }: AddService
   const { mutateAsync: updateService, isPending: isUpdating } = useUpdateService();
   const { data: operatorData } = useGetOperatorMe();
 
-  const categoryOptions = categoriesResponse?.data.map((c) => ({
-    value: c.id,
-    label: c.name
-  })) ?? [];
+  const categoryOptions =
+    categoriesResponse?.data.map((c) => ({
+      value: c.id,
+      label: c.name
+    })) ?? [];
 
-  const addonOptions = addonsResponse?.data.map((a) => ({
-    value: a.id,
-    label: a.name
-  })) ?? [];
+  const addonOptions =
+    addonsResponse?.data.map((a) => ({
+      value: a.id,
+      label: a.name
+    })) ?? [];
 
   const form = useForm<AddServiceFormData>({
     resolver: zodResolver(addServiceSchema),
     defaultValues: {
       name: editingService?.name || "",
       categoryId: editingService?.categoryId || "",
-      addOnServices: editingService?.addons?.map((a: any) => a.addonId) || [],
+      addOnServices: editingService?.serviceAddons?.map((addon) => addon.addonId) || [],
       price: Number(editingService?.basePrice) || 0,
       bannerImage: editingService?.image || null,
       bannerImageFile: null,
@@ -110,13 +116,13 @@ export default function AddServiceForm({ onSuccess, editingService }: AddService
         return;
       }
 
-      const payload: any = {
+      const payload: CreateServicePayload = {
         operatorId,
         name: values.name,
         basePrice: values.price,
         categoryId: values.categoryId,
         addonIds: values.addOnServices,
-        isActive: values.isActive ?? true,
+        isActive: values.isActive ?? true
       };
 
       if (editingService) {
@@ -136,9 +142,12 @@ export default function AddServiceForm({ onSuccess, editingService }: AddService
 
       form.reset();
       onSuccess?.();
-    } catch (error: any) {
-      console.error("Error submitting service:", error);
-      toast.error(error.message || `An error occurred while ${editingService ? "updating" : "adding"} the service`, {
+    } catch (error) {
+      const message = isAxiosError<{ message?: string }>(error)
+        ? (error.response?.data?.message ?? error.message)
+        : `An error occurred while ${editingService ? "updating" : "adding"} the service`;
+
+      toast.error(message, {
         position: "top-center"
       });
     }
@@ -162,13 +171,13 @@ export default function AddServiceForm({ onSuccess, editingService }: AddService
                         alt="Service banner"
                         width={400}
                         height={128}
-                        className="h-32 w-full object-cover rounded-md border border-input"
+                        className="h-32 rounded-md border-input w-full border object-cover"
                         unoptimized
                       />
                       <button
                         type="button"
                         onClick={handleRemoveBanner}
-                        className="absolute top-2 right-2 bg-destructive text-destructive-foreground p-1 rounded hover:bg-destructive/90"
+                        className="top-2 right-2 bg-destructive text-destructive-foreground p-1 rounded hover:bg-destructive/90 absolute"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -177,9 +186,9 @@ export default function AddServiceForm({ onSuccess, editingService }: AddService
                     <button
                       type="button"
                       onClick={handleBannerClick}
-                      className="border-2 border-dashed border-input rounded-md p-8 text-center hover:border-primary hover:bg-accent transition-colors cursor-pointer w-full"
+                      className="border-input rounded-md p-8 hover:border-primary hover:bg-accent w-full cursor-pointer border-2 border-dashed text-center transition-colors"
                     >
-                      <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                      <Upload className="h-8 w-8 mb-2 text-muted-foreground mx-auto" />
                       <p className="text-sm font-medium">Upload banner image</p>
                       <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
                     </button>
