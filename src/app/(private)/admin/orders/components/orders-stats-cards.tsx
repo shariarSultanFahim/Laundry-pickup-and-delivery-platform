@@ -1,7 +1,9 @@
 "use client";
 
 import { AlertTriangle, Clock3, DollarSign, TrendingUp } from "lucide-react";
+
 import { useGetAdminStats } from "@/lib/actions/admin/use-analytics";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Skeleton } from "@/ui/skeleton";
 
@@ -31,38 +33,41 @@ export default function OrdersStatsCards() {
   const grossRevenue = stats?.grossRevenue?.value ?? 0;
   const totalOrders = stats?.totalOrders?.value ?? 0;
   const avgTicket = totalOrders > 0 ? grossRevenue / totalOrders : 0;
-  
+
   // Mapping order statuses to pending/failed for the stats display
-  const pendingCount = stats?.orderStatus?.find(s => s.status.toUpperCase() === "PENDING")?.count ?? 0;
-  const cancelledCount = stats?.orderStatus?.find(s => s.status.toUpperCase() === "CANCELLED")?.count ?? 0;
+  const pendingCount =
+    stats?.orderStatus?.find((s) => s.status.toUpperCase() === "PENDING")?.count ?? 0;
+  const cancelledCount =
+    stats?.orderStatus?.find((s) => s.status.toUpperCase() === "CANCELLED")?.count ?? 0;
 
   const cards = [
     {
       title: "Gross Revenue",
       value: `$${grossRevenue.toLocaleString()}`,
-      subtitle: stats?.netPlatformRevenue?.change !== undefined 
-        ? `${stats.netPlatformRevenue.change}% ${stats.netPlatformRevenue.direction} from last period`
-        : "Total revenue generated",
-      icon: DollarSign,
+      subtitle:
+        stats?.netPlatformRevenue?.change !== undefined
+          ? `${stats.netPlatformRevenue.change}% ${stats.netPlatformRevenue.direction} from last period`
+          : "Total revenue generated",
+      icon: DollarSign
     },
     {
       title: "Average Ticket",
       value: `$${avgTicket.toFixed(2)}`,
       subtitle: "Avg order value",
-      icon: TrendingUp,
+      icon: TrendingUp
     },
     {
       title: "Pending Orders",
       value: pendingCount.toString(),
       subtitle: "Orders awaiting processing",
-      icon: Clock3,
+      icon: Clock3
     },
     {
       title: "Cancelled Orders",
       value: cancelledCount.toString(),
       subtitle: "Total cancelled orders",
-      icon: AlertTriangle,
-    },
+      icon: AlertTriangle
+    }
   ];
 
   return (

@@ -1,18 +1,19 @@
 "use client";
 
 import { useEffect } from "react";
+
 import { Loader2, Save } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { Button, Form } from "@/ui";
 import { useGetSettings } from "@/lib/actions/admin/use-get-settings";
 import { useUpdateSettings } from "@/lib/actions/admin/use-update-settings";
 
+import { Button, Form } from "@/ui";
+
 import BusinessRulesCard from "./business-rules-card";
 import CommissionSettingsCard from "./commission-settings-card";
-import PaymentMethodsCard from "./payment-methods-card";
 import { settingsFormSchema, type SettingsFormData } from "./settings-form.schema";
 
 const initialPaymentMethods = [
@@ -75,7 +76,11 @@ export default function SettingsForm() {
           platformCommission: Number(settingsData.platformCommissionRate) || 0,
           fixedTransactionFee: Number(settingsData.fixedTransactionFee) || 0,
           paymentProcessingFee: Number(settingsData.paymentProcessingFee) || 0,
-          payoutSchedule: (settingsData.payoutSchedule?.trim().toUpperCase() as any) || "WEEKLY"
+          payoutSchedule:
+            (settingsData.payoutSchedule?.trim().toUpperCase() as
+              | "WEEKLY"
+              | "MONTHLY"
+              | "YEARLY") || "WEEKLY"
         }
       });
     }
@@ -100,13 +105,16 @@ export default function SettingsForm() {
       toast.success("Settings saved successfully!", { id: toastId, position: "top-center" });
     } catch (error) {
       console.error(error);
-      toast.error("Failed to save settings. Please try again.", { id: toastId, position: "top-center" });
+      toast.error("Failed to save settings. Please try again.", {
+        id: toastId,
+        position: "top-center"
+      });
     }
   }
 
   if (isLoadingSettings) {
     return (
-      <div className="flex h-[400px] w-full items-center justify-center">
+      <div className="h-100 flex w-full items-center justify-center">
         <Loader2 className="size-8 animate-spin text-primary" />
       </div>
     );
@@ -115,13 +123,17 @@ export default function SettingsForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <PaymentMethodsCard control={form.control} />
+        {/* <PaymentMethodsCard control={form.control} /> */}
         <BusinessRulesCard control={form.control} />
         <CommissionSettingsCard control={form.control} />
 
         <div className="flex justify-end">
           <Button type="submit" className="min-w-40" disabled={isUpdating}>
-            {isUpdating ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Save className="mr-2 size-4" />}
+            {isUpdating ? (
+              <Loader2 className="mr-2 size-4 animate-spin" />
+            ) : (
+              <Save className="mr-2 size-4" />
+            )}
             Save Changes
           </Button>
         </div>
