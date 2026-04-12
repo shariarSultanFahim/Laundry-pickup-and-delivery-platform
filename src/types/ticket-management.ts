@@ -1,53 +1,110 @@
-export interface TicketMessage {
+// ─── Enums ────────────────────────────────────────────────────────────────────
+export type SupportTicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
+export type SupportTicketType = "ORDER_ISSUE" | "PAYMENT_ISSUE" | "GENERAL" | "LIVE_CHAT";
+export type MessageSenderType = "user" | "admin" | "system";
+
+// ─── Chat Message Type ───────────────────────────────────────────────────────
+export interface SenderUser {
   id: string;
-  senderId: string;
-  senderName: string;
-  senderType: "customer" | "support";
-  message: string;
-  timestamp: string;
-  senderAvatar?: string;
+  name: string;
+  avatar: string | null;
 }
 
+export interface ChatMessage {
+  id: string;
+  roomId: string;
+  senderUserId?: string;
+  senderOperatorId?: string | null;
+  content: string;
+  isDeleted: boolean;
+  isEdited: boolean;
+  createdAt: string;
+  updatedAt: string;
+  senderUser?: SenderUser | null;
+  senderOperator?: SenderUser | null;
+}
+
+// ─── User Type (embedded in ticket) ───────────────────────────────────────────
+export interface TicketUser {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string | null;
+  phone: string;
+  role: string;
+}
+
+// ─── Chat Room Type ──────────────────────────────────────────────────────────
+export interface ChatRoom {
+  id: string;
+  name: string;
+  orderId: string | null;
+  ticketId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─── Support Ticket ───────────────────────────────────────────────────────────
 export interface SupportTicket {
   id: string;
   ticketNumber: string;
-  customerName: string;
-  customerEmail: string;
-  customerAvatar?: string;
-  title: string;
+  userId: string;
+  orderId: string | null;
+  subject: string;
   description: string;
-  status: "open" | "resolved";
-  priority: "low" | "medium" | "high";
-  assignedTo?: string;
+  status: SupportTicketStatus;
+  type: SupportTicketType;
   createdAt: string;
-  timeAgo: string;
-  isCustomerOnline?: boolean;
-  messages: TicketMessage[];
+  updatedAt: string;
+  user: TicketUser;
+  chatRooms: ChatRoom[];
 }
 
-export interface TicketStats {
-  title: string;
-  value: string;
-  subtitle: string;
-}
-
-export interface TicketFilters {
-  status?: SupportTicket["status"];
-  fromDate?: string;
-  toDate?: string;
-}
-
-export interface FetchTicketsParams {
+// ─── Pagination Meta ─────────────────────────────────────────────────────────
+export interface PaginationMeta {
   page: number;
-  pageSize: number;
-  search: string;
-  filters?: TicketFilters;
-}
-
-export interface FetchTicketsResponse {
-  items: SupportTicket[];
-  page: number;
-  pageSize: number;
+  limit: number;
   total: number;
-  totalPages: number;
+  totalPage: number;
+}
+
+// ─── Query Params ────────────────────────────────────────────────────────────
+export interface GetTicketsQueryParams {
+  page?: number;
+  limit?: number;
+  searchTerm?: string;
+  status?: SupportTicketStatus;
+  type?: SupportTicketType;
+}
+
+// ─── Response Types ──────────────────────────────────────────────────────────
+export interface GetTicketsListResponse {
+  success: boolean;
+  message: string;
+  meta: PaginationMeta;
+  data: SupportTicket[];
+}
+
+export interface GetTicketDetailsResponse {
+  success: boolean;
+  message: string;
+  data: SupportTicket;
+}
+
+export interface UpdateTicketStatusPayload {
+  status: SupportTicketStatus;
+}
+
+export interface UpdateTicketStatusResponse {
+  success: boolean;
+  message: string;
+  data?: SupportTicket;
+}
+
+// ─── Chat Messages Response ──────────────────────────────────────────────────
+export interface GetChatMessagesResponse {
+  success: boolean;
+  message: string;
+  meta: PaginationMeta;
+  data: ChatMessage[];
 }

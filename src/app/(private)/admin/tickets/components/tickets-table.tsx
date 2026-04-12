@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Filter, Search, User } from "lucide-react";
 
-import type { SupportTicket, TicketFilters } from "@/types/ticket-management";
+import type { SupportTicket, SupportTicketStatus } from "@/types/ticket-management";
+
+import { useGetTickets } from "@/lib/actions/tickets/get-tickets";
+import { useUpdateTicketStatus } from "@/lib/actions/tickets/update-ticket-status";
 
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -13,78 +16,62 @@ import { Input } from "@/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 
 import TicketChatSheet from "./ticket-chat-sheet";
-import { assignTicket, fetchTickets } from "./tickets-api";
 import TicketsFilterSheet from "./tickets-filter-sheet";
 
 const PAGE_SIZE = 10;
 
-function getStatusBadgeVariant(status: SupportTicket["status"]) {
-  return status === "resolved" ? "default" : "secondary";
+function getStatusBadgeVariant(status: SupportTicketStatus) {
+  const statusMap: Record<SupportTicketStatus, "default" | "secondary" | "destructive"> = {
+    OPEN: "secondary",
+    IN_PROGRESS: "secondary",
+    RESOLVED: "default",
+    CLOSED: "default"
+  };
+  return statusMap[status];
+}
+
+function getStatusLabel(status: SupportTicketStatus): string {
+  const labelMap: Record<SupportTicketStatus, string> = {
+    OPEN: "Open",
+    IN_PROGRESS: "In Progress",
+    RESOLVED: "Resolved",
+    CLOSED: "Closed"
+  };
+  return labelMap[status];
 }
 
 export default function TicketsTable() {
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [filters, setFilters] = useState<TicketFilters>({});
   const [page, setPage] = useState(1);
-  const [rows, setRows] = useState<SupportTicket[]>([]);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [status, setStatus] = useState<SupportTicketStatus | undefined>();
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [chatSheetOpen, setChatSheetOpen] = useState(false);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-    }, 350);
+  const { mutate: updateStatus } = useUpdateTicketStatus();
 
-    return () => clearTimeout(timeout);
-  }, [search]);
+  const { data, isLoading, isError } = useGetTickets({
+    page,
+    limit: PAGE_SIZE,
+    searchTerm: search || undefined,
+    status
+  });
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadTickets() {
-      setIsLoading(true);
-      const response = await fetchTickets({
-        page,
-        pageSize: PAGE_SIZE,
-        search: debouncedSearch,
-        filters
-      });
-
-      if (!isMounted) {
-        return;
-      }
-
-      setRows(response.items);
-      setTotal(response.total);
-      setTotalPages(response.totalPages);
-      setIsLoading(false);
-    }
-
-    void loadTickets();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [debouncedSearch, page, filters]);
+  const rows = data?.data ?? [];
+  const meta = data?.meta;
 
   const paginationNumbers = useMemo(() => {
-    return Array.from({ length: totalPages }, (_, index) => index + 1);
-  }, [totalPages]);
+    return Array.from({ length: meta?.totalPage ?? 1 }, (_, index) => index + 1);
+  }, [meta]);
 
-  const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const rangeEnd = Math.min(page * PAGE_SIZE, total);
+  const rangeStart = meta?.total === 0 ? 0 : ((meta?.page ?? 1) - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min((meta?.page ?? 1) * PAGE_SIZE, meta?.total ?? 0);
 
-  const handleAssignment = async (ticketId: string, assignee: string) => {
-    await assignTicket(ticketId, assignee);
-    setRows((prev) =>
-      prev.map((ticket) => (ticket.id === ticketId ? { ...ticket, assignedTo: assignee } : ticket))
-    );
+  const handleStatusChange = (ticketId: string, newStatus: SupportTicketStatus) => {
+    updateStatus({
+      ticketId,
+      status: newStatus
+    });
   };
 
   return (
@@ -104,7 +91,10 @@ export default function TicketsTable() {
               <Input
                 placeholder="Search tickets..."
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setPage(1);
+                }}
                 className="pl-9"
               />
             </div>
@@ -122,6 +112,12 @@ export default function TicketsTable() {
       </CardHeader>
 
       <CardContent className="space-y-3">
+        {isError && (
+          <div className="rounded-xl border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive border">
+            Failed to load tickets. Please refresh and try again.
+          </div>
+        )}
+
         {isLoading ? (
           <div className="h-24 text-muted-foreground flex items-center justify-center">
             Loading tickets...
@@ -146,11 +142,11 @@ export default function TicketsTable() {
                     <div className="gap-2 flex items-center">
                       <span className="font-semibold text-sm">#{ticket.ticketNumber}</span>
                       <Badge variant={getStatusBadgeVariant(ticket.status)} className="text-xs">
-                        {ticket.status === "open" ? "Open" : "Resolved"}
+                        {getStatusLabel(ticket.status)}
                       </Badge>
                     </div>
 
-                    <h3 className="font-semibold text-foreground">{ticket.title}</h3>
+                    <h3 className="font-semibold text-foreground">{ticket.subject}</h3>
                     <p className="text-muted-foreground text-sm line-clamp-1">
                       {ticket.description}
                     </p>
@@ -158,31 +154,28 @@ export default function TicketsTable() {
                     <div className="gap-2 text-muted-foreground text-xs flex items-center">
                       <div className="gap-1 flex items-center">
                         <User className="h-3 w-3" />
-                        <span>{ticket.customerName}</span>
+                        <span>{ticket.user.name}</span>
                       </div>
                       <span>•</span>
-                      <span>{ticket.timeAgo}</span>
+                      <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
 
                   <div className="gap-3 flex items-center" onClick={(e) => e.stopPropagation()}>
                     <Select
-                      value={ticket.assignedTo || "not-assigned"}
+                      value={ticket.status}
                       onValueChange={(value) => {
-                        if (value !== "not-assigned") {
-                          handleAssignment(ticket.id, value);
-                        }
+                        handleStatusChange(ticket.id, value as SupportTicketStatus);
                       }}
                     >
-                      <SelectTrigger className="w-36">
-                        <SelectValue placeholder="Not Assigned" />
+                      <SelectTrigger className="w-44">
+                        <SelectValue placeholder="Change status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="not-assigned">Not Assigned</SelectItem>
-                        <SelectItem value="Mike Johnson">Mike Johnson</SelectItem>
-                        <SelectItem value="Sarah Chen">Sarah Chen</SelectItem>
-                        <SelectItem value="Alex Smith">Alex Smith</SelectItem>
-                        <SelectItem value="Emma Wilson">Emma Wilson</SelectItem>
+                        <SelectItem value="OPEN">Open</SelectItem>
+                        <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                        <SelectItem value="RESOLVED">Resolved</SelectItem>
+                        <SelectItem value="CLOSED">Closed</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -195,7 +188,7 @@ export default function TicketsTable() {
         {rows.length > 0 && (
           <div className="gap-3 pt-4 text-sm md:flex-row md:items-center md:justify-between flex flex-col border-t">
             <p className="text-muted-foreground">
-              Showing {rangeStart}-{rangeEnd} of {total} tickets
+              Showing {rangeStart}-{rangeEnd} of {meta?.total ?? 0} tickets
             </p>
 
             <div className="gap-2 flex items-center">
@@ -223,8 +216,8 @@ export default function TicketsTable() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={page >= totalPages || isLoading}
-                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={page >= (meta?.totalPage ?? 1) || isLoading}
+                onClick={() => setPage((prev) => Math.min(prev + 1, meta?.totalPage ?? 1))}
               >
                 Next
               </Button>
@@ -237,11 +230,11 @@ export default function TicketsTable() {
         open={filterSheetOpen}
         onOpenChange={setFilterSheetOpen}
         onApplyFilters={(appliedFilters) => {
-          setFilters(appliedFilters);
+          setStatus(appliedFilters.status);
           setPage(1);
         }}
         onClearFilters={() => {
-          setFilters({});
+          setStatus(undefined);
           setPage(1);
         }}
       />
