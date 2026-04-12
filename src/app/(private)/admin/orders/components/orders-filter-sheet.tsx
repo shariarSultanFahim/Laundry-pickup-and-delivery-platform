@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import type { OrderFilters, OrderManagementOrder } from "@/types/order-management";
+import type { OrderFilters, OrderStatus, PaymentStatus } from "@/types/order-management";
 
 import { Button } from "@/ui/button";
 import { Combobox } from "@/ui/combobox";
@@ -11,7 +11,7 @@ import { Label } from "@/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/ui/sheet";
 
-import { operatorsData } from "../../common/data/operators";
+import { useGetTopOperators } from "@/lib/actions/admin/use-analytics";
 
 interface OrdersFilterSheetProps {
   open: boolean;
@@ -26,35 +26,45 @@ export default function OrdersFilterSheet({
   onApplyFilters,
   onClearFilters
 }: OrdersFilterSheetProps) {
-  const [orderStatus, setOrderStatus] = useState<OrderManagementOrder["orderStatus"] | "">("");
-  const [paymentStatus, setPaymentStatus] = useState<OrderManagementOrder["paymentStatus"] | "">(
-    ""
-  );
-  const [operatorId, setOperatorId] = useState("");
+  const [status, setStatus] = useState<OrderStatus | "">("");
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | "">("");
+  const [operatorID, setOperatorId] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+
+  const { data: operatorsResponse, isLoading: operatorsLoading } = useGetTopOperators();
+
+  const operatorOptions = useMemo(() => {
+    return operatorsResponse?.data?.map((operator) => ({
+      value: operator.operatorId,
+      label: operator.name
+    })) ?? [];
+  }, [operatorsResponse]);
 
   function handleApplyFilters() {
     const filters: OrderFilters = {};
 
-    if (orderStatus) {
-      filters.orderStatus = orderStatus;
+    if (status) {
+      filters.status = status;
     }
 
     if (paymentStatus) {
       filters.paymentStatus = paymentStatus;
     }
 
-    if (operatorId) {
-      filters.operatorId = operatorId;
+    if (operatorID) {
+      filters.operatorID = operatorID;
     }
 
     if (fromDate) {
-      filters.fromDate = fromDate;
+      const date = new Date(fromDate);
+      date.setUTCHours(0, 0, 0, 0);
+      filters.fromDate = date.toISOString();
     }
-
     if (toDate) {
-      filters.toDate = toDate;
+      const date = new Date(toDate);
+      date.setUTCHours(23, 59, 59, 999);
+      filters.toDate = date.toISOString();
     }
 
     onApplyFilters(filters);
@@ -62,7 +72,7 @@ export default function OrdersFilterSheet({
   }
 
   function handleClearFilters() {
-    setOrderStatus("");
+    setStatus("");
     setPaymentStatus("");
     setOperatorId("");
     setFromDate("");
@@ -78,21 +88,23 @@ export default function OrdersFilterSheet({
           <SheetTitle>Filter Orders</SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-6 px-4">
+        <div className="space-y-6 px-4 py-8">
           <div className="space-y-2">
             <Label htmlFor="order-status-filter">Order Status</Label>
             <Select
-              value={orderStatus}
-              onValueChange={(value) => setOrderStatus(value as typeof orderStatus)}
+              value={status}
+              onValueChange={(value) => setStatus(value as OrderStatus)}
             >
               <SelectTrigger id="order-status-filter" className="w-full">
                 <SelectValue placeholder="All order statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="PROCESSING">Processing</SelectItem>
+                <SelectItem value="PICKED_UP">Picked Up</SelectItem>
+                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                <SelectItem value="DELIVERED">Delivered</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -101,16 +113,17 @@ export default function OrdersFilterSheet({
             <Label htmlFor="payment-status-filter">Payment Status</Label>
             <Select
               value={paymentStatus}
-              onValueChange={(value) => setPaymentStatus(value as typeof paymentStatus)}
+              onValueChange={(value) => setPaymentStatus(value as PaymentStatus)}
             >
               <SelectTrigger id="payment-status-filter" className="w-full">
                 <SelectValue placeholder="All payment statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="paid">Paid</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="failed">Failed</SelectItem>
-                <SelectItem value="refunded">Refunded</SelectItem>
+                <SelectItem value="UNPAID">Unpaid</SelectItem>
+                <SelectItem value="PAID">Paid</SelectItem>
+                <SelectItem value="ESCROW_HELD">Escrow Held</SelectItem>
+                <SelectItem value="DISBURSED">Disbursed</SelectItem>
+                <SelectItem value="REFUNDED">Refunded</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -118,15 +131,13 @@ export default function OrdersFilterSheet({
           <div className="space-y-2">
             <Label>Operator</Label>
             <Combobox
-              options={operatorsData.map((operator) => ({
-                value: operator.id,
-                label: operator.name
-              }))}
-              value={operatorId}
+              options={operatorOptions}
+              value={operatorID}
               onValueChange={setOperatorId}
-              placeholder="Select an operator"
+              placeholder={operatorsLoading ? "Loading operators..." : "Select an operator"}
               searchPlaceholder="Search operators..."
               emptyText="No operator found."
+              disabled={operatorsLoading}
             />
           </div>
 

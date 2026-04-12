@@ -4,13 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Filter, Search } from "lucide-react";
 
-import type { OrderFilters, OrderManagementOrder } from "@/types/order-management";
+import type { AdminOrder, OrderFilters } from "@/types/order-management";
 
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Input } from "@/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 
 import OrderDetailsSheet from "./order-details-sheet";
@@ -19,28 +18,41 @@ import OrdersFilterSheet from "./orders-filter-sheet";
 
 const PAGE_SIZE = 10;
 
-function getOrderStatusVariant(status: OrderManagementOrder["orderStatus"]) {
-  if (status === "completed") {
-    return "default";
+function getOrderStatusVariant(status: AdminOrder["status"]) {
+  switch (status) {
+    case "DELIVERED":
+      return "default";
+    case "PENDING":
+      return "outline";
+    case "PROCESSING":
+    case "OUT_FOR_PICKUP":
+    case "PICKED_UP":
+    case "RECEIVED_BY_STORE":
+    case "IN_PROGRESS":
+    case "READY_FOR_DELIVERY":
+    case "OUT_FOR_DELIVERY":
+      return "secondary";
+    case "CANCELLED":
+    case "REFUNDED":
+      return "destructive";
+    default:
+      return "outline";
   }
-
-  if (status === "in-progress" || status === "pending") {
-    return "secondary";
-  }
-
-  return "destructive";
 }
 
-function getPaymentStatusVariant(status: OrderManagementOrder["paymentStatus"]) {
-  if (status === "paid") {
-    return "default";
+function getPaymentStatusVariant(status: AdminOrder["paymentStatus"]) {
+  switch (status) {
+    case "PAID":
+    case "DISBURSED":
+      return "default";
+    case "UNPAID":
+    case "ESCROW_HELD":
+      return "secondary";
+    case "REFUNDED":
+      return "destructive";
+    default:
+      return "outline";
   }
-
-  if (status === "pending") {
-    return "secondary";
-  }
-
-  return "destructive";
 }
 
 export default function OrdersTable() {
@@ -48,12 +60,12 @@ export default function OrdersTable() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filters, setFilters] = useState<OrderFilters>({});
   const [page, setPage] = useState(1);
-  const [rows, setRows] = useState<OrderManagementOrder[]>([]);
+  const [rows, setRows] = useState<AdminOrder[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<OrderManagementOrder | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
   const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
 
   useEffect(() => {
@@ -70,21 +82,24 @@ export default function OrdersTable() {
 
     async function loadOrders() {
       setIsLoading(true);
-      const response = await fetchOrders({
-        page,
-        pageSize: PAGE_SIZE,
-        search: debouncedSearch,
-        filters
-      });
+      try {
+        const response = await fetchOrders({
+          page,
+          limit: PAGE_SIZE,
+          searchTerm: debouncedSearch,
+          ...filters
+        });
 
-      if (!isMounted) {
-        return;
+        if (!isMounted) return;
+
+        setRows(response.data);
+        setTotal(response.meta.total);
+        setTotalPages(response.meta.totalPage);
+      } catch (error) {
+        console.error("Failed to fetch orders:", error);
+      } finally {
+        if (isMounted) setIsLoading(false);
       }
-
-      setRows(response.items);
-      setTotal(response.total);
-      setTotalPages(response.totalPages);
-      setIsLoading(false);
     }
 
     void loadOrders();
@@ -100,15 +115,6 @@ export default function OrdersTable() {
 
   const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const rangeEnd = Math.min(page * PAGE_SIZE, total);
-
-  function handleOrderStatusChange(
-    orderId: string,
-    newStatus: OrderManagementOrder["orderStatus"]
-  ) {
-    setRows((prev) =>
-      prev.map((order) => (order.id === orderId ? { ...order, orderStatus: newStatus } : order))
-    );
-  }
 
   return (
     <Card>
@@ -143,27 +149,25 @@ export default function OrdersTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Order ID</TableHead>
+              <TableHead>Order#</TableHead>
               <TableHead>Customer</TableHead>
               <TableHead>Amount</TableHead>
-              <TableHead>Order Status</TableHead>
-              <TableHead>Payment Status</TableHead>
-              <TableHead>Transaction ID</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Payment</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-muted-foreground text-center">
+                <TableCell colSpan={6} className="h-24 text-muted-foreground text-center">
                   Loading orders...
                 </TableCell>
               </TableRow>
             ) : rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-muted-foreground text-center">
+                <TableCell colSpan={6} className="h-24 text-muted-foreground text-center">
                   No orders found.
                 </TableCell>
               </TableRow>
@@ -177,52 +181,26 @@ export default function OrdersTable() {
                     setDetailsSheetOpen(true);
                   }}
                 >
-                  <TableCell>{order.id}</TableCell>
+                  <TableCell className="font-medium">{order.orderNumber}</TableCell>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{order.customerName}</p>
-                      <p className="text-muted-foreground text-sm">{order.customerEmail}</p>
+                      <p className="font-medium">{order.user.name}</p>
+                      <p className="text-muted-foreground text-xs">{order.user.email}</p>
                     </div>
                   </TableCell>
-                  <TableCell>${order.amount.toFixed(2)}</TableCell>
+                  <TableCell>${Number(order.totalAmount).toFixed(2)}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={getOrderStatusVariant(order.orderStatus)}
-                      className="capitalize"
-                    >
-                      {order.orderStatus}
+                    <Badge variant={getOrderStatusVariant(order.status)} className="text-[10px] font-semibold">
+                      {order.status.replace(/_/g, " ")}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={getPaymentStatusVariant(order.paymentStatus)}
-                      className="capitalize"
-                    >
+                    <Badge variant={getPaymentStatusVariant(order.paymentStatus)} className="text-[10px] font-semibold">
                       {order.paymentStatus}
                     </Badge>
                   </TableCell>
-                  <TableCell>{order.transactionId}</TableCell>
-                  <TableCell>{order.date}</TableCell>
-                  <TableCell>
-                    <Select
-                      value={order.orderStatus}
-                      onValueChange={(value) =>
-                        handleOrderStatusChange(
-                          order.id,
-                          value as OrderManagementOrder["orderStatus"]
-                        )
-                      }
-                    >
-                      <SelectTrigger className="w-36">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="in-progress">In Progress</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <TableCell className="text-muted-foreground text-xs">
+                    {new Date(order.createdAt).toLocaleDateString()}
                   </TableCell>
                 </TableRow>
               ))
@@ -245,7 +223,7 @@ export default function OrdersTable() {
               Previous
             </Button>
 
-            {paginationNumbers.map((pageNumber) => (
+            {paginationNumbers.length > 0 && paginationNumbers.map((pageNumber) => (
               <Button
                 key={pageNumber}
                 variant={pageNumber === page ? "default" : "outline"}
@@ -285,7 +263,7 @@ export default function OrdersTable() {
       <OrderDetailsSheet
         open={detailsSheetOpen}
         onOpenChange={setDetailsSheetOpen}
-        order={selectedOrder}
+        orderId={selectedOrder?.id}
       />
     </Card>
   );

@@ -1,68 +1,30 @@
-import type { FetchOrdersParams, FetchOrdersResponse } from "@/types/order-management";
-
-import { ordersData } from "../data/orders";
-
-function includesSearch(haystack: string, search: string) {
-  return haystack.toLowerCase().includes(search.toLowerCase());
-}
+import { get } from "@/lib/api";
+import type { FetchOrderDetailsResponse, FetchOrdersParams, FetchOrdersResponse } from "@/types/order-management";
 
 export async function fetchOrders({
-  page,
-  pageSize,
-  search,
-  filters
+  page = 1,
+  limit = 10,
+  searchTerm = "",
+  status,
+  paymentStatus,
+  operatorID,
+  fromDate,
+  toDate
 }: FetchOrdersParams): Promise<FetchOrdersResponse> {
-  await new Promise((resolve) => setTimeout(resolve, 400));
+  const params = new URLSearchParams();
+  if (page) params.append("page", page.toString());
+  if (limit) params.append("limit", limit.toString());
+  if (searchTerm) params.append("searchTerm", searchTerm);
+  if (status) params.append("status", status);
+  if (paymentStatus) params.append("paymentStatus", paymentStatus);
+  if (operatorID) params.append("operatorID", operatorID);
+  if (fromDate) params.append("fromDate", fromDate);
+  if (toDate) params.append("toDate", toDate);
 
-  const normalizedSearch = search.trim();
+  const url = `/order?${params.toString()}`;
+  return get<FetchOrdersResponse>(url);
+}
 
-  let results = ordersData;
-
-  if (normalizedSearch) {
-    results = results.filter((order) =>
-      [
-        order.id,
-        order.customerName,
-        order.customerEmail,
-        order.operatorName,
-        order.transactionId
-      ].some((value) => includesSearch(value, normalizedSearch))
-    );
-  }
-
-  if (filters?.orderStatus) {
-    results = results.filter((order) => order.orderStatus === filters.orderStatus);
-  }
-
-  if (filters?.paymentStatus) {
-    results = results.filter((order) => order.paymentStatus === filters.paymentStatus);
-  }
-
-  if (filters?.operatorId) {
-    results = results.filter((order) => order.operatorId === filters.operatorId);
-  }
-
-  if (filters?.fromDate) {
-    results = results.filter((order) => order.date >= filters.fromDate!);
-  }
-
-  if (filters?.toDate) {
-    results = results.filter((order) => order.date <= filters.toDate!);
-  }
-
-  const safePageSize = Math.max(pageSize, 1);
-  const total = results.length;
-  const totalPages = Math.max(Math.ceil(total / safePageSize), 1);
-  const safePage = Math.min(Math.max(page, 1), totalPages);
-
-  const start = (safePage - 1) * safePageSize;
-  const items = results.slice(start, start + safePageSize);
-
-  return {
-    items,
-    page: safePage,
-    pageSize: safePageSize,
-    total,
-    totalPages
-  };
+export async function fetchOrderById(id: string): Promise<FetchOrderDetailsResponse> {
+  return get<FetchOrderDetailsResponse>(`/order/${id}`);
 }

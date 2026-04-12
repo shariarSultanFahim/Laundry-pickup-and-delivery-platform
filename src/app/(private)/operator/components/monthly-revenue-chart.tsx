@@ -72,7 +72,13 @@ export default function MonthlyRevenueChart({ data }: MonthlyRevenueChartProps) 
             }}
           >
             <CartesianGrid vertical={false} />
-            <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
+            <XAxis
+              dataKey="label"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(value) => value.split(" ")[0]}
+            />
             <YAxis dataKey="revenue" tickLine={false} axisLine={false} tickMargin={8} />
             <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
             <defs>

@@ -1,17 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import type { DisputeFilters, DisputeManagementDispute } from "@/types/dispute-management";
 
+import { useGetTopOperators } from "@/lib/actions/admin/use-analytics";
 import { Button } from "@/ui/button";
 import { Combobox } from "@/ui/combobox";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/ui/sheet";
-
-import { operatorsData } from "../../common/data/operators";
 
 interface DisputesFilterSheetProps {
   open: boolean;
@@ -30,6 +29,15 @@ export default function DisputesFilterSheet({
   const [operatorId, setOperatorId] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+
+  const { data: operatorsResponse, isLoading: operatorsLoading } = useGetTopOperators();
+
+  const operatorOptions = useMemo(() => {
+    return operatorsResponse?.data?.map((operator) => ({
+      value: operator.operatorId,
+      label: operator.name
+    })) ?? [];
+  }, [operatorsResponse]);
 
   function handleApplyFilters() {
     const filters: DisputeFilters = {};
@@ -91,15 +99,13 @@ export default function DisputesFilterSheet({
           <div className="space-y-2">
             <Label>Operator</Label>
             <Combobox
-              options={operatorsData.map((operator) => ({
-                value: operator.id,
-                label: operator.name
-              }))}
+              options={operatorOptions}
               value={operatorId}
               onValueChange={setOperatorId}
-              placeholder="Select an operator"
+              placeholder={operatorsLoading ? "Loading operators..." : "Select an operator"}
               searchPlaceholder="Search operators..."
               emptyText="No operator found."
+              disabled={operatorsLoading}
             />
           </div>
 
