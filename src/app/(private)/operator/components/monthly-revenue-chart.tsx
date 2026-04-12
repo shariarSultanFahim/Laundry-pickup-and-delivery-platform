@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
-
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+
+import type { OperatorRevenueChartItem } from "@/types/operator-analytics";
+
+import type { RevenueFilter } from "@/lib/actions/operator/use-operator-dashboard";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,13 +15,11 @@ import {
   type ChartConfig
 } from "@/components/ui/chart";
 
-import { MonthlyRevenueData } from "../(dashboard)/data/dashboard";
-
 interface MonthlyRevenueChartProps {
-  data: MonthlyRevenueData[];
+  data: OperatorRevenueChartItem[];
+  selectedPeriod: RevenueFilter;
+  onPeriodChange: (period: RevenueFilter) => void;
 }
-
-type TimePeriod = "3M" | "6M" | "12M";
 
 const chartConfig = {
   revenue: {
@@ -28,35 +28,26 @@ const chartConfig = {
   }
 } satisfies ChartConfig;
 
-export default function MonthlyRevenueChart({ data }: MonthlyRevenueChartProps) {
-  const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>("12M");
-
-  const getFilteredData = () => {
-    const periods = {
-      "3M": 3,
-      "6M": 6,
-      "12M": 12
-    };
-    return data.slice(-periods[selectedPeriod]);
-  };
-
-  const filteredData = getFilteredData();
-
+export default function MonthlyRevenueChart({
+  data,
+  selectedPeriod,
+  onPeriodChange
+}: MonthlyRevenueChartProps) {
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Monthly Revenue</CardTitle>
           <div className="gap-2 flex">
-            {(["12M", "6M", "3M"] as TimePeriod[]).map((period) => (
+            {[12, 6, 3].map((period) => (
               <Button
                 key={period}
                 variant={selectedPeriod === period ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSelectedPeriod(period)}
+                onClick={() => onPeriodChange(period as RevenueFilter)}
                 className="h-8 px-3 text-xs"
               >
-                {period}
+                {`${period}M`}
               </Button>
             ))}
           </div>
@@ -65,7 +56,7 @@ export default function MonthlyRevenueChart({ data }: MonthlyRevenueChartProps) 
       <CardContent>
         <ChartContainer config={chartConfig} className="lg:h-70 lg:w-full">
           <AreaChart
-            data={filteredData}
+            data={data}
             margin={{
               left: 12,
               right: 12
@@ -73,7 +64,7 @@ export default function MonthlyRevenueChart({ data }: MonthlyRevenueChartProps) 
           >
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="label"
+              dataKey="month"
               tickLine={false}
               axisLine={false}
               tickMargin={8}

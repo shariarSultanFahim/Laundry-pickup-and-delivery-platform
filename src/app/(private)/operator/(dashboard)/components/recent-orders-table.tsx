@@ -1,28 +1,31 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+
+import type { MyOrder } from "@/types/operator-analytics";
 
 import { Badge } from "@/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 
-import { RecentOrder } from "../data/dashboard";
-
 interface RecentOrdersTableProps {
-  data: RecentOrder[];
+  data: MyOrder[];
 }
 
-function getStatusVariant(status: RecentOrder["status"]) {
-  if (status === "Delivered") {
+function getStatusVariant(status: string) {
+  if (status === "COMPLETED" || status === "DELIVERED") {
     return "default";
   }
 
-  if (status === "Processing") {
+  if (status === "PENDING" || status === "PROCESSING" || status === "CONFIRMED") {
     return "secondary";
   }
 
-  return "outline";
+  if (status === "OUT_FOR_DELIVERY" || status === "SHIPPED") {
+    return "outline";
+  }
+
+  return "destructive";
 }
 
 export default function RecentOrdersTable({ data }: RecentOrdersTableProps) {
@@ -47,24 +50,15 @@ export default function RecentOrdersTable({ data }: RecentOrdersTableProps) {
           <TableBody>
             {data.map((order) => (
               <TableRow key={order.id}>
-                <TableCell className="font-medium text-blue-600">{order.id}</TableCell>
+                <TableCell className="font-medium text-blue-600">{order.orderNumber}</TableCell>
+                <TableCell>{order.user?.name ?? "Unknown"}</TableCell>
                 <TableCell>
-                  <div className="gap-2 flex items-center">
-                    <Image
-                      src={order.customerAvatar}
-                      alt={order.customerName}
-                      width={32}
-                      height={32}
-                      className="rounded-full"
-                    />
-                    <span>{order.customerName}</span>
-                  </div>
+                  {order.orderItems.reduce((sum, item) => sum + item.quantity, 0)} items
                 </TableCell>
-                <TableCell>
-                  {order.items} {order.items === 1 ? "item" : "items"}
+                <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell className="font-medium">
+                  ${Number(order.totalAmount).toFixed(2)}
                 </TableCell>
-                <TableCell>{order.fulfillmentTime}</TableCell>
-                <TableCell className="font-medium">${order.amount.toFixed(2)}</TableCell>
                 <TableCell>
                   <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
                 </TableCell>

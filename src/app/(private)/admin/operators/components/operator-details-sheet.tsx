@@ -335,12 +335,12 @@ export default function OperatorDetailsSheet({
                 <p className="text-sm text-muted-foreground">Account and onboarding details.</p>
               </div>
 
-              <div className="gap-3 text-sm sm:grid-cols-2 grid">
+              <div className="gap-3 text-sm">
                 <div className="gap-3 text-sm sm:grid-cols-2 grid">
                   <div>
                     <p className="text-muted-foreground">Profile ID</p>
                     <p className="font-medium">
-                      <DataValue value={operator.id} />
+                      <DataValue value={operator.user?.userId ?? operator.userId} />
                     </p>
                   </div>
                   <div>

@@ -33,6 +33,21 @@ export type {
   MembershipSummaryTotals
 } from "./membership-breakdown";
 export type {
+  MyOrder,
+  MyOrderItem,
+  MyOrdersMeta,
+  MyOrdersResponse,
+  MyOrderUser,
+  OperatorDashboardStats,
+  OperatorDashboardStatsResponse,
+  OperatorNextPayout,
+  OperatorRevenueChartItem,
+  OperatorRevenueChartPayload,
+  OperatorRevenueChartResponse,
+  OperatorTopService,
+  OperatorTopServicesResponse
+} from "./operator-analytics";
+export type {
   FetchReviewsParams,
   FetchReviewsResponse,
   OperatorRanking,
