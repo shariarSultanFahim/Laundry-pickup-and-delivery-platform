@@ -1,14 +1,63 @@
 export interface ReviewManagementReview {
   id: string;
-  reviewId: string;
-  customerName: string;
-  customerEmail: string;
-  operatorId: string;
+  reviewNumber: string | null;
+  userId: string;
+  storeServiceId: string | null;
+  storeBundleId: string | null;
   rating: number;
-  review: string;
-  date: string;
-  orderId: string;
-  operatorName: string;
+  comment: string;
+  operatorReply: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    role: string;
+    avatar: string | null;
+  };
+  service: {
+    id: string;
+    storeId: string;
+    serviceId: string;
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    service: {
+      id: string;
+      operatorId: string;
+      categoryId: string;
+      name: string;
+      basePrice: string;
+      description: string;
+      image: string | null;
+      isActive: boolean;
+      createdAt: string;
+      updatedAt: string;
+    };
+    store: {
+      id: string;
+      operatorId: string;
+      name: string;
+      logo: string | null;
+      banner: string | null;
+      address: string;
+      country: string;
+      state: string | null;
+      city: string;
+      postalCode: string | null;
+      lat: number | null;
+      lng: number | null;
+      isActive: boolean;
+      createdAt: string;
+      updatedAt: string;
+    };
+  } | null;
+  bundle: {
+    id: string;
+    name?: string;
+  } | null;
 }
 
 export interface ReviewStats {
@@ -40,7 +89,7 @@ export interface OperatorRanking {
 
 export interface ReviewFilters {
   rating?: number;
-  operatorId?: ReviewManagementReview["operatorId"];
+  operatorId?: string;
   fromDate?: string;
   toDate?: string;
 }
@@ -48,8 +97,7 @@ export interface ReviewFilters {
 export interface FetchReviewsParams {
   page: number;
   pageSize: number;
-  search: string;
-  filters?: ReviewFilters;
+  search?: string;
 }
 
 export interface FetchReviewsResponse {
@@ -58,4 +106,16 @@ export interface FetchReviewsResponse {
   pageSize: number;
   total: number;
   totalPages: number;
+}
+
+export interface GetReviewsResponse {
+  success: boolean;
+  message: string;
+  meta: {
+    total: number;
+    totalPage: number;
+    page: number;
+    limit: number;
+  };
+  data: ReviewManagementReview[];
 }

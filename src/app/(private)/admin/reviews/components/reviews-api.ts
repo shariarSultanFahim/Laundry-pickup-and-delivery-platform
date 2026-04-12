@@ -1,121 +1,32 @@
 import type {
   FetchReviewsParams,
   FetchReviewsResponse,
+  GetReviewsResponse,
   OperatorRanking,
   RatingTrend,
   ReviewByRating,
-  ReviewManagementReview,
   ReviewStats
 } from "@/types/review-management";
 
+import { api } from "@/lib/api";
+
 export async function fetchReviews(params: FetchReviewsParams): Promise<FetchReviewsResponse> {
-  // Mock implementation - replace with actual API call
-  const mockReviews: ReviewManagementReview[] = [
-    {
-      id: "r1",
-      reviewId: "REV001",
-      customerName: "Sarah Johnson",
-      customerEmail: "sarah@email.com",
-      operatorId: "opr-001",
-      rating: 5,
-      review: "Excellent service! My clothes came back perfectly clean and fresh.",
-      date: "Dec 15, 2024",
-      orderId: "ORD2847",
-      operatorName: "Mike's Laundry"
-    },
-    {
-      id: "r2",
-      reviewId: "REV002",
-      customerName: "Mike Chen",
-      customerEmail: "mike@email.com",
-      operatorId: "opr-002",
-      rating: 4,
-      review: "Good service overall, but delivery was a bit late.",
-      date: "Dec 14, 2024",
-      orderId: "ORD2846",
-      operatorName: "QuickWash Pro"
-    },
-    {
-      id: "r3",
-      reviewId: "REV003",
-      customerName: "Emma Wilson",
-      customerEmail: "emma@email.com",
-      operatorId: "opr-003",
-      rating: 5,
-      review: "Amazing premium service! Worth every penny.",
-      date: "Dec 13, 2024",
-      orderId: "ORD2845",
-      operatorName: "Fresh Clean Co"
-    },
-    {
-      id: "r4",
-      reviewId: "REV004",
-      customerName: "David Brown",
-      customerEmail: "david@email.com",
-      operatorId: "opr-004",
-      rating: 3,
-      review: "Service was okay, but had some issues with stain removal.",
-      date: "Dec 12, 2024",
-      orderId: "ORD2844",
-      operatorName: "Express Laundry"
-    },
-    {
-      id: "r5",
-      reviewId: "REV005",
-      customerName: "Lisa Garcia",
-      customerEmail: "lisa@email.com",
-      operatorId: "opr-005",
-      rating: 5,
-      review: "Fast, reliable, and professional. Highly recommend!",
-      date: "Dec 11, 2024",
-      orderId: "ORD2843",
-      operatorName: "Mike's Laundry"
-    }
-  ];
+  const searchParams = new URLSearchParams();
+  searchParams.append("page", params.page.toString());
+  searchParams.append("limit", params.pageSize.toString());
 
-  // Filter by search
-  let filtered = mockReviews;
   if (params.search) {
-    const searchLower = params.search.toLowerCase();
-    filtered = filtered.filter(
-      (r) =>
-        r.reviewId.toLowerCase().includes(searchLower) ||
-        r.customerName.toLowerCase().includes(searchLower) ||
-        r.operatorName.toLowerCase().includes(searchLower) ||
-        r.review.toLowerCase().includes(searchLower) ||
-        r.orderId.toLowerCase().includes(searchLower)
-    );
+    searchParams.append("searchTerm", params.search);
   }
 
-  // Filter by rating
-  if (params.filters?.rating) {
-    filtered = filtered.filter((r) => r.rating === params.filters?.rating);
-  }
-
-  if (params.filters?.operatorId) {
-    filtered = filtered.filter((r) => r.operatorId === params.filters?.operatorId);
-  }
-
-  // Filter by date range
-  if (params.filters?.fromDate) {
-    filtered = filtered.filter((r) => new Date(r.date) >= new Date(params.filters!.fromDate!));
-  }
-  if (params.filters?.toDate) {
-    filtered = filtered.filter((r) => new Date(r.date) <= new Date(params.filters!.toDate!));
-  }
-
-  // Calculate pagination
-  const total = filtered.length;
-  const totalPages = Math.ceil(total / params.pageSize);
-  const start = (params.page - 1) * params.pageSize;
-  const items = filtered.slice(start, start + params.pageSize);
+  const { data } = await api.get<GetReviewsResponse>(`/review?${searchParams.toString()}`);
 
   return {
-    items,
-    page: params.page,
-    pageSize: params.pageSize,
-    total,
-    totalPages
+    items: data.data,
+    page: data.meta.page,
+    pageSize: data.meta.limit,
+    total: data.meta.total,
+    totalPages: data.meta.totalPage
   };
 }
 
