@@ -1,10 +1,13 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { TopOperatorData } from "../(dashboard)/data/dashboard";
-
 interface TopOperatorsProps {
-  data: TopOperatorData[];
+  data: {
+    operatorId: string;
+    name: string;
+    successRate: string;
+    avatar: string;
+  }[];
 }
 
 export default function TopOperators({ data }: TopOperatorsProps) {

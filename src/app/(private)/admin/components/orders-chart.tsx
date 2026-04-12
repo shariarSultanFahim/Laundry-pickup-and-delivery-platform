@@ -14,10 +14,17 @@ import {
   type ChartConfig
 } from "@/components/ui/chart";
 
-import { OrdersData } from "../(dashboard)/data/dashboard";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 
 interface OrdersChartProps {
-  data: OrdersData[];
+  data: { day: string; orders: number }[];
+  period: string;
+  onPeriodChange: (period: string) => void;
 }
 
 const chartConfig = {
@@ -27,18 +34,25 @@ const chartConfig = {
   }
 } satisfies ChartConfig;
 
-export default function OrdersChart({ data }: OrdersChartProps) {
-  const [period] = useState("weekly");
-
+export default function OrdersChart({ data, period, onPeriodChange }: OrdersChartProps) {
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Orders</CardTitle>
-          <Button variant="outline" size="sm" className="h-8 gap-1 px-3 text-xs capitalize">
-            {period}
-            <ChevronDown className="h-3 w-3" />
-          </Button>
+          <CardTitle>Order Volume</CardTitle>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 gap-1 px-3 text-xs capitalize">
+                {period}
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onPeriodChange("weekly")}>Weekly</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onPeriodChange("monthly")}>Monthly</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onPeriodChange("yearly")}>Yearly</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardHeader>
       <CardContent>

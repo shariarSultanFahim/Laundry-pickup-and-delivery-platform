@@ -1,7 +1,6 @@
 export type { AdminAddOnService, AdminServiceCategory } from "./admin-services";
 export type {
   Bundle,
-  BundleFormData,
   BundleResponse,
   BundleService,
   BundlesListResponse

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+
 
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
@@ -13,13 +13,20 @@ import {
   type ChartConfig
 } from "@/components/ui/chart";
 
-import { MonthlyRevenueData } from "../(dashboard)/data/dashboard";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { RevenueChartItem } from "@/types/admin-analytics";
 
 interface MonthlyRevenueChartProps {
-  data: MonthlyRevenueData[];
+  data: RevenueChartItem[];
+  filter: string;
+  onFilterChange: (filter: string) => void;
 }
-
-type TimePeriod = "3M" | "6M" | "12M";
 
 const chartConfig = {
   revenue: {
@@ -28,51 +35,55 @@ const chartConfig = {
   }
 } satisfies ChartConfig;
 
-export default function MonthlyRevenueChart({ data }: MonthlyRevenueChartProps) {
-  const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>("12M");
+export default function MonthlyRevenueChart({ data, filter, onFilterChange }: MonthlyRevenueChartProps) {
+  const filters = ["monthly", "weekly", "3", "6", "12"];
 
-  const getFilteredData = () => {
-    const periods = {
-      "3M": 3,
-      "6M": 6,
-      "12M": 12
-    };
-    return data.slice(-periods[selectedPeriod]);
+  const getFilterLabel = (f: string) => {
+    if (f === "3" || f === "6" || f === "12") return `${f} Months`;
+    return f.charAt(0).toUpperCase() + f.slice(1);
   };
 
-  const filteredData = getFilteredData();
-
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Monthly Revenue</CardTitle>
-          <div className="gap-2 flex">
-            {(["12M", "6M", "3M"] as TimePeriod[]).map((period) => (
-              <Button
-                key={period}
-                variant={selectedPeriod === period ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedPeriod(period)}
-                className="h-8 px-3 text-xs"
-              >
-                {period}
-              </Button>
-            ))}
+    <Card className="flex flex-col">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
+        <div className="space-y-1">
+          <CardTitle>Revenue Chart</CardTitle>
+          <div className="flex items-center text-sm text-muted-foreground">
+            <span className="flex h-2 w-2 rounded-full bg-primary mr-2" />
+            Revenue
           </div>
         </div>
+        <Select value={filter} onValueChange={onFilterChange}>
+          <SelectTrigger className="w-[140px] h-8 bg-muted/50 border-none">
+            <SelectValue placeholder="Select period" />
+          </SelectTrigger>
+          <SelectContent align="end">
+            {filters.map((f) => (
+              <SelectItem key={f} value={f}>
+                {getFilterLabel(f)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="lg:h-70 lg:w-full">
           <AreaChart
-            data={filteredData}
+            data={data}
             margin={{
               left: 12,
               right: 12
             }}
           >
             <CartesianGrid vertical={false} />
-            <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
+            <XAxis
+              dataKey="label"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              interval={0}
+              tickFormatter={(value) => value.slice(0, 3)}
+            />
             <YAxis dataKey="revenue" tickLine={false} axisLine={false} tickMargin={8} />
             <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
             <defs>

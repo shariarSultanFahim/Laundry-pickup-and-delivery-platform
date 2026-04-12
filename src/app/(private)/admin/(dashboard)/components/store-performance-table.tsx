@@ -23,28 +23,12 @@ import {
   TableRow
 } from "@/components/ui/table";
 
-import { StorePerformanceData } from "../data/dashboard";
+import { StorePerformance } from "@/types/admin-analytics";
 
 interface StorePerformanceTableProps {
-  data: StorePerformanceData[];
+  data: StorePerformance[];
 }
 
-const REGIONS = ["All Regions", "North", "East", "South", "West"];
-const MONTHS = [
-  "This Month",
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December"
-];
 
 export default function StorePerformanceTable({ data }: StorePerformanceTableProps) {
   const [selectedRegion, setSelectedRegion] = useState("All Regions");
@@ -52,13 +36,13 @@ export default function StorePerformanceTable({ data }: StorePerformanceTablePro
 
   const filteredData = useMemo(() => {
     return data.filter((store) => {
-      const regionMatch = selectedRegion === "All Regions" || store.region === selectedRegion;
-      const monthMatch = selectedMonth === "This Month" || store.month === selectedMonth;
+      const regionMatch = selectedRegion === "All Regions" || (store.region && store.region === selectedRegion) || !store.region;
+      const monthMatch = selectedMonth === "This Month" || (store.month && store.month === selectedMonth) || !store.month;
       return regionMatch && monthMatch;
     });
   }, [data, selectedRegion, selectedMonth]);
 
-  const getStatusColor = (status: StorePerformanceData["status"]) => {
+  const getStatusColor = (status: StorePerformance["status"]) => {
     switch (status) {
       case "excellent":
         return "text-green-600";
@@ -85,38 +69,7 @@ export default function StorePerformanceTable({ data }: StorePerformanceTablePro
       <CardHeader>
         <div className="gap-3 flex flex-wrap items-center justify-between">
           <CardTitle>Store Performance</CardTitle>
-          <div className="gap-3 flex">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-40">
-                  {selectedRegion}
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {REGIONS.map((region) => (
-                  <DropdownMenuItem key={region} onClick={() => setSelectedRegion(region)}>
-                    {region}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-40">
-                  {selectedMonth}
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {MONTHS.map((month) => (
-                  <DropdownMenuItem key={month} onClick={() => setSelectedMonth(month)}>
-                    {month}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+
         </div>
       </CardHeader>
       <CardContent>

@@ -1,178 +1,213 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
-import { Filter } from "lucide-react";
+import {
+  Banknote,
+  Clock,
+  CreditCard,
+  DollarSign,
+  Percent,
+  RefreshCw,
+  ShoppingCart,
+  TrendingDown,
+  UserPlus,
+  UserRound,
+  UserX,
+} from "lucide-react";
 
-import { Button } from "@/ui/button";
 
+import { useGetAdminStats, useGetOrdersChart, useGetRevenueChart, useGetStorePerformance, useGetTopOperators } from "@/lib/actions/admin/use-analytics";
 import Header from "../../components/header";
 import MonthlyRevenueChart from "../../components/monthly-revenue-chart";
-import OrderStatusChart from "../../components/order-status-chart";
 import OrdersChart from "../../components/orders-chart";
 import StatsCard from "../../components/statsCard";
 import TopOperators from "../../components/top-operators";
-import {
-  dashboardStats,
-  monthlyRevenueData,
-  ordersData,
-  orderStatusData,
-  storePerformanceData,
-  topOperatorsData
-} from "../data/dashboard";
-import DashboardFilterSheet, { type DashboardFilters } from "./dashboard-filter-sheet";
 import { ChartGridSkeleton, StatsCardGridSkeleton, TableSkeleton } from "./skeleton-loaders";
 import StorePerformanceTable from "./store-performance-table";
 
 export default function DashboardPage() {
-  const [filters, setFilters] = useState<DashboardFilters>({});
-  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [revenueFilter, setRevenueFilter] = useState("monthly");
+  const [ordersPeriod, setOrdersPeriod] = useState("weekly");
 
-  const filteredDashboardStats = useMemo(() => {
-    if (!filters.operatorId) {
-      return dashboardStats;
-    }
 
-    const operatorHiddenStats = ["Active operators", "Membership count", "Membership churn"];
-    return dashboardStats.filter((stat) => !operatorHiddenStats.includes(stat.title));
-  }, [filters.operatorId]);
 
-  const selectedOperatorFactor = useMemo(() => {
-    if (!filters.operatorId) {
-      return 1;
-    }
+  const { data: statsData, isLoading: statsLoading } = useGetAdminStats();
+  const { data: revenueResponse, isLoading: revenueLoading } = useGetRevenueChart(revenueFilter);
+  const { data: ordersResponse, isLoading: ordersLoading } = useGetOrdersChart(ordersPeriod);
+  const { data: topOperatorsResponse, isLoading: topOperatorsLoading } = useGetTopOperators();
+  const { data: performanceResponse, isLoading: performanceLoading } = useGetStorePerformance();
 
-    const operatorIndex = Number(filters.operatorId.split("-")[1] ?? "1");
-    return 0.8 + (operatorIndex % 5) * 0.04;
-  }, [filters.operatorId]);
+  const stats = statsData?.data;
 
-  const filteredMonthlyRevenueData = useMemo(() => {
-    if (!filters.dateRange?.from) {
-      return monthlyRevenueData;
-    }
+  const mappedStats = useMemo(() => {
+    return [
+      {
+        title: "Total Orders",
+        value: stats?.totalOrders?.value?.toLocaleString() ?? "0",
+        change: stats?.totalOrders?.change !== undefined ? {
+          value: `${stats.totalOrders.change}%`,
+          trend: stats.totalOrders.direction || "up",
+          period: stats.totalOrders.comparedTo || "from last period"
+        } : undefined,
+        icon: ShoppingCart,
+        iconBgColor: "bg-blue-100",
+        iconColor: "text-blue-600"
+      },
+      {
+        title: "Net Revenue",
+        value: `$${(stats?.netPlatformRevenue?.value ?? 0).toLocaleString()}`,
+        change: stats?.netPlatformRevenue?.change !== undefined ? {
+          value: `${stats.netPlatformRevenue.change}%`,
+          trend: stats.netPlatformRevenue.direction || "up",
+          period: stats.netPlatformRevenue.comparedTo || "from last period"
+        } : undefined,
+        icon: DollarSign,
+        iconBgColor: "bg-green-100",
+        iconColor: "text-green-600"
+      },
+      {
+        title: "Repeated Customer",
+        value: `${stats?.repeatedCustomerRate?.value ?? 0}%`,
+        icon: RefreshCw,
+        iconBgColor: "bg-purple-100",
+        iconColor: "text-purple-600"
+      },
+      {
+        title: "New Customers",
+        value: stats?.newCustomers?.value?.toLocaleString() ?? "0",
+        change: stats?.newCustomers?.change !== undefined ? {
+          value: `${stats.newCustomers.change}%`,
+          trend: stats.newCustomers.direction || "up",
+          period: stats.newCustomers.comparedTo || "from last period"
+        } : undefined,
+        icon: UserPlus,
+        iconBgColor: "bg-orange-100",
+        iconColor: "text-orange-600"
+      },
+      {
+        title: "Cancellation Rate",
+        value: `${stats?.cancellationRate?.value ?? 0}%`,
+        change: stats?.cancellationRate?.change !== undefined ? {
+          value: `${stats.cancellationRate.change}%`,
+          trend: stats.cancellationRate.direction === "up" ? "down" : "up" as "up" | "down",
+          period: stats.cancellationRate.comparedTo || "from last period"
+        } : undefined,
+        icon: TrendingDown,
+        iconBgColor: "bg-red-100",
+        iconColor: "text-red-600"
+      },
+      {
+        title: "On-Time Completion",
+        value: `${stats?.onTimeCompletionRate?.value ?? 0}%`,
+        change: stats?.onTimeCompletionRate?.change !== undefined ? {
+          value: `${stats.onTimeCompletionRate.change}%`,
+          trend: stats.onTimeCompletionRate.direction || "up",
+          period: stats.onTimeCompletionRate.comparedTo || "from last period"
+        } : undefined,
+        icon: Clock,
+        iconBgColor: "bg-amber-100",
+        iconColor: "text-amber-600"
+      },
+      {
+        title: "Avg Closing Time",
+        value: stats?.avgSupportTicketClosingTime?.value ?? "0h",
+        icon: Clock,
+        iconBgColor: "bg-slate-100",
+        iconColor: "text-slate-600"
+      },
+      {
+        title: "Active Operators",
+        value: stats?.activeOperators?.value ?? 0,
+        icon: UserRound,
+        iconBgColor: "bg-slate-100",
+        iconColor: "text-slate-600"
+      },
+      {
+        title: "Membership Count",
+        value: stats?.membershipCount?.value ?? 0,
+        icon: CreditCard,
+        iconBgColor: "bg-slate-100",
+        iconColor: "text-slate-600"
+      },
+      {
+        title: "Membership Churn",
+        value: stats?.membershipChurnCount?.value ?? 0,
+        icon: UserX,
+        iconBgColor: "bg-slate-100",
+        iconColor: "text-slate-600"
+      },
+      {
+        title: "Total GMV",
+        value: `${stats?.totalGMVPercentage?.value ?? 0}%`,
+        icon: Percent,
+        iconBgColor: "bg-slate-100",
+        iconColor: "text-slate-600"
+      },
+      {
+        title: "Gross Revenue",
+        value: `$${(stats?.grossRevenue?.value ?? 0).toLocaleString()}`,
+        icon: Banknote,
+        iconBgColor: "bg-slate-100",
+        iconColor: "text-slate-600"
+      }
+    ];
+  }, [stats]);
 
-    const monthLookup = {
-      Jan: 0,
-      Feb: 1,
-      Mar: 2,
-      Apr: 3,
-      May: 4,
-      Jun: 5,
-      Jul: 6,
-      Aug: 7,
-      Sep: 8,
-      Oct: 9,
-      Nov: 10,
-      Dec: 11
-    } as const;
-
-    const fromDate = new Date(filters.dateRange.from);
-    fromDate.setHours(0, 0, 0, 0);
-
-    const toDate = new Date(filters.dateRange.to ?? filters.dateRange.from);
-    toDate.setHours(23, 59, 59, 999);
-
-    const currentYear = new Date().getFullYear();
-
-    return monthlyRevenueData.filter((item) => {
-      const monthIndex = monthLookup[item.month as keyof typeof monthLookup];
-      const itemDate = new Date(currentYear, monthIndex, 1);
-      return itemDate >= fromDate && itemDate <= toDate;
-    });
-  }, [filters.dateRange]);
-
-  const filteredTopOperatorsData = useMemo(() => {
-    if (!filters.operatorId) {
-      return topOperatorsData;
-    }
-
-    return topOperatorsData.filter((operator) => operator.operatorId === filters.operatorId);
-  }, [filters.operatorId]);
-
-  const filteredOrdersData = useMemo(() => {
-    if (!filters.operatorId) {
-      return ordersData;
-    }
-
-    return ordersData.map((item) => ({
-      ...item,
-      orders: Math.max(Math.round(item.orders * selectedOperatorFactor), 0)
+  const mappedOrderStatus = useMemo(() => {
+    if (!stats?.orderStatus) return [];
+    const colors: Record<string, string> = {
+      pending: "#f59e0b",
+      processing: "#3b82f6",
+      completed: "#10b981",
+      cancelled: "#ef4444",
+      shipped: "#8b5cf6"
+    };
+    return stats.orderStatus.map(item => ({
+      status: item.status.charAt(0).toUpperCase() + item.status.slice(1),
+      value: item.count,
+      color: colors[item.status.toLowerCase()] || "#94a3b8"
     }));
-  }, [filters.operatorId, selectedOperatorFactor]);
+  }, [stats]);
 
-  const filteredOrderStatusData = useMemo(() => {
-    if (!filters.operatorId) {
-      return orderStatusData;
-    }
+  const mappedRevenueData = useMemo(() => {
+    return revenueResponse?.data || [];
+  }, [revenueResponse]);
 
-    return orderStatusData.map((item) => ({
-      ...item,
-      value: Math.max(Math.round(item.value * selectedOperatorFactor), 1)
-    }));
-  }, [filters.operatorId, selectedOperatorFactor]);
+  const mappedOrdersData = useMemo(() => {
+    return ordersResponse?.data?.data?.map(item => ({
+      day: item.label,
+      orders: item.count
+    })) || [];
+  }, [ordersResponse]);
 
-  const filteredStorePerformanceData = useMemo(() => {
-    const monthLookup = {
-      January: 0,
-      February: 1,
-      March: 2,
-      April: 3,
-      May: 4,
-      June: 5,
-      July: 6,
-      August: 7,
-      September: 8,
-      October: 9,
-      November: 10,
-      December: 11
-    } as const;
+  const mappedTopOperators = useMemo(() => {
+    return topOperatorsResponse?.data?.map(op => ({
+      operatorId: op.operatorId,
+      name: op.name,
+      successRate: `${op.successRate}%`,
+      avatar: op.avatar || ""
+    })) || [];
+  }, [topOperatorsResponse]);
 
-    const currentYear = new Date().getFullYear();
-
-    let result = storePerformanceData;
-
-    if (filters.dateRange?.from) {
-      const fromDate = new Date(filters.dateRange.from);
-      fromDate.setHours(0, 0, 0, 0);
-
-      const toDate = new Date(filters.dateRange.to ?? filters.dateRange.from);
-      toDate.setHours(23, 59, 59, 999);
-
-      result = result.filter((item) => {
-        const monthIndex = monthLookup[item.month as keyof typeof monthLookup];
-        const itemDate = new Date(currentYear, monthIndex, 1);
-        return itemDate >= fromDate && itemDate <= toDate;
-      });
-    }
-
-    if (!filters.operatorId) {
-      return result;
-    }
-
-    return result.map((item) => ({
-      ...item,
-      currentSales: Math.max(Math.round(item.currentSales * selectedOperatorFactor), 0),
-      previousSales: Math.max(Math.round(item.previousSales * selectedOperatorFactor), 0),
-      growth: Number(item.growth.toFixed(1))
-    }));
-  }, [filters.dateRange, filters.operatorId, selectedOperatorFactor]);
+  const mappedPerformance = useMemo(() => {
+    return performanceResponse?.data || [];
+  }, [performanceResponse]);
 
   return (
     <section className="">
       <Header
         title="Dashboard"
         subtitle="Welcome to the admin dashboard!"
-        Button={
-          <Button variant="outline" size="icon" onClick={() => setFilterSheetOpen(true)}>
-            <Filter className="h-4 w-4" />
-          </Button>
-        }
+
       />
 
       {/* Stats Cards */}
-      <Suspense fallback={<StatsCardGridSkeleton />}>
+      {statsLoading ? (
+        <StatsCardGridSkeleton />
+      ) : (
         <div className="mt-6 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 grid">
-          {filteredDashboardStats.map((stat, index) => (
+          {mappedStats.map((stat, index) => (
             <StatsCard
               key={index}
               title={stat.title}
@@ -184,41 +219,52 @@ export default function DashboardPage() {
             />
           ))}
         </div>
-      </Suspense>
+      )}
 
       {/* Charts Section */}
-      <Suspense fallback={<ChartGridSkeleton />}>
-        <div className="mt-6 gap-4 lg:grid-cols-3 grid">
-          <div className="lg:col-span-2">
-            <MonthlyRevenueChart data={filteredMonthlyRevenueData} />
-          </div>
-          <OrderStatusChart data={filteredOrderStatusData} />
-        </div>
-      </Suspense>
+      <div className="mt-6">
 
-      <Suspense fallback={<ChartGridSkeleton />}>
-        <div className="mt-6 gap-4 lg:grid-cols-3 grid">
-          <div className="lg:col-span-2">
-            <OrdersChart data={filteredOrdersData} />
-          </div>
-          <TopOperators data={filteredTopOperatorsData} />
+        {revenueLoading ? (
+          <ChartGridSkeleton />
+        ) : (
+          <MonthlyRevenueChart
+            data={mappedRevenueData}
+            filter={revenueFilter}
+            onFilterChange={setRevenueFilter}
+          />
+        )}
+
+      </div>
+
+      <div className="mt-6 gap-4 lg:grid-cols-3 grid">
+        <div className="lg:col-span-2">
+          {ordersLoading ? (
+            <ChartGridSkeleton />
+          ) : (
+            <OrdersChart
+              data={mappedOrdersData}
+              period={ordersPeriod}
+              onPeriodChange={setOrdersPeriod}
+            />
+          )}
         </div>
-      </Suspense>
+        {topOperatorsLoading ? (
+          <ChartGridSkeleton />
+        ) : (
+          <TopOperators data={mappedTopOperators} />
+        )}
+      </div>
 
       {/* Store Performance Table */}
-      <Suspense fallback={<TableSkeleton />}>
-        <div className="mt-6">
-          <StorePerformanceTable data={filteredStorePerformanceData} />
-        </div>
-      </Suspense>
+      <div className="mt-6">
+        {performanceLoading ? (
+          <TableSkeleton />
+        ) : (
+          <StorePerformanceTable data={mappedPerformance} />
+        )}
+      </div>
 
-      <DashboardFilterSheet
-        open={filterSheetOpen}
-        onOpenChange={setFilterSheetOpen}
-        filters={filters}
-        onApplyFilters={setFilters}
-        onClearFilters={() => setFilters({})}
-      />
+
     </section>
   );
 }

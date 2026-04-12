@@ -10,10 +10,8 @@ import {
   type ChartConfig
 } from "@/components/ui/chart";
 
-import { OrderStatusData } from "../(dashboard)/data/dashboard";
-
 interface OrderStatusChartProps {
-  data: OrderStatusData[];
+  data: { status: string; value: number; color: string }[];
 }
 
 export default function OrderStatusChart({ data }: OrderStatusChartProps) {
