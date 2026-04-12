@@ -163,3 +163,26 @@ export interface GetUserByIdResponse {
   message: string;
   data: AdminUserListItem;
 }
+
+// ── Notification Preferences ────────────────────────────────────────────────
+export interface NotificationPreferences {
+  id: string;
+  userId: string;
+  push: boolean;
+  sms: boolean;
+  email: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NotificationPreferencesResponse {
+  success: boolean;
+  message: string;
+  data: NotificationPreferences;
+}
+
+export interface UpdateNotificationPreferencesRequest {
+  push?: boolean;
+  sms?: boolean;
+  email?: boolean;
+}

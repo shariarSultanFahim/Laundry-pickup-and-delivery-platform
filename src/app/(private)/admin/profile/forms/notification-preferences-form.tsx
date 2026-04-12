@@ -1,9 +1,12 @@
 "use client";
 
-import { ChartNoAxesColumn, Mail, MessageSquare, Smartphone } from "lucide-react";
+import { useEffect } from "react";
+import { Mail, MessageSquare, Smartphone } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
+import { useGetNotificationPreferences, useUpdateNotificationPreferences } from "@/lib/actions/user/use-notification-preferences";
 import { Switch } from "@/components/ui/switch";
 import {
   Card,
@@ -15,32 +18,79 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel
+  FormLabel,
+  Skeleton
 } from "@/ui";
 
-import { updateNotificationPreference } from "../components/profile-api";
-import { notificationItems, notificationPreferencesDefaultValues } from "../data/profile";
+import { notificationItems, notificationPreferencesDefaultValues, type NotificationItem } from "../data/profile";
 import {
   notificationPreferencesSchema,
   type NotificationPreferencesFormData
 } from "../schema/notification-preferences.schema";
 
-const iconMap = {
+const iconMap: Record<NotificationItem["icon"], React.ElementType> = {
   mail: Mail,
   smartphone: Smartphone,
-  "message-square": MessageSquare,
-  "chart-no-axes-column": ChartNoAxesColumn
+  "message-square": MessageSquare
 };
 
 export default function NotificationPreferencesForm() {
+  const { data: preferencesResponse, isLoading } = useGetNotificationPreferences();
+  const { mutateAsync: updatePreferences } = useUpdateNotificationPreferences();
+
   const form = useForm<NotificationPreferencesFormData>({
     resolver: zodResolver(notificationPreferencesSchema),
     defaultValues: notificationPreferencesDefaultValues
   });
 
+  // Sync form with API data
+  useEffect(() => {
+    if (preferencesResponse?.data) {
+      form.reset({
+        email: preferencesResponse.data.email,
+        push: preferencesResponse.data.push,
+        sms: preferencesResponse.data.sms
+      });
+    }
+  }, [preferencesResponse, form]);
+
   async function handleToggle(key: keyof NotificationPreferencesFormData, value: boolean) {
+    // Optimistic update in UI
     form.setValue(key, value);
-    await updateNotificationPreference(key, value);
+    
+    try {
+      await updatePreferences({ [key]: value });
+      toast.success("Notification preference updated");
+    } catch (error) {
+       // Rollback on error
+      form.setValue(key, !value);
+      toast.error(error instanceof Error ? error.message : "Failed to update preference");
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Notification Preferences</CardTitle>
+          <CardDescription>Choose how you want to receive notifications</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center justify-between py-3 border-b border-border last:border-0">
+              <div className="flex items-center gap-3">
+                <Skeleton className="size-9 rounded-lg" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+              </div>
+              <Skeleton className="h-6 w-10 rounded-full" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -59,9 +109,8 @@ export default function NotificationPreferencesForm() {
               return (
                 <div
                   key={item.id}
-                  className={`gap-4 py-3 flex items-center justify-between ${
-                    isLastItem ? "" : "border-border border-b"
-                  }`}
+                  className={`gap-4 py-3 flex items-center justify-between ${isLastItem ? "" : "border-border border-b"
+                    }`}
                 >
                   <div className="gap-3 flex items-center">
                     <div

@@ -1,5 +1,4 @@
 import Header from "../components/header";
-import SessionManagementCard from "./components/session-management-card";
 import ChangePasswordForm from "./forms/change-password-form";
 import NotificationPreferencesForm from "./forms/notification-preferences-form";
 import ProfileInformationForm from "./forms/profile-information-form";
@@ -15,7 +14,6 @@ export default function ProfilePage() {
         <NotificationPreferencesForm />
         <ChangePasswordForm />
       </div>
-      <SessionManagementCard />
     </div>
   );
 }
