@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import type { Operator, OperatorFilters } from "@/types/operator-management";
+import { OperatorStatus, type GetOperatorsQueryParams } from "@/types/operator-management";
 
 import { Button } from "@/ui/button";
 import { Label } from "@/ui/label";
@@ -12,28 +12,33 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/ui/sheet";
 interface OperatorsFilterSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onApplyFilters: (filters: OperatorFilters) => void;
+  onApplyFilters: (filters: GetOperatorsQueryParams) => void;
   onClearFilters: () => void;
+  initialFilters: GetOperatorsQueryParams;
 }
 
 export default function OperatorsFilterSheet({
   open,
   onOpenChange,
   onApplyFilters,
-  onClearFilters
+  onClearFilters,
+  initialFilters
 }: OperatorsFilterSheetProps) {
-  const [status, setStatus] = useState<Operator["status"] | "">("");
-  const [region, setRegion] = useState<Operator["region"] | "">("");
+  const [status, setStatus] = useState<OperatorStatus | "">(initialFilters.status || "");
 
-  function handleApplyFilters() {
-    const filters: OperatorFilters = {};
-
-    if (status) {
-      filters.status = status as Operator["status"];
+  useEffect(() => {
+    if (!open) {
+      return;
     }
 
-    if (region) {
-      filters.region = region as Operator["region"];
+    setStatus(initialFilters.status || "");
+  }, [initialFilters, open]);
+
+  function handleApplyFilters() {
+    const filters: GetOperatorsQueryParams = {};
+
+    if (status) {
+      filters.status = status;
     }
 
     onApplyFilters(filters);
@@ -42,7 +47,6 @@ export default function OperatorsFilterSheet({
 
   function handleClearFilters() {
     setStatus("");
-    setRegion("");
     onClearFilters();
     onOpenChange(false);
   }
@@ -55,37 +59,19 @@ export default function OperatorsFilterSheet({
         </SheetHeader>
 
         <div className="p-4 space-y-6">
-          <div className="gap-2 flex items-center justify-between">
-            {/* Status Filter */}
-            <div className="space-y-2 w-full">
-              <Label htmlFor="status-filter">Status</Label>
-              <Select value={status} onValueChange={(value) => setStatus(value as typeof status)}>
-                <SelectTrigger className="w-full" id="status-filter">
-                  <SelectValue placeholder="All statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="suspended">Suspended</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Region Filter */}
-            <div className="space-y-2 w-full">
-              <Label htmlFor="region-filter">Region</Label>
-              <Select value={region} onValueChange={(value) => setRegion(value as typeof region)}>
-                <SelectTrigger className="w-full" id="region-filter">
-                  <SelectValue placeholder="All regions" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="North">North</SelectItem>
-                  <SelectItem value="East">East</SelectItem>
-                  <SelectItem value="West">West</SelectItem>
-                  <SelectItem value="South">South</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="status-filter">Status</Label>
+            <Select value={status} onValueChange={(value) => setStatus(value as OperatorStatus)}>
+              <SelectTrigger className="w-full" id="status-filter">
+                <SelectValue placeholder="All statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="INACTIVE">Inactive</SelectItem>
+                <SelectItem value="BANNED">Banned</SelectItem>
+                <SelectItem value="SUSPENDED">Suspended</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Action Buttons */}
