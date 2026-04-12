@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   htmlLimitedBots: /.*/,
   turbopack: {
+    root: ".",
     rules: {
       "*.svg": {
         loaders: [
