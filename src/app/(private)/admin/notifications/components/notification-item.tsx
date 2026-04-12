@@ -1,28 +1,39 @@
 "use client";
 
-import { X } from "lucide-react";
+import type { NotificationItem as Notification } from "@/types/notification";
 
-import { notificationTypeConfig, type Notification } from "../data/notifications";
-import { deleteNotification } from "./notifications-api";
+import { notificationTypeConfig } from "../data/notifications";
 
 interface NotificationItemProps {
   notification: Notification;
-  onDelete?: (id: string) => void;
+  onMarkRead?: (id: string) => Promise<void>;
 }
 
-export default function NotificationItem({ notification, onDelete }: NotificationItemProps) {
+export default function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
   const config = notificationTypeConfig[notification.type];
   const NotificationIcon = config.icon;
 
-  async function handleDelete() {
-    await deleteNotification(notification.id);
-    onDelete?.(notification.id);
+  async function handleClick() {
+    if (notification.isRead) {
+      return;
+    }
+
+    await onMarkRead?.(notification.id);
   }
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onClick={handleClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          void handleClick();
+        }
+      }}
       className={`rounded-lg border-border p-4 relative border transition-all ${config.bgColor} ${
-        !notification.read ? "shadow-sm" : ""
+        !notification.isRead ? "shadow-sm" : ""
       } gap-4 flex items-start`}
     >
       {/* Icon */}
@@ -35,39 +46,22 @@ export default function NotificationItem({ notification, onDelete }: Notificatio
       {/* Content */}
       <div className="min-w-0 flex-1">
         <h3 className="font-semibold text-foreground">{notification.title}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">{notification.description}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{notification.message}</p>
 
         <div className="mt-2 gap-2 flex items-center">
           <span className={`text-xs font-semibold inline-flex ${config.badgeColor}`}>
-            {notification.type.charAt(0).toUpperCase() + notification.type.slice(1)}
+            {notification.type}
           </span>
           <span className="text-xs text-muted-foreground">•</span>
-          <span className="text-xs text-muted-foreground">{notification.timestamp}</span>
+          <span className="text-xs text-muted-foreground">
+            {new Date(notification.createdAt).toLocaleString()}
+          </span>
         </div>
       </div>
 
       {/* Right indicator and actions */}
       <div className="gap-2 flex shrink-0 items-start">
-        <div
-          className={`size-2.5 mt-1.5 rounded-full ${
-            notification.type === "success"
-              ? "bg-green-600"
-              : notification.type === "info"
-                ? "bg-blue-600"
-                : notification.type === "warning"
-                  ? "bg-orange-600"
-                  : "bg-red-600"
-          }`}
-        />
-
-        <button
-          type="button"
-          onClick={handleDelete}
-          className="text-muted-foreground hover:text-foreground p-1 transition-colors"
-          aria-label="Delete notification"
-        >
-          <X className="size-4" />
-        </button>
+        {!notification.isRead ? <div className="size-2.5 mt-1.5 bg-blue-600 rounded-full" /> : null}
       </div>
     </div>
   );

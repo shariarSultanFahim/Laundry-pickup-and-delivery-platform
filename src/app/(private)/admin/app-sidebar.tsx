@@ -25,6 +25,11 @@ import {
   UserPen
 } from "lucide-react";
 
+import { useUnreadNotificationsIndicator } from "@/lib/actions/notifications/use-unread-notifications-indicator";
+import { useGetMe } from "@/lib/actions/user/use-get-me";
+
+import { useLogout } from "@/hooks/use-logout";
+
 import { Button } from "@/components/ui";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -39,8 +44,6 @@ import {
   SidebarMenuItem,
   SidebarRail
 } from "@/components/ui/sidebar";
-import { useLogout } from "@/hooks/use-logout";
-import { useGetMe } from "@/lib/actions/user/use-get-me";
 
 const data = {
   info: {
@@ -140,6 +143,7 @@ export function AdminAppSidebar({ ...props }: React.ComponentProps<typeof Sideba
   const pathname = usePathname();
   const { logout } = useLogout();
   const { data: user } = useGetMe();
+  const { hasUnread } = useUnreadNotificationsIndicator();
 
   const isItemActive = (itemUrl: string) => {
     if (itemUrl === "/admin") {
@@ -181,7 +185,15 @@ export function AdminAppSidebar({ ...props }: React.ComponentProps<typeof Sideba
                     <SidebarMenuButton asChild isActive={isItemActive(item.url)}>
                       <Link href={item.url} className="py-5">
                         <item.icon />
-                        <span>{item.title}</span>
+                        <span className="gap-2 inline-flex items-center">
+                          {item.title}
+                          {item.url === "/admin/notifications" && hasUnread ? (
+                            <span
+                              className="h-2.5 w-2.5 bg-red-500 rounded-full"
+                              aria-label="Unread notifications"
+                            />
+                          ) : null}
+                        </span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -214,7 +226,11 @@ export function AdminAppSidebar({ ...props }: React.ComponentProps<typeof Sideba
               </div>
             </div>
             <SidebarMenuButton asChild className="group-data-[collapsible=icon]:w-full">
-              <Button variant="outline" onClick={logout} className="group-data-[collapsible=icon]:p-0 w-full">
+              <Button
+                variant="outline"
+                onClick={logout}
+                className="group-data-[collapsible=icon]:p-0 w-full"
+              >
                 <LogOut className="size-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
                 <span className="group-data-[collapsible=icon]:hidden">Sign Out</span>
               </Button>
