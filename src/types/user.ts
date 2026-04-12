@@ -100,6 +100,27 @@ export interface UpdateProfileResponse {
   data: UserProfile;
 }
 
+export interface CreateAdminRequest {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  imageFile?: File;
+}
+
+export interface CreateOperatorRequest {
+  name: string;
+  email: string;
+  password: string;
+  imageFile?: File;
+}
+
+export interface CreateUserAccountResponse {
+  success: boolean;
+  message: string;
+  data: UserProfile;
+}
+
 // ── Admin Users Management ────────────────────────────────────────────────────
 
 export enum UserStatus {
@@ -155,7 +176,6 @@ export interface GetUsersResponse {
     totalPage: number;
   };
   data: AdminUserListItem[];
-
 }
 
 export interface GetUserByIdResponse {
