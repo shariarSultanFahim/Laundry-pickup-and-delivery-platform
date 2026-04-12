@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 
 import "react-quill-new/dist/quill.snow.css";
 
@@ -15,12 +16,13 @@ import {
   termsConditionsSchema,
   type TermsConditionsFormData
 } from "../schema/terms-conditions.schema";
-import { updateTermsConditions } from "./terms-conditions-api";
+import { createTermsConditions, getTermsConditions } from "./terms-conditions-api";
 
 // Dynamically import ReactQuill to avoid SSR issues
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 export default function TermsConditionsForm() {
+  const [isLoadingTerms, setIsLoadingTerms] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>(() => {
     const date = new Date();
     return date.toLocaleDateString("en-US", {
@@ -44,11 +46,46 @@ export default function TermsConditionsForm() {
 
   const content = useWatch({ control, name: "content" });
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadTermsConditions = async () => {
+      try {
+        const legalDocument = await getTermsConditions();
+
+        if (!isMounted || !legalDocument) {
+          return;
+        }
+
+        setValue("content", legalDocument.content);
+        setLastUpdated(
+          new Date(legalDocument.updatedAt).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+          })
+        );
+      } catch {
+        if (isMounted) {
+          toast.error("Failed to load terms and conditions.", { position: "top-center" });
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingTerms(false);
+        }
+      }
+    };
+
+    void loadTermsConditions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [setValue]);
+
   async function onSubmit(data: TermsConditionsFormData) {
-    await updateTermsConditions(data);
-    // Update the last updated date
-    const now = new Date();
-    const formatted = now.toLocaleDateString("en-US", {
+    const legalDocument = await createTermsConditions(data);
+    const formatted = new Date(legalDocument.updatedAt).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric"
@@ -92,12 +129,13 @@ export default function TermsConditionsForm() {
             <div className="rounded-md border-border border">
               <ReactQuill
                 theme="snow"
-                value={content}
+                value={content ?? ""}
                 onChange={(value) => setValue("content", value)}
                 modules={modules}
                 formats={formats}
                 placeholder="Type here..."
                 className="h-full"
+                readOnly={isLoadingTerms}
               />
             </div>
 
@@ -112,8 +150,12 @@ export default function TermsConditionsForm() {
             </p>
           </div>
 
-          <Button type="submit" disabled={isSubmitting} className="max-w-xs w-full">
-            {isSubmitting ? "Saving..." : "Save"}
+          <Button
+            type="submit"
+            disabled={isSubmitting || isLoadingTerms}
+            className="max-w-xs w-full"
+          >
+            {isLoadingTerms ? "Loading..." : isSubmitting ? "Saving..." : "Save"}
           </Button>
         </div>
       </div>

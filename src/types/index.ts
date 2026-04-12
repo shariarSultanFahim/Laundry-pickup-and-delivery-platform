@@ -15,6 +15,15 @@ export type {
   FetchDisputesResponse
 } from "./dispute-management";
 export type {
+  CreateLegalDocumentRequest,
+  CreateLegalDocumentResponse,
+  GetLegalDocumentNotFoundResponse,
+  GetLegalDocumentResponse,
+  LegalDocument,
+  LegalErrorPayload,
+  LegalType
+} from "./legal";
+export type {
   FetchMembershipBreakdownParams,
   MembershipBreakdownData,
   MembershipDateFilter,

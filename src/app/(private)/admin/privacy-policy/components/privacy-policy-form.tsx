@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 
 import "react-quill-new/dist/quill.snow.css";
 
@@ -12,12 +13,13 @@ import { Button } from "@/ui";
 
 import { defaultPrivacyPolicy } from "../data/privacy-policy";
 import { privacyPolicySchema, type PrivacyPolicyFormData } from "../schema/privacy-policy.schema";
-import { updatePrivacyPolicy } from "./privacy-policy-api";
+import { createPrivacyPolicy, getPrivacyPolicy } from "./privacy-policy-api";
 
 // Dynamically import ReactQuill to avoid SSR issues
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 export default function PrivacyPolicyForm() {
+  const [isLoadingPolicy, setIsLoadingPolicy] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>(() => {
     const date = new Date();
     return date.toLocaleDateString("en-US", {
@@ -41,11 +43,46 @@ export default function PrivacyPolicyForm() {
 
   const content = useWatch({ control, name: "content" });
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPrivacyPolicy = async () => {
+      try {
+        const legalDocument = await getPrivacyPolicy();
+
+        if (!isMounted || !legalDocument) {
+          return;
+        }
+
+        setValue("content", legalDocument.content);
+        setLastUpdated(
+          new Date(legalDocument.updatedAt).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+          })
+        );
+      } catch {
+        if (isMounted) {
+          toast.error("Failed to load privacy policy.", { position: "top-center" });
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingPolicy(false);
+        }
+      }
+    };
+
+    void loadPrivacyPolicy();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [setValue]);
+
   async function onSubmit(data: PrivacyPolicyFormData) {
-    await updatePrivacyPolicy(data);
-    // Update the last updated date
-    const now = new Date();
-    const formatted = now.toLocaleDateString("en-US", {
+    const legalDocument = await createPrivacyPolicy(data);
+    const formatted = new Date(legalDocument.updatedAt).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric"
@@ -89,12 +126,13 @@ export default function PrivacyPolicyForm() {
             <div className="rounded-md border-border border">
               <ReactQuill
                 theme="snow"
-                value={content}
+                value={content ?? ""}
                 onChange={(value) => setValue("content", value)}
                 modules={modules}
                 formats={formats}
                 placeholder="Type here..."
                 className="h-full"
+                readOnly={isLoadingPolicy}
               />
             </div>
 
@@ -109,8 +147,12 @@ export default function PrivacyPolicyForm() {
             </p>
           </div>
 
-          <Button type="submit" disabled={isSubmitting} className="max-w-xs w-full">
-            {isSubmitting ? "Saving..." : "Save"}
+          <Button
+            type="submit"
+            disabled={isSubmitting || isLoadingPolicy}
+            className="max-w-xs w-full"
+          >
+            {isLoadingPolicy ? "Loading..." : isSubmitting ? "Saving..." : "Save"}
           </Button>
         </div>
       </div>
