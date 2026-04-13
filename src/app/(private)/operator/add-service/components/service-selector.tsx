@@ -92,7 +92,7 @@ export default function ServiceSelector({
               />
             </div>
           </div>
-          <div className="p-1 custom-scrollbar max-h-[300px] overflow-y-auto">
+          <div className="p-1 custom-scrollbar max-h-75 overflow-y-auto">
             {isLoading ? (
               <div className="py-8 flex items-center justify-center">
                 <Loader2 className="h-6 w-6 animate-spin text-primary/60" />
@@ -142,7 +142,7 @@ export default function ServiceSelector({
             <Badge
               key={service.serviceId}
               variant="outline"
-              className="pl-3 pr-1 py-1.5 border-primary/20 bg-primary/[0.02] text-foreground/80 group"
+              className="pl-3 pr-1 py-1.5 border-primary/20 bg-primary/2 text-foreground/80 group"
             >
               <span className="text-xs font-medium mr-2">{service.serviceName}</span>
               <span className="text-muted-foreground mr-1 text-[10px] opacity-70">
