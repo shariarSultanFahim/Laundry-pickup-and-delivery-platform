@@ -1,12 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+
+import { ImagePlus, Loader2, X } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { ImagePlus, Loader2, X } from "lucide-react";
+
+import { Bundle } from "@/types/bundle-management";
+
+import { useCreateBundle } from "@/lib/actions/bundle/create.bundle";
+import { useUpdateBundle } from "@/lib/actions/bundle/update.bundle";
+import { useGetOperatorMe } from "@/lib/actions/user/get.operator-me";
 
 import {
+  Badge,
   Button,
   Form,
   FormControl,
@@ -15,17 +23,12 @@ import {
   FormLabel,
   FormMessage,
   Input,
-  Textarea,
-  Badge,
-  Switch
+  Switch,
+  Textarea
 } from "@/ui";
 
 import { addBundleSchema, type AddBundleFormData } from "../schema/add-bundle.schema";
-import { useCreateBundle } from "@/lib/actions/bundle/create.bundle";
-import { useUpdateBundle } from "@/lib/actions/bundle/update.bundle";
-import { useGetOperatorMe } from "@/lib/actions/user/get.operator-me";
 import ServiceSelector from "./service-selector";
-import { Bundle } from "@/types/bundle-management";
 
 interface AddBundleFormProps {
   onSuccess?: () => void;
@@ -107,7 +110,7 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
         name: values.name,
         description: values.description,
         bundlePrice: values.bundlePrice,
-        serviceIds: values.services.map(s => s.serviceId),
+        serviceIds: values.services.map((s) => s.serviceId),
         isActive: values.isActive,
         image: values.image
       };
@@ -128,7 +131,10 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
     }
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, onChange: (...event: any[]) => void) => {
+  const handleImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    onChange: (...event: any[]) => void
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       onChange(file);
@@ -155,20 +161,24 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
               <FormControl>
                 <div className="space-y-4">
                   {imagePreview ? (
-                    <div className="relative aspect-video w-full rounded-lg overflow-hidden border">
-                      <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                    <div className="aspect-video rounded-lg relative w-full overflow-hidden border">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="h-full w-full object-cover"
+                      />
                       <Button
                         type="button"
                         variant="destructive"
                         size="icon"
-                        className="absolute top-2 right-2 h-8 w-8"
+                        className="top-2 right-2 h-8 w-8 absolute"
                         onClick={() => removeImage(field.onChange)}
                       >
                         <X className="h-4 w-4" />
                       </Button>
                     </div>
                   ) : (
-                    <label className="flex flex-col items-center justify-center aspect-video w-full rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer">
+                    <label className="aspect-video rounded-lg border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 flex w-full cursor-pointer flex-col items-center justify-center border-2 border-dashed transition-all">
                       <ImagePlus className="h-8 w-8 text-muted-foreground mb-2" />
                       <span className="text-xs font-medium">Upload Bundle Banner</span>
                       <Input
@@ -209,7 +219,7 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
               <FormControl>
                 <Textarea
                   placeholder="What's included in this bundle?"
-                  className="min-h-[100px] resize-none"
+                  className="min-h-25 resize-none"
                   {...field}
                 />
               </FormControl>
@@ -233,15 +243,18 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
         />
 
         {selectedServices.length > 0 && (
-          <div className="rounded-xl bg-muted/40 p-4 space-y-2 border shadow-sm">
+          <div className="rounded-xl bg-muted/40 p-4 space-y-2 shadow-sm border">
             <div className="text-sm flex justify-between">
               <span className="text-muted-foreground">Original Total:</span>
               <span className="font-medium">${totalPrice.toFixed(2)}</span>
             </div>
             {savingsDetails && (
-              <div className="text-sm flex justify-between items-center text-green-600 font-medium">
+              <div className="text-sm text-green-600 font-medium flex items-center justify-between">
                 <span>Savings:</span>
-                <Badge variant="secondary" className="bg-green-100 text-green-700 hover:bg-green-100">
+                <Badge
+                  variant="secondary"
+                  className="bg-green-100 text-green-700 hover:bg-green-100"
+                >
                   {savingsDetails.percentage.toFixed(0)}% OFF
                 </Badge>
               </div>
@@ -273,7 +286,7 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
           control={form.control}
           name="isActive"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm bg-muted/30">
+            <FormItem className="rounded-lg p-4 shadow-sm bg-muted/30 flex flex-row items-center justify-between border">
               <div className="space-y-0.5">
                 <FormLabel>Active Status</FormLabel>
                 <div className="text-xs text-muted-foreground">
@@ -281,20 +294,13 @@ export default function AddBundleForm({ onSuccess, editingBundle }: AddBundleFor
                 </div>
               </div>
               <FormControl>
-                <Switch 
-                  checked={field.value} 
-                  onCheckedChange={field.onChange} 
-                />
+                <Switch checked={field.value} onCheckedChange={field.onChange} />
               </FormControl>
             </FormItem>
           )}
         />
 
-        <Button
-          type="submit"
-          className="w-full h-11"
-          disabled={isCreating || isUpdating}
-        >
+        <Button type="submit" className="h-11 w-full" disabled={isCreating || isUpdating}>
           {isCreating || isUpdating ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

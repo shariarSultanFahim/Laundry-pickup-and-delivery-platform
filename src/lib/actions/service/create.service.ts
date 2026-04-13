@@ -2,8 +2,9 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { api as instance } from "@/lib/api";
 import { CreateServicePayload, ServiceResponse } from "@/types/service";
+
+import { api as instance } from "@/lib/api";
 
 interface CreateServiceInput {
   data: CreateServicePayload;
@@ -28,7 +29,7 @@ export function useCreateService() {
       return response.data;
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["services"] });
+      void queryClient.invalidateQueries({ queryKey: ["my-services"] });
     }
   });
 }

@@ -10,7 +10,7 @@ export function useDeleteService() {
   return useMutation({
     mutationFn: (id: string) => del<unknown>(`/service/${id}`),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["services"] });
+      void queryClient.invalidateQueries({ queryKey: ["my-services"] });
     }
   });
 }

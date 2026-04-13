@@ -1,20 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
+
 import { Check, ChevronsUpDown, Loader2, Search, X } from "lucide-react";
 
 import type { Service } from "@/types/service";
+
+import { useGetMyServices } from "@/lib/actions/service/get.my.services";
 import { cn } from "@/lib/utils";
-import { 
-  Button, 
-  Popover, 
-  PopoverContent, 
-  PopoverTrigger, 
-  Input 
-} from "@/ui";
-import { Badge } from "@/ui/badge";
-import { useGetServices } from "@/lib/actions/service/get.services";
+
 import { useDebounce } from "@/hooks/use-debounce";
+
+import { Button, Input, Popover, PopoverContent, PopoverTrigger } from "@/ui";
+import { Badge } from "@/ui/badge";
 
 interface SelectedServiceItem {
   serviceId: string;
@@ -35,13 +33,13 @@ export default function ServiceSelector({
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
 
-  const { data: servicesResponse, isLoading } = useGetServices({
+  const { data: servicesResponse, isLoading } = useGetMyServices({
     searchTerm: debouncedSearch || undefined,
     limit: 50 // Show enough options in selector
   });
 
-  const services = useMemo(() => 
-    servicesResponse?.data?.filter((s) => s.isActive) ?? [], 
+  const services = useMemo(
+    () => servicesResponse?.data?.filter((s) => s.isActive) ?? [],
     [servicesResponse]
   );
 
@@ -74,7 +72,7 @@ export default function ServiceSelector({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full h-11 justify-between shadow-sm hover:border-primary/50 transition-colors"
+            className="h-11 shadow-sm hover:border-primary/50 w-full justify-between transition-colors"
           >
             {selectedServices.length > 0
               ? `${selectedServices.length} service${selectedServices.length !== 1 ? "s" : ""} selected`
@@ -90,11 +88,11 @@ export default function ServiceSelector({
                 placeholder="Search services..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 border-none focus-visible:ring-0 h-9"
+                className="pl-8 h-9 border-none focus-visible:ring-0"
               />
             </div>
           </div>
-          <div className="max-h-[300px] p-1 overflow-y-auto custom-scrollbar">
+          <div className="p-1 custom-scrollbar max-h-[300px] overflow-y-auto">
             {isLoading ? (
               <div className="py-8 flex items-center justify-center">
                 <Loader2 className="h-6 w-6 animate-spin text-primary/60" />
@@ -117,13 +115,13 @@ export default function ServiceSelector({
                         isSelected && "bg-primary/10 text-primary hover:bg-primary/10"
                       )}
                     >
-                      <div className="flex flex-col items-start pr-4">
+                      <div className="pr-4 flex flex-col items-start">
                         <span className="font-semibold text-foreground/80">{service.name}</span>
-                        <span className="text-[11px] text-muted-foreground capitalize">
+                        <span className="text-muted-foreground text-[11px] capitalize">
                           {service.category?.name || "General"}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="gap-2 flex items-center">
                         <span className="text-xs font-bold font-mono">
                           ${Number(service.basePrice).toFixed(2)}
                         </span>
@@ -139,23 +137,21 @@ export default function ServiceSelector({
       </Popover>
 
       {selectedServices.length > 0 && (
-        <div className="gap-2.5 flex flex-wrap pt-1">
+        <div className="gap-2.5 pt-1 flex flex-wrap">
           {selectedServices.map((service) => (
-            <Badge 
-              key={service.serviceId} 
-              variant="outline" 
+            <Badge
+              key={service.serviceId}
+              variant="outline"
               className="pl-3 pr-1 py-1.5 border-primary/20 bg-primary/[0.02] text-foreground/80 group"
             >
-              <span className="text-xs font-medium mr-2">
-                {service.serviceName}
-              </span>
-              <span className="text-[10px] text-muted-foreground mr-1 opacity-70">
+              <span className="text-xs font-medium mr-2">{service.serviceName}</span>
+              <span className="text-muted-foreground mr-1 text-[10px] opacity-70">
                 ${service.servicePrice.toFixed(2)}
               </span>
               <button
                 type="button"
                 onClick={() => handleRemoveService(service.serviceId)}
-                className="p-1 rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
+                className="p-1 hover:bg-destructive/10 hover:text-destructive rounded-full transition-colors"
                 title="Remove service"
               >
                 <X className="h-3 w-3" />

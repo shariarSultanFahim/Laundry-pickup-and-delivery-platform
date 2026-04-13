@@ -1,9 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Edit, Loader2, Search, Trash2 } from "lucide-react";
+
+import { Edit, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 
+import { Bundle } from "@/types/bundle-management";
+
+import { useDeleteBundle } from "@/lib/actions/bundle/delete.bundle";
+import { useGetMyBundles } from "@/lib/actions/bundle/get.my.bundles";
+import { useUpdateBundle } from "@/lib/actions/bundle/update.bundle";
+
+import { useDebounce } from "@/hooks/use-debounce";
+
+import DeleteConfirmationModal from "@/components/modals/delete-confirmation-modal";
+import { CustomPagination } from "@/components/ui/custom-pagination";
 import {
   Button,
   Card,
@@ -22,14 +33,6 @@ import { Badge } from "@/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/ui/sheet";
 import { Switch } from "@/ui/switch";
 
-import { useDebounce } from "@/hooks/use-debounce";
-import { useGetBundles } from "@/lib/actions/bundle/get.bundles";
-import { useUpdateBundle } from "@/lib/actions/bundle/update.bundle";
-import { useDeleteBundle } from "@/lib/actions/bundle/delete.bundle";
-import DeleteConfirmationModal from "@/components/modals/delete-confirmation-modal";
-import { CustomPagination } from "@/components/ui/custom-pagination";
-import { Bundle } from "@/types/bundle-management";
-
 interface BundlesTableProps {
   onRefresh?: () => void;
   onEdit?: (bundle: Bundle) => void;
@@ -47,7 +50,7 @@ export default function BundlesTable({ onEdit }: BundlesTableProps) {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [bundleToDelete, setBundleToDelete] = useState<Bundle | null>(null);
 
-  const { data: bundlesResponse, isLoading } = useGetBundles({
+  const { data: bundlesResponse, isLoading } = useGetMyBundles({
     page,
     limit,
     searchTerm: debouncedSearch || undefined
@@ -66,17 +69,14 @@ export default function BundlesTable({ onEdit }: BundlesTableProps) {
         id: bundle.id,
         payload: { isActive: !bundle.isActive }
       });
-      toast.success(`Bundle ${!bundle.isActive ? "activated" : "deactivated"} successfully`, { position: "top-center" });
+      toast.success(`Bundle ${!bundle.isActive ? "activated" : "deactivated"} successfully`, {
+        position: "top-center"
+      });
     } catch (error: any) {
       toast.error(error.message || "Failed to update bundle", { position: "top-center" });
     } finally {
       setTogglingId(null);
     }
-  }
-
-  function handleDeleteClick(bundle: Bundle) {
-    setBundleToDelete(bundle);
-    setDeleteModalOpen(true);
   }
 
   async function handleConfirmDelete() {
@@ -128,7 +128,7 @@ export default function BundlesTable({ onEdit }: BundlesTableProps) {
             </div>
           ) : (
             <>
-              <div className="rounded-md border overflow-x-auto">
+              <div className="rounded-md overflow-x-auto border">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -149,16 +149,20 @@ export default function BundlesTable({ onEdit }: BundlesTableProps) {
                         0
                       );
                       const bundlePriceNum = Number(bundle.bundlePrice);
-                      const discountPercentage = totalOriginalPrice > 0
-                        ? Math.max(0, Math.round(((totalOriginalPrice - bundlePriceNum) / totalOriginalPrice) * 100))
-                        : 0;
+                      const discountPercentage =
+                        totalOriginalPrice > 0
+                          ? Math.max(
+                              0,
+                              Math.round(
+                                ((totalOriginalPrice - bundlePriceNum) / totalOriginalPrice) * 100
+                              )
+                            )
+                          : 0;
 
                       return (
                         <TableRow key={bundle.id}>
                           <TableCell className="font-medium">{bundle.name}</TableCell>
-                          <TableCell className="max-w-[200px] truncate">
-                            {bundle.description}
-                          </TableCell>
+                          <TableCell className="max-w-50 truncate">{bundle.description}</TableCell>
                           <TableCell>
                             <button
                               onClick={() => handleViewDetails(bundle)}
@@ -220,105 +224,107 @@ export default function BundlesTable({ onEdit }: BundlesTableProps) {
 
       {/* Bundle Details Sheet */}
       <Sheet open={previewSheetOpen} onOpenChange={setPreviewSheetOpen}>
-        <SheetContent side="right" className="md:w-[400px] p-0 w-full overflow-y-auto">
+        <SheetContent side="right" className="md:w-100 p-0 w-full overflow-y-auto">
           <SheetHeader className="p-6 border-b">
             <SheetTitle>Bundle Overview</SheetTitle>
           </SheetHeader>
-          {selectedBundle && (() => {
-            const totalOriginalPrice = selectedBundle.bundleServices.reduce(
-              (sum, s) => sum + Number(s.service.basePrice),
-              0
-            );
-            const bundlePriceNum = Number(selectedBundle.bundlePrice);
-            const discountAmount = totalOriginalPrice - bundlePriceNum;
-            const discountPercentage = totalOriginalPrice > 0
-              ? Math.max(0, Math.round((discountAmount / totalOriginalPrice) * 100))
-              : 0;
+          {selectedBundle &&
+            (() => {
+              const totalOriginalPrice = selectedBundle.bundleServices.reduce(
+                (sum, s) => sum + Number(s.service.basePrice),
+                0
+              );
+              const bundlePriceNum = Number(selectedBundle.bundlePrice);
+              const discountAmount = totalOriginalPrice - bundlePriceNum;
+              const discountPercentage =
+                totalOriginalPrice > 0
+                  ? Math.max(0, Math.round((discountAmount / totalOriginalPrice) * 100))
+                  : 0;
 
-            return (
-              <div className="p-6 space-y-6">
-                {selectedBundle.image && (
-                  <div className="aspect-video w-full rounded-lg overflow-hidden border">
-                    <img
-                      src={selectedBundle.image}
-                      alt={selectedBundle.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-
-                <div>
-                  <h3 className="text-xl font-bold">{selectedBundle.name}</h3>
-                  <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                    {selectedBundle.description}
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Included Services
-                  </h4>
-                  <div className="space-y-2">
-                    {selectedBundle.bundleServices.map((bundleService: any) => (
-                      <div
-                        key={bundleService.service.id}
-                        className="p-3 rounded-lg bg-muted/30 flex items-center justify-between border group hover:bg-muted/50 transition-colors"
-                      >
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium">
-                            {bundleService.service.name}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground">
-                            Base Price: ${Number(bundleService.service.basePrice).toFixed(2)}
-                          </span>
-                        </div>
-                        <Badge variant="outline" className="font-normal">
-                          ${Number(bundleService.service.basePrice).toFixed(2)}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="rounded-xl bg-primary/5 p-4 space-y-3 border border-primary/10">
-                  <div className="text-sm flex justify-between">
-                    <span className="text-muted-foreground">Original Total:</span>
-                    <span className="line-through text-muted-foreground/60">
-                      ${totalOriginalPrice.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="text-sm flex justify-between items-center">
-                    <span className="font-medium">Bundle Price:</span>
-                    <span className="font-bold text-2xl text-primary">
-                      ${bundlePriceNum.toFixed(2)}
-                    </span>
-                  </div>
-                  {discountPercentage > 0 && (
-                    <div className="pt-2 border-t border-primary/10 flex justify-between items-center">
-                      <span className="text-xs font-medium text-green-600">Total Savings:</span>
-                      <Badge className="bg-green-500 hover:bg-green-600">
-                        {discountPercentage}% OFF (${discountAmount.toFixed(2)})
-                      </Badge>
+              return (
+                <div className="p-6 space-y-6">
+                  {selectedBundle.image && (
+                    <div className="aspect-video rounded-lg w-full overflow-hidden border">
+                      <img
+                        src={selectedBundle.image}
+                        alt={selectedBundle.name}
+                        className="h-full w-full object-cover"
+                      />
                     </div>
                   )}
-                </div>
 
-                <div className="grid grid-cols-1 gap-0 pt-4">
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      setPreviewSheetOpen(false);
-                      onEdit?.(selectedBundle);
-                    }}
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Bundle
-                  </Button>
+                  <div>
+                    <h3 className="text-xl font-bold">{selectedBundle.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                      {selectedBundle.description}
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                      Included Services
+                    </h4>
+                    <div className="space-y-2">
+                      {selectedBundle.bundleServices.map((bundleService: any) => (
+                        <div
+                          key={bundleService.service.id}
+                          className="p-3 rounded-lg bg-muted/30 group hover:bg-muted/50 flex items-center justify-between border transition-colors"
+                        >
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">
+                              {bundleService.service.name}
+                            </span>
+                            <span className="text-muted-foreground text-[10px]">
+                              Base Price: ${Number(bundleService.service.basePrice).toFixed(2)}
+                            </span>
+                          </div>
+                          <Badge variant="outline" className="font-normal">
+                            ${Number(bundleService.service.basePrice).toFixed(2)}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl bg-primary/5 p-4 space-y-3 border-primary/10 border">
+                    <div className="text-sm flex justify-between">
+                      <span className="text-muted-foreground">Original Total:</span>
+                      <span className="text-muted-foreground/60 line-through">
+                        ${totalOriginalPrice.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="text-sm flex items-center justify-between">
+                      <span className="font-medium">Bundle Price:</span>
+                      <span className="font-bold text-2xl text-primary">
+                        ${bundlePriceNum.toFixed(2)}
+                      </span>
+                    </div>
+                    {discountPercentage > 0 && (
+                      <div className="pt-2 border-primary/10 flex items-center justify-between border-t">
+                        <span className="text-xs font-medium text-green-600">Total Savings:</span>
+                        <Badge className="bg-green-500 hover:bg-green-600">
+                          {discountPercentage}% OFF (${discountAmount.toFixed(2)})
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="gap-0 pt-4 grid grid-cols-1">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        setPreviewSheetOpen(false);
+                        onEdit?.(selectedBundle);
+                      }}
+                    >
+                      <Edit className="mr-2 h-4 w-4" />
+                      Edit Bundle
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            );
-          })()}
+              );
+            })()}
         </SheetContent>
       </Sheet>
 

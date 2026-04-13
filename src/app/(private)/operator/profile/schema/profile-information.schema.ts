@@ -5,7 +5,7 @@ export const profileInformationSchema = zod.object({
   email: zod.email({ message: "Please enter a valid email address" }),
   phoneNumber: zod.string().min(7, "Phone number is required"),
   jobTitle: zod.string().min(2, "Job title is required"),
-  avatarUrl: zod.string().url("Please provide a valid avatar URL"),
+  avatarUrl: zod.string().trim().optional().or(zod.literal("")),
   avatarFile: zod
     .custom<File | null>(
       (value) => value === null || (typeof File !== "undefined" && value instanceof File),

@@ -10,7 +10,7 @@ import type { Service } from "@/types/service";
 
 import { useGetMyAddons } from "@/lib/actions/addon/get.my-addons";
 import { useDeleteService } from "@/lib/actions/service/delete.service";
-import { useGetServices } from "@/lib/actions/service/get.services";
+import { useGetMyServices } from "@/lib/actions/service/get.my.services";
 import { useUpdateService } from "@/lib/actions/service/update.service";
 
 import { useDebounce } from "@/hooks/use-debounce";
@@ -52,7 +52,7 @@ export default function ServicesTable({ onEdit }: ServicesTableProps) {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
 
-  const { data: servicesResponse, isLoading } = useGetServices({
+  const { data: servicesResponse, isLoading } = useGetMyServices({
     page,
     limit,
     searchTerm: debouncedSearch || undefined

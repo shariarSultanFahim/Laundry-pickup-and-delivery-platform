@@ -11,7 +11,7 @@ interface NotificationItemProps {
 }
 
 export default function NotificationItem({ notification, onDelete }: NotificationItemProps) {
-  const config = notificationTypeConfig[notification.type];
+  const config = notificationTypeConfig[notification.type] ?? notificationTypeConfig.info;
   const NotificationIcon = config.icon;
 
   async function handleDelete() {

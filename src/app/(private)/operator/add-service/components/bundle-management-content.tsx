@@ -4,13 +4,14 @@ import { useState } from "react";
 
 import { Plus } from "lucide-react";
 
+import { Bundle } from "@/types/bundle-management";
+
 import { Card } from "@/components/ui";
 import { Button } from "@/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/ui/sheet";
 
 import AddBundleForm from "./add-bundle-form";
 import BundlesTable from "./bundles-table";
-import { Bundle } from "@/types/bundle-management";
 
 export default function BundleManagementContent() {
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -53,7 +54,7 @@ export default function BundleManagementContent() {
               </Button>
             </SheetTrigger>
           </Card>
-          <SheetContent side="right" className="md:w-[500px] p-0 w-full overflow-y-auto">
+          <SheetContent side="right" className="md:w-125 p-0 w-full overflow-y-auto">
             <SheetHeader className="p-6 border-b">
               <SheetTitle className="text-xl">
                 {editingBundle ? "Update Bundle" : "Design New Bundle"}

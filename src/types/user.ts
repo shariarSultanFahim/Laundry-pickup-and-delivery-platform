@@ -66,7 +66,8 @@ export interface OperatorProfile {
   operatorId: string | null;
   userId: string;
   approvalStatus: string;
-  stripeConnectedAccountId: string;
+  stripeAccountId: string | null;
+  stripeAccountStatus: "ACTIVE" | "ONBOARDING";
   onboardingUrl: string;
   onboardingComplete: boolean;
   createdAt: string;

@@ -1,12 +1,16 @@
 "use client";
 
-import { useRef, useEffect, type ChangeEvent } from "react";
+import { useEffect, useRef, type ChangeEvent } from "react";
 
 import { Camera, Save } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isAxiosError } from "axios";
 import { useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 
 import { useGetOperatorMe } from "@/lib/actions/user/get.operator-me";
+import { useUpdateProfile } from "@/lib/actions/user/use-update-profile";
+
 import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Button,
@@ -23,7 +27,6 @@ import {
   Input
 } from "@/ui";
 
-import { updateProfileInformation } from "../components/profile-api";
 import {
   profileInformationSchema,
   type ProfileInformationFormData
@@ -32,6 +35,7 @@ import {
 export default function ProfileInformationForm() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: operatorMe } = useGetOperatorMe();
+  const { mutateAsync: updateProfile, isPending: isUpdating } = useUpdateProfile();
 
   const user = operatorMe?.data;
 
@@ -41,7 +45,7 @@ export default function ProfileInformationForm() {
       fullName: user?.name || "",
       email: user?.email || "",
       phoneNumber: user?.phone || "",
-      jobTitle: "Operator",
+      jobTitle: user?.role,
       avatarUrl: user?.avatar || "",
       avatarFile: null
     }
@@ -97,7 +101,34 @@ export default function ProfileInformationForm() {
   }
 
   async function onSubmit(values: ProfileInformationFormData) {
-    await updateProfileInformation(values);
+    if (!user?.id) {
+      return;
+    }
+
+    const toastId = toast.loading("Updating profile...", { position: "top-center" });
+
+    try {
+      await updateProfile({
+        id: user.id,
+        name: values.fullName,
+        phone: values.phoneNumber,
+        avatarFile: values.avatarFile ?? undefined
+      });
+
+      toast.success("Profile updated successfully", {
+        id: toastId,
+        position: "top-center"
+      });
+    } catch (error) {
+      const message = isAxiosError<{ message?: string }>(error)
+        ? (error.response?.data?.message ?? error.message)
+        : "Failed to update profile. Please try again.";
+
+      toast.error(message, {
+        id: toastId,
+        position: "top-center"
+      });
+    }
   }
 
   return (
@@ -107,9 +138,14 @@ export default function ProfileInformationForm() {
           <CardTitle>Profile Information</CardTitle>
           <p className="text-sm text-muted-foreground">Update your account profile and details</p>
         </div>
-        <Button type="submit" form="profile-information-form" className="min-w-32">
+        <Button
+          type="submit"
+          form="profile-information-form"
+          className="min-w-32"
+          disabled={isUpdating}
+        >
           <Save className="size-4" />
-          Save Changes
+          {isUpdating ? "Saving..." : "Save Changes"}
         </Button>
       </CardHeader>
       <CardContent>
@@ -134,7 +170,7 @@ export default function ProfileInformationForm() {
                   </AvatarBadge>
                 </Avatar>
               </button>
- 
+
               <input
                 ref={fileInputRef}
                 type="file"
@@ -142,7 +178,7 @@ export default function ProfileInformationForm() {
                 className="hidden"
                 onChange={handleAvatarChange}
               />
- 
+
               <FormField
                 control={form.control}
                 name="avatarFile"
@@ -153,7 +189,7 @@ export default function ProfileInformationForm() {
                 )}
               />
             </div>
- 
+
             <div className="gap-4 md:grid-cols-2 grid grid-cols-1">
               <FormField
                 control={form.control}
@@ -168,7 +204,7 @@ export default function ProfileInformationForm() {
                   </FormItem>
                 )}
               />
- 
+
               <FormField
                 control={form.control}
                 name="email"
@@ -176,13 +212,13 @@ export default function ProfileInformationForm() {
                   <FormItem>
                     <FormLabel>Email Address</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="Email address" {...field} />
+                      <Input disabled type="email" placeholder="Email address" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
- 
+
               <FormField
                 control={form.control}
                 name="phoneNumber"
@@ -196,7 +232,7 @@ export default function ProfileInformationForm() {
                   </FormItem>
                 )}
               />
- 
+
               <FormField
                 control={form.control}
                 name="jobTitle"
@@ -204,7 +240,7 @@ export default function ProfileInformationForm() {
                   <FormItem>
                     <FormLabel>Job Title</FormLabel>
                     <FormControl>
-                      <Input placeholder="Job title" {...field} />
+                      <Input disabled placeholder="Job title" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

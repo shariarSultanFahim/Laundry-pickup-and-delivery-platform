@@ -10,7 +10,7 @@ interface NotificationItemProps {
 }
 
 export default function NotificationItem({ notification, onMarkRead }: NotificationItemProps) {
-  const config = notificationTypeConfig[notification.type];
+  const config = notificationTypeConfig[notification.type] ?? notificationTypeConfig.GENERAL;
   const NotificationIcon = config.icon;
 
   async function handleClick() {
