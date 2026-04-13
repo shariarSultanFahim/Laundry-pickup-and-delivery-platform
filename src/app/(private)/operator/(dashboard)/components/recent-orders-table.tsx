@@ -48,27 +48,35 @@ export default function RecentOrdersTable({ data }: RecentOrdersTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell className="font-medium text-blue-600">{order.orderNumber}</TableCell>
-                <TableCell>{order.user?.name ?? "Unknown"}</TableCell>
-                <TableCell>
-                  {order.orderItems.reduce((sum, item) => sum + item.quantity, 0)} items
-                </TableCell>
-                <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
-                <TableCell className="font-medium">
-                  ${Number(order.totalAmount).toFixed(2)}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
-                </TableCell>
-                <TableCell>
-                  <Link href={`/operator/orders/${order.id}`} className="text-blue-600 text-sm">
-                    View
-                  </Link>
+            {data.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="py-6 text-muted-foreground text-center">
+                  No orders available
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              data.map((order) => (
+                <TableRow key={order.id}>
+                  <TableCell className="font-medium text-blue-600">{order.orderNumber}</TableCell>
+                  <TableCell>{order.user?.name ?? "Unknown"}</TableCell>
+                  <TableCell>
+                    {order.orderItems.reduce((sum, item) => sum + item.quantity, 0)} items
+                  </TableCell>
+                  <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell className="font-medium">
+                    ${Number(order.totalAmount).toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Link href={`/operator/orders/${order.id}`} className="text-blue-600 text-sm">
+                      View
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </CardContent>

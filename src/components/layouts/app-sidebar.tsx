@@ -21,6 +21,11 @@ import {
   Users
 } from "lucide-react";
 
+import { useUnreadNotificationsIndicator } from "@/lib/actions/notifications/use-unread-notifications-indicator";
+import { useGetOperatorMe } from "@/lib/actions/user/get.operator-me";
+
+import { useLogout } from "@/hooks/use-logout";
+
 import {
   Sidebar,
   SidebarContent,
@@ -36,8 +41,6 @@ import {
 
 import { Button } from "../ui";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { useLogout } from "@/hooks/use-logout";
-import { useGetOperatorMe } from "@/lib/actions/user/get.operator-me";
 
 const data = {
   info: {
@@ -122,6 +125,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const { logout } = useLogout();
   const { data: userResponse } = useGetOperatorMe();
+  const { hasUnread } = useUnreadNotificationsIndicator();
   const user = userResponse?.data;
   const isItemActive = (itemUrl: string) => {
     if (itemUrl === "/operator") {
@@ -163,7 +167,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <SidebarMenuButton asChild isActive={isItemActive(item.url)}>
                       <Link href={item.url} className="py-5">
                         <item.icon />
-                        <span>{item.title}</span>
+                        <span className="gap-2 inline-flex items-center">
+                          {item.title}
+                          {item.url === "/operator/notifications" && hasUnread ? (
+                            <span
+                              className="h-2.5 w-2.5 bg-red-500 rounded-full"
+                              aria-label="Unread notifications"
+                            />
+                          ) : null}
+                        </span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -177,7 +189,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem className="space-y-5">
-            <div className="gap-4 hidden flex-col group-data-[collapsible=icon]:flex px-1">
+            <div className="gap-4 px-1 hidden flex-col group-data-[collapsible=icon]:flex">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={user?.avatar || ""} />
                 <AvatarFallback>{user?.name?.substring(0, 2).toUpperCase() || "OP"}</AvatarFallback>
@@ -187,7 +199,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <div className="gap-4 flex items-center justify-start">
                 <Avatar size="lg">
                   <AvatarImage src={user?.avatar || ""} />
-                  <AvatarFallback>{user?.name?.substring(0, 2).toUpperCase() || "OP"}</AvatarFallback>
+                  <AvatarFallback>
+                    {user?.name?.substring(0, 2).toUpperCase() || "OP"}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="truncate">
                   <h2 className="font-semibold truncate">{user?.name || "Loading..."}</h2>
@@ -198,7 +212,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </div>
             </div>
             <SidebarMenuButton asChild className="group-data-[collapsible=icon]:w-full">
-              <Button variant="outline" onClick={logout} className="group-data-[collapsible=icon]:p-0 w-full">
+              <Button
+                variant="outline"
+                onClick={logout}
+                className="group-data-[collapsible=icon]:p-0 w-full"
+              >
                 <LogOut className="size-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
                 <span className="group-data-[collapsible=icon]:hidden">Sign Out</span>
               </Button>
