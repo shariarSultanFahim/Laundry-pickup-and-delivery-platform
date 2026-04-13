@@ -1,111 +1,92 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
+import { useEffect, useState } from "react";
 
-import { Filter, Search } from "lucide-react";
+import { Search } from "lucide-react";
 
+import type { OrderStatus } from "@/types/order-management";
+
+import { useGetMyOrders } from "@/lib/actions/order/use-get-my-orders";
+
+import { useDebounce } from "@/hooks/use-debounce";
+
+import { CustomPagination } from "@/components/ui/custom-pagination";
 import { Badge } from "@/ui/badge";
-import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Input } from "@/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 
-import type { Order, OrderFilters } from "../data/orders";
 import OrderDetailsSheet from "./order-details-sheet";
-import { fetchOrders, updateOrderStatus } from "./orders-api";
-import OrdersFilterSheet from "./orders-filter-sheet";
 
-const PAGE_SIZE = 10;
-const MAIN_ORDER_STATUS_OPTIONS: Array<Order["status"]> = [
-  "Processing",
-  "Shipped",
-  "Delivered",
-  "Cancelled"
+const ORDERS_LIMIT = 10;
+
+const ORDER_STATUS_OPTIONS: OrderStatus[] = [
+  "PENDING",
+  "PROCESSING",
+  "OUT_FOR_PICKUP",
+  "PICKED_UP",
+  "RECEIVED_BY_STORE",
+  "IN_PROGRESS",
+  "READY_FOR_DELIVERY",
+  "OUT_FOR_DELIVERY",
+  "DELIVERED",
+  "CANCELLED",
+  "REFUNDED"
 ];
 
-const MAIN_ORDER_STATUS_LABELS: Partial<Record<Order["status"], string>> = {
-  Delivered: "Completed",
-  Processing: "In Progress",
-  Cancelled: "Cancelled",
-  Shipped: "Shipped"
-};
+function formatStatusLabel(status: string) {
+  return status.replaceAll("_", " ");
+}
 
-function getStatusVariant(
-  status: Order["status"]
-): "default" | "secondary" | "destructive" | "outline" {
-  if (status === "Delivered") {
-    return "default";
+function getStatusVariant(status: string) {
+  if (status === "DELIVERED") {
+    return "default" as const;
   }
 
-  if (status === "Processing" || status === "Shipped") {
-    return "secondary";
+  if (
+    status === "PENDING" ||
+    status === "PROCESSING" ||
+    status === "OUT_FOR_PICKUP" ||
+    status === "PICKED_UP" ||
+    status === "RECEIVED_BY_STORE" ||
+    status === "IN_PROGRESS" ||
+    status === "READY_FOR_DELIVERY" ||
+    status === "OUT_FOR_DELIVERY"
+  ) {
+    return "secondary" as const;
   }
 
-  if (status === "Cancelled") {
-    return "destructive";
+  if (status === "REFUNDED") {
+    return "outline" as const;
   }
 
-  return "outline";
+  return "destructive" as const;
 }
 
 export default function OrdersTable() {
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [filters, setFilters] = useState<OrderFilters>({});
   const [page, setPage] = useState(1);
-  const [rows, setRows] = useState<Order[]>([]);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<OrderStatus | "ALL">("ALL");
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [detailsSheetOpen, setDetailsSheetOpen] = useState(false);
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-    }, 350);
-
-    return () => clearTimeout(timeout);
-  }, [search]);
+  const debouncedSearch = useDebounce(searchQuery, 400);
 
   useEffect(() => {
-    let isMounted = true;
+    setPage(1);
+  }, [debouncedSearch, statusFilter]);
 
-    async function loadOrders() {
-      setIsLoading(true);
-      const response = await fetchOrders({
-        page,
-        pageSize: PAGE_SIZE,
-        search: debouncedSearch,
-        filters
-      });
+  const { data, isLoading } = useGetMyOrders({
+    page,
+    limit: ORDERS_LIMIT,
+    searchTerm: debouncedSearch || undefined,
+    status: statusFilter === "ALL" ? undefined : statusFilter
+  });
 
-      if (!isMounted) {
-        return;
-      }
-
-      setRows(response.items);
-      setTotal(response.total);
-      setTotalPages(response.totalPages);
-      setIsLoading(false);
-    }
-
-    void loadOrders();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [debouncedSearch, page, filters]);
-
-  const paginationNumbers = useMemo(() => {
-    return Array.from({ length: totalPages }, (_, index) => index + 1);
-  }, [totalPages]);
-
-  const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const rangeEnd = Math.min(page * PAGE_SIZE, total);
+  const orders = data?.data ?? [];
+  const meta = data?.meta;
+  const totalPage = meta?.totalPage ?? 1;
 
   return (
     <Card>
@@ -117,21 +98,34 @@ export default function OrdersTable() {
             <div className="md:w-72 relative w-full">
               <Search className="left-3 h-4 w-4 text-muted-foreground absolute top-1/2 -translate-y-1/2" />
               <Input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search orders..."
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
                 className="pl-9"
               />
             </div>
 
-            <Button variant="outline" size="icon" onClick={() => setFilterSheetOpen(true)}>
-              <Filter className="h-4 w-4" />
-            </Button>
+            <Select
+              value={statusFilter}
+              onValueChange={(value) => setStatusFilter(value as OrderStatus | "ALL")}
+            >
+              <SelectTrigger className="md:w-52 w-full">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Statuses</SelectItem>
+                {ORDER_STATUS_OPTIONS.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {formatStatusLabel(status)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="space-y-4">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -139,68 +133,47 @@ export default function OrdersTable() {
                 <TableHead>Order ID</TableHead>
                 <TableHead>Customer Name</TableHead>
                 <TableHead>Items</TableHead>
-                <TableHead>Order fulfillment time</TableHead>
+                <TableHead>Order Date</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-8 text-center">
+                  <TableCell colSpan={6} className="py-8 text-center">
                     Loading...
                   </TableCell>
                 </TableRow>
-              ) : rows.length === 0 ? (
+              ) : orders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-8 text-muted-foreground text-center">
+                  <TableCell colSpan={6} className="py-8 text-muted-foreground text-center">
                     No orders found
                   </TableCell>
                 </TableRow>
               ) : (
-                rows.map((order) => (
+                orders.map((order) => (
                   <TableRow
                     key={order.id}
                     className="hover:bg-muted cursor-pointer"
                     onClick={() => {
-                      setSelectedOrder(order);
+                      setSelectedOrderId(order.id);
                       setDetailsSheetOpen(true);
                     }}
                   >
-                    <TableCell className="font-medium text-blue-600">{order.id}</TableCell>
+                    <TableCell className="font-medium text-blue-600">{order.orderNumber}</TableCell>
+                    <TableCell>{order.user?.name ?? "Unknown"}</TableCell>
                     <TableCell>
-                      <div className="gap-2 flex items-center">
-                        <Image
-                          src={order.customerAvatar}
-                          alt={order.customerName}
-                          width={32}
-                          height={32}
-                          className="rounded-full"
-                        />
-                        <span>{order.customerName}</span>
-                      </div>
+                      {order.orderItems.reduce((sum, item) => sum + item.quantity, 0)} items
+                    </TableCell>
+                    <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell className="font-medium">
+                      ${Number(order.totalAmount).toFixed(2)}
                     </TableCell>
                     <TableCell>
-                      {order.items} {order.items === 1 ? "item" : "items"}
-                    </TableCell>
-                    <TableCell>{order.fulfillmentTime}</TableCell>
-                    <TableCell className="font-medium">${order.amount.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusVariant(order.status)}>{order.status}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="link"
-                        className="text-blue-600 p-0 h-auto"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedOrder(order);
-                          setDetailsSheetOpen(true);
-                        }}
-                      >
-                        View
-                      </Button>
+                      <Badge variant={getStatusVariant(order.status)}>
+                        {formatStatusLabel(order.status)}
+                      </Badge>
                     </TableCell>
                   </TableRow>
                 ))
@@ -209,77 +182,20 @@ export default function OrdersTable() {
           </Table>
         </div>
 
-        {/* Pagination */}
-        <div className="gap-2 mt-6 flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Showing {rangeStart} to {rangeEnd} of {total} results
-          </p>
-
-          <div className="gap-2 flex items-center">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
-            >
-              Previous
-            </Button>
-
-            {paginationNumbers.map((num) => (
-              <Button
-                key={num}
-                variant={page === num ? "default" : "outline"}
-                size="sm"
-                onClick={() => setPage(num)}
-              >
-                {num}
-              </Button>
-            ))}
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage(Math.min(totalPages, page + 1))}
-              disabled={page === totalPages || totalPages === 0}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
+        {meta && totalPage > 1 ? (
+          <CustomPagination
+            page={page}
+            totalPage={totalPage}
+            setPage={setPage}
+            isLoading={isLoading}
+          />
+        ) : null}
       </CardContent>
-
-      <OrdersFilterSheet
-        open={filterSheetOpen}
-        onOpenChange={setFilterSheetOpen}
-        statusOptions={MAIN_ORDER_STATUS_OPTIONS}
-        onApplyFilters={(newFilters) => {
-          setFilters(newFilters);
-        }}
-        onClearFilters={() => {
-          setFilters({});
-        }}
-      />
 
       <OrderDetailsSheet
         open={detailsSheetOpen}
         onOpenChange={setDetailsSheetOpen}
-        order={selectedOrder}
-        statusOptions={MAIN_ORDER_STATUS_OPTIONS}
-        statusLabelMap={MAIN_ORDER_STATUS_LABELS}
-        onStatusChange={(orderId, status) => {
-          if (
-            status !== "Processing" &&
-            status !== "Shipped" &&
-            status !== "Delivered" &&
-            status !== "Cancelled"
-          ) {
-            return;
-          }
-
-          void updateOrderStatus({ orderId, status });
-          setRows((prev) => prev.map((row) => (row.id === orderId ? { ...row, status } : row)));
-          setSelectedOrder((prev) => (prev && prev.id === orderId ? { ...prev, status } : prev));
-        }}
+        orderId={selectedOrderId}
       />
     </Card>
   );

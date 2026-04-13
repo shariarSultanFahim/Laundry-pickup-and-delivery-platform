@@ -1,7 +1,6 @@
 import Header from "../components/header";
 import StatsCard from "../components/statsCard";
-import NewOrdersTable from "./components/new-orders-table";
-import OrdersTable from "./components/orders-table";
+import { NewOrdersTable, OrdersTable } from "./components";
 import { operatorOrdersStats } from "./data/orders";
 
 export default function OperatorOrdersPage() {
