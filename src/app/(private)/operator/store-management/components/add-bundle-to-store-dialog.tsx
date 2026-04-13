@@ -1,47 +1,55 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Search, Check, Loader2 } from "lucide-react";
+
+import { Check, Loader2, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 
+import { useGetMyBundles } from "@/lib/actions/bundle/get.my.bundles";
+import { useAddBundleToStore } from "@/lib/actions/store/store-bundle";
+
 import {
+  Badge,
   Button,
+  Checkbox,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  Input,
-  Checkbox,
-  Badge
+  Input
 } from "@/ui";
-import { useGetBundles } from "@/lib/actions/bundle/get.bundles";
-import { useAddBundleToStore } from "@/lib/actions/store/store-bundle";
 
 interface AddBundleToStoreDialogProps {
   storeId: string;
   existingBundleIds: string[];
 }
 
-export default function AddBundleToStoreDialog({ storeId, existingBundleIds }: AddBundleToStoreDialogProps) {
+export default function AddBundleToStoreDialog({
+  storeId,
+  existingBundleIds
+}: AddBundleToStoreDialogProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedBundleIds, setSelectedBundleIds] = useState<string[]>([]);
 
-  const { data: bundlesResponse, isLoading } = useGetBundles({
-    searchTerm: searchTerm || undefined,
-    page: 1,
-    limit: 100
-  }, open);
+  const { data: bundlesResponse, isLoading } = useGetMyBundles(
+    {
+      searchTerm: searchTerm || undefined,
+      page: 1,
+      limit: 100
+    },
+    open
+  );
 
   const { mutateAsync: addBundles, isPending: isAdding } = useAddBundleToStore();
 
   const bundles = bundlesResponse?.data || [];
-  const filteredBundles = bundles.filter(b => !existingBundleIds.includes(b.id));
+  const filteredBundles = bundles.filter((b) => !existingBundleIds.includes(b.id));
 
   const toggleBundle = (id: string) => {
-    setSelectedBundleIds(prev =>
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    setSelectedBundleIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   };
 
@@ -55,8 +63,8 @@ export default function AddBundleToStoreDialog({ storeId, existingBundleIds }: A
       toast.success("Bundles added to store successfully");
       setOpen(false);
       setSelectedBundleIds([]);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to add bundles");
+    } catch (error: unknown) {
+      toast.error((error as Error).message || "Failed to add bundles");
     }
   };
 
@@ -68,13 +76,13 @@ export default function AddBundleToStoreDialog({ storeId, existingBundleIds }: A
           Add Bundle
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>Add Bundles to Store</DialogTitle>
         </DialogHeader>
         <div className="py-4 space-y-4">
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="left-2.5 top-2.5 h-4 w-4 text-muted-foreground absolute" />
             <Input
               placeholder="Search bundles..."
               className="pl-9"
@@ -83,19 +91,17 @@ export default function AddBundleToStoreDialog({ storeId, existingBundleIds }: A
             />
           </div>
 
-          <div className="h-[300px] overflow-y-auto border rounded-md p-4">
+          <div className="rounded-md p-4 h-75 overflow-y-auto border">
             {isLoading ? (
-              <div className="flex items-center justify-center h-full">
+              <div className="flex h-full items-center justify-center">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             ) : filteredBundles.length === 0 ? (
-              <div className="text-center py-10 text-muted-foreground">
-                No new bundles found.
-              </div>
+              <div className="py-10 text-muted-foreground text-center">No new bundles found.</div>
             ) : (
               <div className="space-y-4">
                 {filteredBundles.map((bundle) => (
-                  <div key={bundle.id} className="flex items-center space-x-3">
+                  <div key={bundle.id} className="space-x-3 flex items-center">
                     <Checkbox
                       id={`bundle-${bundle.id}`}
                       checked={selectedBundleIds.includes(bundle.id)}
@@ -103,9 +109,9 @@ export default function AddBundleToStoreDialog({ storeId, existingBundleIds }: A
                     />
                     <label
                       htmlFor={`bundle-${bundle.id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex justify-between w-full items-center cursor-pointer"
+                      className="text-sm font-medium flex w-full cursor-pointer items-center justify-between leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                     >
-                      <div className="flex flex-col gap-1">
+                      <div className="gap-1 flex flex-col">
                         <span>{bundle.name}</span>
                         <span className="text-xs text-muted-foreground">${bundle.bundlePrice}</span>
                       </div>
@@ -119,9 +125,9 @@ export default function AddBundleToStoreDialog({ storeId, existingBundleIds }: A
             )}
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {selectedBundleIds.map(id => {
-              const b = bundles.find(bund => bund.id === id);
+          <div className="gap-2 flex flex-wrap">
+            {selectedBundleIds.map((id) => {
+              const b = bundles.find((bund) => bund.id === id);
               return b ? (
                 <Badge key={id} variant="secondary" className="gap-1">
                   {b.name}
@@ -133,12 +139,11 @@ export default function AddBundleToStoreDialog({ storeId, existingBundleIds }: A
             })}
           </div>
         </div>
-        <div className="flex justify-end gap-3 mt-4">
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleAdd}
-            disabled={selectedBundleIds.length === 0 || isAdding}
-          >
+        <div className="gap-3 mt-4 flex justify-end">
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleAdd} disabled={selectedBundleIds.length === 0 || isAdding}>
             {isAdding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Add {selectedBundleIds.length > 0 ? `(${selectedBundleIds.length})` : ""} Bundles
           </Button>

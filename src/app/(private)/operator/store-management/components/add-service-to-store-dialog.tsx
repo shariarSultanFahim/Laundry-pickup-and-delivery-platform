@@ -1,47 +1,55 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Search, Check, Loader2 } from "lucide-react";
+
+import { Check, Loader2, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 
+import { useGetMyServices } from "@/lib/actions/service/get.my.services";
+import { useAddServiceToStore } from "@/lib/actions/store/store-service";
+
 import {
+  Badge,
   Button,
+  Checkbox,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  Input,
-  Checkbox,
-  Badge
+  Input
 } from "@/ui";
-import { useGetServices } from "@/lib/actions/service/get.services";
-import { useAddServiceToStore } from "@/lib/actions/store/store-service";
 
 interface AddServiceToStoreDialogProps {
   storeId: string;
   existingServiceIds: string[];
 }
 
-export default function AddServiceToStoreDialog({ storeId, existingServiceIds }: AddServiceToStoreDialogProps) {
+export default function AddServiceToStoreDialog({
+  storeId,
+  existingServiceIds
+}: AddServiceToStoreDialogProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
 
-  const { data: servicesResponse, isLoading } = useGetServices({
-    searchTerm: searchTerm || undefined,
-    page: 1,
-    limit: 100
-  }, open);
+  const { data: servicesResponse, isLoading } = useGetMyServices(
+    {
+      searchTerm: searchTerm || undefined,
+      page: 1,
+      limit: 100
+    },
+    open
+  );
 
   const { mutateAsync: addServices, isPending: isAdding } = useAddServiceToStore();
 
   const services = servicesResponse?.data || [];
-  const filteredServices = services.filter(s => !existingServiceIds.includes(s.id));
+  const filteredServices = services.filter((s) => !existingServiceIds.includes(s.id));
 
   const toggleService = (id: string) => {
-    setSelectedServiceIds(prev =>
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    setSelectedServiceIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   };
 
@@ -55,8 +63,8 @@ export default function AddServiceToStoreDialog({ storeId, existingServiceIds }:
       toast.success("Services added to store successfully");
       setOpen(false);
       setSelectedServiceIds([]);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to add services");
+    } catch (error: unknown) {
+      toast.error((error as Error).message || "Failed to add services");
     }
   };
 
@@ -68,13 +76,13 @@ export default function AddServiceToStoreDialog({ storeId, existingServiceIds }:
           Add Service
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>Add Services to Store</DialogTitle>
         </DialogHeader>
         <div className="py-4 space-y-4">
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="left-2.5 top-2.5 h-4 w-4 text-muted-foreground absolute" />
             <Input
               placeholder="Search services..."
               className="pl-9"
@@ -83,19 +91,19 @@ export default function AddServiceToStoreDialog({ storeId, existingServiceIds }:
             />
           </div>
 
-          <div className="h-[300px] overflow-y-auto border rounded-md p-4">
+          <div className="rounded-md p-4 h-75 overflow-y-auto border">
             {isLoading ? (
-              <div className="flex items-center justify-center h-full">
+              <div className="flex h-full items-center justify-center">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
               </div>
             ) : filteredServices.length === 0 ? (
-              <div className="text-center py-10 text-muted-foreground">
+              <div className="py-10 text-muted-foreground text-center">
                 No new active services found.
               </div>
             ) : (
               <div className="space-y-4">
                 {filteredServices.map((service) => (
-                  <div key={service.id} className="flex items-center space-x-3">
+                  <div key={service.id} className="space-x-3 flex items-center">
                     <Checkbox
                       id={`service-${service.id}`}
                       checked={selectedServiceIds.includes(service.id)}
@@ -103,9 +111,9 @@ export default function AddServiceToStoreDialog({ storeId, existingServiceIds }:
                     />
                     <label
                       htmlFor={`service-${service.id}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex justify-between w-full items-center cursor-pointer"
+                      className="text-sm font-medium flex w-full cursor-pointer items-center justify-between leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                     >
-                      <div className="flex flex-col gap-1">
+                      <div className="gap-1 flex flex-col">
                         <span>{service.name}</span>
                         <span className="text-xs text-muted-foreground">${service.basePrice}</span>
                       </div>
@@ -119,9 +127,9 @@ export default function AddServiceToStoreDialog({ storeId, existingServiceIds }:
             )}
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {selectedServiceIds.map(id => {
-              const s = services.find(serv => serv.id === id);
+          <div className="gap-2 flex flex-wrap">
+            {selectedServiceIds.map((id) => {
+              const s = services.find((serv) => serv.id === id);
               return s ? (
                 <Badge key={id} variant="secondary" className="gap-1">
                   {s.name}
@@ -133,12 +141,11 @@ export default function AddServiceToStoreDialog({ storeId, existingServiceIds }:
             })}
           </div>
         </div>
-        <div className="flex justify-end gap-3 mt-4">
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleAdd}
-            disabled={selectedServiceIds.length === 0 || isAdding}
-          >
+        <div className="gap-3 mt-4 flex justify-end">
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleAdd} disabled={selectedServiceIds.length === 0 || isAdding}>
             {isAdding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Add {selectedServiceIds.length > 0 ? `(${selectedServiceIds.length})` : ""} Services
           </Button>

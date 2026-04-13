@@ -1,8 +1,18 @@
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+
+import { ArrowLeft, CheckCircle2, MapPin, Trash2, XCircle } from "lucide-react";
+import { toast } from "sonner";
+
 import { useGetStoreDetails } from "@/lib/actions/store/get.store-details";
-import { useDeleteServiceFromStore } from "@/lib/actions/store/store-service";
 import { useDeleteBundleFromStore } from "@/lib/actions/store/store-bundle";
+import { useDeleteServiceFromStore } from "@/lib/actions/store/store-service";
+
+import DeleteConfirmationModal from "@/components/modals/delete-confirmation-modal";
 import {
   Badge,
   Button,
@@ -18,14 +28,9 @@ import {
   TableHeader,
   TableRow
 } from "@/ui";
-import { ArrowLeft, MapPin, CheckCircle2, XCircle, Trash2 } from "lucide-react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
-import AddServiceToStoreDialog from "../components/add-service-to-store-dialog";
+
 import AddBundleToStoreDialog from "../components/add-bundle-to-store-dialog";
-import DeleteConfirmationModal from "@/components/modals/delete-confirmation-modal";
+import AddServiceToStoreDialog from "../components/add-service-to-store-dialog";
 
 export default function StoreDetailsPage() {
   const params = useParams();
@@ -46,8 +51,8 @@ export default function StoreDetailsPage() {
       await deleteService(deleteServiceId);
       toast.success("Service removed from store");
       setDeleteServiceId(null);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to remove service");
+    } catch (error: unknown) {
+      toast.error((error as Error).message || "Failed to remove service");
     }
   };
 
@@ -57,16 +62,16 @@ export default function StoreDetailsPage() {
       await deleteBundle(deleteBundleId);
       toast.success("Bundle removed from store");
       setDeleteBundleId(null);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to remove bundle");
+    } catch (error: unknown) {
+      toast.error((error as Error).message || "Failed to remove bundle");
     }
   };
 
   if (isDetailsLoading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-48 w-full rounded-xl" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Skeleton className="h-48 rounded-xl w-full" />
+        <div className="md:grid-cols-3 gap-6 grid grid-cols-1">
           <Skeleton className="h-64 rounded-xl" />
           <Skeleton className="md:col-span-2 h-64 rounded-xl" />
         </div>
@@ -75,15 +80,15 @@ export default function StoreDetailsPage() {
   }
 
   if (!store) {
-    return <div className="text-center py-20 text-muted-foreground">Store not found</div>;
+    return <div className="py-20 text-muted-foreground text-center">Store not found</div>;
   }
 
-  const existingServiceIds = store.storeServices?.map(ss => ss.service.id) || [];
-  const existingBundleIds = store.storeBundles?.map(sb => sb.bundle.id) || [];
+  const existingServiceIds = store?.storeServices?.map((ss) => ss?.service?.id) || [];
+  const existingBundleIds = store?.storeBundles?.map((sb) => sb?.bundle?.id) || [];
 
   return (
     <div className="space-y-8 pb-10">
-      <div className="flex items-center gap-4">
+      <div className="gap-4 flex items-center">
         <Button variant="ghost" size="icon" asChild>
           <Link href="/operator/store-management">
             <ArrowLeft className="h-5 w-5" />
@@ -93,52 +98,71 @@ export default function StoreDetailsPage() {
       </div>
 
       {/* Banner & Basic Info */}
-      <Card className="overflow-hidden border-none shadow-sm py-0">
-        <div className="h-48 md:h-100 relative bg-muted flex items-center justify-center">
+      <Card className="shadow-sm py-0 overflow-hidden border-none">
+        <div className="h-48 md:h-100 bg-muted relative flex items-center justify-center">
           {store.banner ? (
-            <img src={store.banner} alt="Banner" className="w-full h-full object-cover" />
+            <Image
+              src={store.banner}
+              alt="Banner"
+              fill
+              unoptimized
+              className="h-full w-full object-cover"
+            />
           ) : (
             <div className="text-muted-foreground font-medium">No banner provided</div>
           )}
-          <div className="absolute -bottom-16 left-8 h-32 w-32 rounded-xl border-4 border-white overflow-hidden bg-white shadow-md">
+          <div className="-bottom-16 left-8 h-32 w-32 rounded-xl border-white bg-white shadow-md absolute overflow-hidden border-4">
             {store.logo ? (
-              <img src={store.logo} alt="Logo" className="w-full h-full object-cover" />
+              <Image
+                src={store.logo}
+                alt="Logo"
+                fill
+                unoptimized
+                className="h-full w-full object-cover"
+              />
             ) : (
-              <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-2xl">
+              <div className="bg-slate-100 text-slate-400 font-bold text-2xl flex h-full w-full items-center justify-center">
                 {store.name.substring(0, 1).toUpperCase()}
               </div>
             )}
           </div>
         </div>
         <CardContent className="pt-20 pb-8 px-8">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+          <div className="md:flex-row gap-4 flex flex-col items-start justify-between">
             <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <h2 className="text-3xl font-bold">{store.name}</h2>
-                <Badge className={store.isActive ? "bg-emerald-500 hover:bg-emerald-600" : "bg-slate-400"}>
-                  {store.isActive ? "Active" : "Inactive"}
+              <div className="gap-3 flex items-center">
+                <h2 className="text-3xl font-bold">{store?.name}</h2>
+                <Badge
+                  className={
+                    store?.isActive ? "bg-emerald-500 hover:bg-emerald-600" : "bg-slate-400"
+                  }
+                >
+                  {store?.isActive ? "Active" : "Inactive"}
                 </Badge>
               </div>
-              <p className="flex items-center gap-2 text-muted-foreground">
+              <p className="gap-2 text-muted-foreground flex items-center">
                 <MapPin className="h-4 w-4" />
-                {store.address}, {store.city}, {store.state}, {store.country} {store.postalCode}
+                {store?.address}, {store?.city}, {store?.state}, {store?.country}{" "}
+                {store?.postalCode}
               </p>
             </div>
-            <div className="p-4 bg-muted/30 rounded-xl space-y-2 w-full md:w-auto">
-              <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Owner Information</h4>
-              {store.operator?.user ? (
+            <div className="p-4 bg-muted/30 rounded-xl space-y-2 md:w-auto w-full">
+              <h4 className="text-sm font-semibold tracking-wider text-muted-foreground uppercase">
+                Owner Information
+              </h4>
+              {store?.operator?.user ? (
                 <div className="space-y-1">
-                  <p className="font-medium text-sm flex items-center gap-2">
+                  <p className="font-medium text-sm gap-2 flex items-center">
                     <span className="w-20 text-xs text-muted-foreground font-normal">Name:</span>
-                    {store.operator.user.name}
+                    {store?.operator?.user?.name}
                   </p>
-                  <p className="font-medium text-sm flex items-center gap-2">
+                  <p className="font-medium text-sm gap-2 flex items-center">
                     <span className="w-20 text-xs text-muted-foreground font-normal">Email:</span>
-                    {store.operator.user.email}
+                    {store?.operator?.user?.email}
                   </p>
-                  <p className="font-medium text-sm flex items-center gap-2">
+                  <p className="font-medium text-sm gap-2 flex items-center">
                     <span className="w-20 text-xs text-muted-foreground font-normal">Phone:</span>
-                    {store.operator.user.phone}
+                    {store?.operator?.user?.phone}
                   </p>
                 </div>
               ) : (
@@ -149,7 +173,7 @@ export default function StoreDetailsPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="lg:grid-cols-2 gap-8 grid grid-cols-1">
         {/* Services Table */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
@@ -167,33 +191,38 @@ export default function StoreDetailsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {store.storeServices && store.storeServices.length > 0 ? (
-                  store.storeServices.map((ss) => (
+                {store?.storeServices && store?.storeServices.length > 0 ? (
+                  store?.storeServices.map((ss) => (
                     <TableRow key={ss.id}>
-                      <TableCell className="font-medium">{ss.service.name}</TableCell>
-                      <TableCell className="font-bold text-primary">${ss.service.basePrice}</TableCell>
+                      <TableCell className="font-medium">{ss?.service?.name}</TableCell>
+                      <TableCell className="font-bold text-primary">
+                        ${ss?.service?.basePrice}
+                      </TableCell>
                       <TableCell>
-                        {ss.service.isActive ? (
+                        {ss?.service?.isActive ? (
                           <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                         ) : (
                           <XCircle className="h-4 w-4 text-slate-300" />
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                         <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onClick={() => setDeleteServiceId(ss.id)}
-                         >
-                            <Trash2 className="h-4 w-4" />
-                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => setDeleteServiceId(ss.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-4 text-muted-foreground italic">
+                    <TableCell
+                      colSpan={4}
+                      className="py-4 text-muted-foreground text-center italic"
+                    >
                       No services assigned to this store.
                     </TableCell>
                   </TableRow>
@@ -220,33 +249,38 @@ export default function StoreDetailsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {store.storeBundles && store.storeBundles.length > 0 ? (
-                  store.storeBundles.map((sb) => (
+                {store?.storeBundles && store?.storeBundles.length > 0 ? (
+                  store?.storeBundles.map((sb) => (
                     <TableRow key={sb.id}>
-                      <TableCell className="font-medium">{sb.bundle.name}</TableCell>
-                      <TableCell className="font-bold text-primary">${sb.bundle.bundlePrice}</TableCell>
+                      <TableCell className="font-medium">{sb?.bundle?.name}</TableCell>
+                      <TableCell className="font-bold text-primary">
+                        ${sb?.bundle?.bundlePrice}
+                      </TableCell>
                       <TableCell>
-                        {sb.bundle.isActive ? (
+                        {sb?.bundle?.isActive ? (
                           <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                         ) : (
                           <XCircle className="h-4 w-4 text-slate-300" />
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                         <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onClick={() => setDeleteBundleId(sb.id)}
-                         >
-                            <Trash2 className="h-4 w-4" />
-                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => setDeleteBundleId(sb.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-4 text-muted-foreground italic">
+                    <TableCell
+                      colSpan={4}
+                      className="py-4 text-muted-foreground text-center italic"
+                    >
                       No bundles assigned to this store.
                     </TableCell>
                   </TableRow>
