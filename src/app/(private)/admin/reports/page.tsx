@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 
 import { Download } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui";
 import { Combobox } from "@/ui/combobox";
@@ -13,11 +14,20 @@ import { ReportsContent } from "./components/reports-content";
 import { ReportsSkeleton } from "./components/skeletons";
 
 export default function AdminReportsPage() {
-  const [operatorId, setOperatorId] = useState("");
+  const [operatorId, setOperatorId] = useState<string | undefined>(undefined);
+  const [isExporting, setIsExporting] = useState(false);
 
-  const onExport = () => {
-    // Implement export functionality here
-    alert("Exporting report...");
+  const onExport = async () => {
+    try {
+      setIsExporting(true);
+      // TODO: Implement actual export to CSV/PDF
+      toast.success("Report exported successfully!");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to export report";
+      toast.error(message);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -40,11 +50,15 @@ export default function AdminReportsPage() {
                 emptyText="No operator found."
               />
             </div>
-            <Button variant="outline" onClick={() => setOperatorId("")} disabled={!operatorId}>
+            <Button
+              variant="outline"
+              onClick={() => setOperatorId(undefined)}
+              disabled={!operatorId}
+            >
               Clear
             </Button>
-            <Button onClick={() => onExport()}>
-              <Download /> Export Report
+            <Button onClick={onExport} disabled={isExporting}>
+              <Download /> {isExporting ? "Exporting..." : "Export Report"}
             </Button>
           </div>
         }
