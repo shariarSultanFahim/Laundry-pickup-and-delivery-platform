@@ -2,7 +2,11 @@
 
 import { Save } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { isAxiosError } from "axios";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+
+import { useChangePassword } from "@/lib/actions/auth/change-password";
 
 import {
   Button,
@@ -19,7 +23,6 @@ import {
   PasswordInput
 } from "@/ui";
 
-import { updatePassword } from "../components/profile-api";
 import {
   changePasswordSchema,
   type ChangePasswordFormData
@@ -32,14 +35,30 @@ const defaultValues: ChangePasswordFormData = {
 };
 
 export default function ChangePasswordForm() {
+  const { mutateAsync: changePassword, isPending } = useChangePassword();
+
   const form = useForm<ChangePasswordFormData>({
     resolver: zodResolver(changePasswordSchema),
     defaultValues
   });
 
   async function onSubmit(values: ChangePasswordFormData) {
-    await updatePassword(values);
-    form.reset(defaultValues);
+    const toastId = toast.loading("Updating password...", { position: "top-center" });
+
+    try {
+      await changePassword({
+        oldPassword: values.currentPassword,
+        newPassword: values.newPassword
+      });
+      toast.success("Password changed successfully", { id: toastId, position: "top-center" });
+      form.reset(defaultValues);
+    } catch (error) {
+      const message = isAxiosError<{ message?: string }>(error)
+        ? (error.response?.data?.message ?? error.message)
+        : "Failed to change password. Please try again.";
+
+      toast.error(message, { id: toastId, position: "top-center" });
+    }
   }
 
   return (
@@ -51,9 +70,9 @@ export default function ChangePasswordForm() {
             Update your password regularly for security
           </p>
         </div>
-        <Button type="submit" form="change-password-form" className="min-w-32">
+        <Button type="submit" form="change-password-form" className="min-w-32" disabled={isPending}>
           <Save className="size-4" />
-          Save Password
+          {isPending ? "Saving..." : "Save Password"}
         </Button>
       </CardHeader>
       <CardContent>
@@ -70,7 +89,11 @@ export default function ChangePasswordForm() {
                 <FormItem>
                   <FormLabel>Current Password</FormLabel>
                   <FormControl>
-                    <PasswordInput placeholder="Enter current password" {...field} />
+                    <PasswordInput
+                      disabled={isPending}
+                      placeholder="Enter current password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -84,7 +107,11 @@ export default function ChangePasswordForm() {
                 <FormItem>
                   <FormLabel>New Password</FormLabel>
                   <FormControl>
-                    <PasswordInput placeholder="Enter new password" {...field} />
+                    <PasswordInput
+                      disabled={isPending}
+                      placeholder="Enter new password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -98,7 +125,11 @@ export default function ChangePasswordForm() {
                 <FormItem>
                   <FormLabel>Confirm New Password</FormLabel>
                   <FormControl>
-                    <PasswordInput placeholder="Confirm new password" {...field} />
+                    <PasswordInput
+                      disabled={isPending}
+                      placeholder="Confirm new password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
