@@ -12,6 +12,7 @@ import {
   CreditCard,
   Flag,
   FolderKanban,
+  HelpCircle,
   LayoutDashboard,
   LogOut,
   Settings,
@@ -118,6 +119,11 @@ const data = {
           title: "Notifications",
           url: "/admin/notifications",
           icon: Bell
+        },
+        {
+          title: "FAQ",
+          url: "/admin/faq",
+          icon: HelpCircle
         },
         {
           title: "Privacy Policy",

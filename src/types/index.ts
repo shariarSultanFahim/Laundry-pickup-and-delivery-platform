@@ -14,6 +14,7 @@ export type {
   FetchDisputesParams,
   FetchDisputesResponse
 } from "./dispute-management";
+export type { CreateFAQPayload, FAQ, FAQListResponse, FAQResponse, UpdateFAQPayload } from "./faq";
 export type {
   CreateLegalDocumentRequest,
   CreateLegalDocumentResponse,
