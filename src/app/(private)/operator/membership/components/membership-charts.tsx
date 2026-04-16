@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Pie, PieChart, XAxis, YAxis } from "recharts";
 
 import type { MembershipBreakdownData } from "@/types/membership-breakdown";
 
@@ -20,26 +18,6 @@ import {
 
 interface MembershipChartsProps {
   data: MembershipBreakdownData;
-}
-
-function getOuterRadiusForWidth(width: number): number {
-  if (width >= 1536) {
-    return 200;
-  }
-
-  if (width >= 1280) {
-    return 150;
-  }
-
-  if (width >= 1024) {
-    return 120;
-  }
-
-  if (width >= 768) {
-    return 100;
-  }
-
-  return 85;
 }
 
 const distributionChartConfig = {
@@ -68,21 +46,6 @@ const ordersOverTimeConfig = {
 };
 
 export default function MembershipCharts({ data }: MembershipChartsProps) {
-  const [outerRadius, setOuterRadius] = useState(85);
-
-  useEffect(() => {
-    const updateOuterRadius = () => {
-      setOuterRadius(getOuterRadiusForWidth(window.innerWidth));
-    };
-
-    updateOuterRadius();
-    window.addEventListener("resize", updateOuterRadius);
-
-    return () => {
-      window.removeEventListener("resize", updateOuterRadius);
-    };
-  }, []);
-
   const distributionData = [
     {
       name: "Membership Orders",
@@ -112,12 +75,12 @@ export default function MembershipCharts({ data }: MembershipChartsProps) {
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={outerRadius}
+                outerRadius={100}
                 innerRadius={0}
               >
-                {distributionData.map((entry) => (
+                {/* {distributionData.map((entry) => (
                   <Cell key={entry.name} fill={entry.fill} />
-                ))}
+                ))} */}
               </Pie>
               <ChartLegend content={<ChartLegendContent />} />
             </PieChart>
