@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Filter, Search } from "lucide-react";
 
+import { CustomPagination } from "@/components/ui/custom-pagination";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
@@ -72,10 +73,6 @@ export default function PayoutHistoryTable() {
       isMounted = false;
     };
   }, [debouncedSearch, page, filters]);
-
-  const paginationNumbers = useMemo(() => {
-    return Array.from({ length: totalPages }, (_, index) => index + 1);
-  }, [totalPages]);
 
   const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const rangeEnd = Math.min(page * PAGE_SIZE, total);
@@ -153,37 +150,12 @@ export default function PayoutHistoryTable() {
             Showing {rangeStart}-{rangeEnd} of {total} payouts
           </p>
 
-          <div className="gap-2 flex items-center">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1 || isLoading}
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-            >
-              Previous
-            </Button>
-
-            {paginationNumbers.map((pageNumber) => (
-              <Button
-                key={pageNumber}
-                variant={pageNumber === page ? "default" : "outline"}
-                size="sm"
-                disabled={isLoading}
-                onClick={() => setPage(pageNumber)}
-              >
-                {pageNumber}
-              </Button>
-            ))}
-
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages || isLoading}
-              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-            >
-              Next
-            </Button>
-          </div>
+          <CustomPagination
+            page={page}
+            totalPage={totalPages}
+            isLoading={isLoading}
+            setPage={setPage}
+          />
         </div>
       </CardContent>
 

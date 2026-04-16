@@ -1,9 +1,7 @@
 import Header from "../components/header";
 import StripeConnectSection from "./components/stripe-connect-section";
 import ChangePasswordForm from "./forms/change-password-form";
-import NotificationPreferencesForm from "./forms/notification-preferences-form";
 import ProfileInformationForm from "./forms/profile-information-form";
-import WorkHoursForm from "./forms/work-hours-form";
 
 export default function OperatorProfilePage() {
   return (
@@ -14,10 +12,10 @@ export default function OperatorProfilePage() {
 
       <StripeConnectSection />
 
-      <div className="gap-6 lg:grid-cols-2 grid grid-cols-1">
+      {/* <div className="gap-6 lg:grid-cols-2 grid grid-cols-1">
         <NotificationPreferencesForm />
         <WorkHoursForm />
-      </div>
+      </div> */}
 
       <ChangePasswordForm />
     </div>
