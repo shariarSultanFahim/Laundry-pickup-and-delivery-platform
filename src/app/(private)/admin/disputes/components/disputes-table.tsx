@@ -11,6 +11,7 @@ import { useGetDisputes } from "@/lib/actions/disputes/use-disputes";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
+import { CustomPagination } from "@/ui/custom-pagination";
 import { Input } from "@/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import DisputeDetailsSheet from "@/app/(private)/admin/disputes/components/dispute-details-sheet";
@@ -67,10 +68,6 @@ export default function DisputesTable() {
 
     return () => clearTimeout(timeout);
   }, [search]);
-
-  const paginationNumbers = useMemo(() => {
-    return Array.from({ length: totalPages }, (_, index) => index + 1);
-  }, [totalPages]);
 
   const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const rangeEnd = Math.min(page * PAGE_SIZE, total);
@@ -159,37 +156,12 @@ export default function DisputesTable() {
             Showing {rangeStart}-{rangeEnd} of {total} disputes
           </p>
 
-          <div className="gap-2 flex items-center">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1 || isLoading}
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-            >
-              Previous
-            </Button>
-
-            {paginationNumbers.map((pageNumber) => (
-              <Button
-                key={pageNumber}
-                variant={pageNumber === page ? "default" : "outline"}
-                size="sm"
-                disabled={isLoading}
-                onClick={() => setPage(pageNumber)}
-              >
-                {pageNumber}
-              </Button>
-            ))}
-
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages || isLoading}
-              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-            >
-              Next
-            </Button>
-          </div>
+          <CustomPagination
+            page={page}
+            totalPage={totalPages}
+            isLoading={isLoading}
+            setPage={setPage}
+          />
         </div>
       </CardContent>
 
