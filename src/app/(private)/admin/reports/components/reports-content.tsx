@@ -2,13 +2,12 @@
 
 import { useMemo } from "react";
 
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ChartArea, Check } from "lucide-react";
 
 import {
-  useGetAdminStats,
-  useGetOrdersChart,
-  useGetRevenueChart,
-  useGetStorePerformance,
+  useGetOrderVolumeChart,
+  useGetPaymentSuccessChart,
+  useGetRevenueAnalytics,
   useGetTopOperators
 } from "@/lib/actions/admin/use-analytics";
 
@@ -20,16 +19,24 @@ import {
   TableSkeleton
 } from "../../(dashboard)/components/skeleton-loaders";
 import StatsCard from "../../components/statsCard";
-import {
-  operatorPerformanceData,
-  orderVolumeData,
-  paymentSuccessData,
-  statsData
-} from "../data/reports";
 import { OperatorPerformance, OrderVolumeChart, PaymentSuccessRateChart } from "./index";
 
 interface ReportsContentProps {
   operatorId?: string | undefined;
+}
+
+interface StatsCardItem {
+  id: string;
+  title: string;
+  value: string;
+  change: {
+    value: string;
+    trend: "up" | "down";
+    period: string;
+  };
+  icon: typeof Check;
+  iconBgColor: string;
+  iconColor: string;
 }
 
 interface OrderVolumeDataItem {
@@ -52,150 +59,91 @@ interface OperatorPerformanceItem {
   avatar: string;
 }
 
-function adjustPercentageValue(value: string, factor: number) {
-  const numericValue = Number(value.replace("%", ""));
-  if (Number.isNaN(numericValue)) {
-    return value;
-  }
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value);
 
-  const adjustedValue = Math.max(numericValue * factor, 0);
-  return `${adjustedValue.toFixed(1)}%`;
-}
-
-function adjustCurrencyValue(value: string, factor: number) {
-  const numericValue = Number(value.replace(/[^\d.]/g, ""));
-  if (Number.isNaN(numericValue)) {
-    return value;
-  }
-
-  return `$${(numericValue * factor).toFixed(2)}`;
-}
+const formatPercentChange = (value: number) => `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`;
 
 export function ReportsContent({ operatorId }: ReportsContentProps) {
-  // Fetch analytics data from API - MUST BE CALLED FIRST AND UNCONDITIONALLY
   const {
-    data: statsResponseData,
-    isLoading: statsLoading,
-    isError: statsError
-  } = useGetAdminStats(operatorId ? { operatorId } : undefined);
+    data: revenueAnalyticsData,
+    isLoading: revenueAnalyticsLoading,
+    isError: revenueAnalyticsError
+  } = useGetRevenueAnalytics(operatorId ? { operatorId } : undefined);
 
-  const { isLoading: revenueLoading } = useGetRevenueChart(
-    "monthly",
+  const { data: orderVolumeChartData, isLoading: orderVolumeLoading } = useGetOrderVolumeChart(
     operatorId ? { operatorId } : undefined
   );
 
-  const { data: ordersChartData, isLoading: ordersLoading } = useGetOrdersChart(
-    "monthly",
-    operatorId ? { operatorId } : undefined
-  );
+  const { data: paymentSuccessChartData, isLoading: paymentSuccessLoading } =
+    useGetPaymentSuccessChart(operatorId ? { operatorId } : undefined);
 
   const { data: topOperatorsData, isLoading: topOperatorsLoading } = useGetTopOperators(
     operatorId ? { operatorId } : undefined
   );
 
-  const { isLoading: performanceLoading } = useGetStorePerformance(
-    operatorId ? { operatorId } : undefined
-  );
+  const mappedStatsData: StatsCardItem[] = useMemo(() => {
+    const analytics = revenueAnalyticsData?.data;
 
-  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
-  const operatorFactor = useMemo(() => {
-    if (!operatorId) {
-      return 1;
-    }
-
-    const operatorIndex = Number(operatorId.split("-")[1] ?? "1");
-    return 0.82 + (operatorIndex % 5) * 0.04;
-  }, [operatorId]);
-
-  const filteredStatsData = useMemo(() => {
-    const displayStats = [...statsData];
-    if (statsResponseData?.data) {
-      // Update with real API data if available
-      displayStats[0] = {
-        ...displayStats[0],
-        value: `${(statsResponseData.data.totalOrders?.value ?? 0) > 0 ? "98.7" : "N/A"}%`
-      };
-      displayStats[1] = {
-        ...displayStats[1],
-        value: `$${(statsResponseData.data.netPlatformRevenue?.value ?? 0).toLocaleString()}`
-      };
-    }
-
-    if (!operatorId) {
-      return displayStats;
-    }
-
-    return displayStats.map((stat) => ({
-      ...stat,
-      value:
-        typeof stat.value === "string" && stat.value.includes("$")
-          ? adjustCurrencyValue(stat.value, operatorFactor)
-          : typeof stat.value === "string" && stat.value.includes("%")
-            ? adjustPercentageValue(stat.value, operatorFactor)
-            : stat.value,
-      change: stat.change
-        ? {
-            ...stat.change,
-            value: stat.change.value.includes("%")
-              ? adjustPercentageValue(stat.change.value, operatorFactor)
-              : stat.change.value
-          }
-        : undefined
-    }));
-  }, [operatorFactor, operatorId, statsResponseData]);
-
-  const filteredOrderVolumeData: OrderVolumeDataItem[] = useMemo(() => {
-    // If we have API data, transform it to match component expectations
-    if (ordersChartData?.data?.data) {
-      const transformedData = (
-        ordersChartData.data.data as Array<{ label: string; count: number }>
-      ).map((item) => ({
-        month: item.label,
-        orders: item.count
-      }));
-
-      if (!operatorId) {
-        return transformedData;
+    return [
+      {
+        id: "success-rate",
+        title: "Success Rate",
+        value: analytics ? `${analytics.successRate.value.toFixed(1)}%` : "-",
+        change: {
+          value: analytics ? formatPercentChange(analytics.successRate.change) : "0.0%",
+          trend: analytics?.successRate.direction ?? "up",
+          period: "from last month"
+        },
+        icon: Check,
+        iconBgColor: "bg-green-100",
+        iconColor: "text-green-600"
+      },
+      {
+        id: "avg-order-value",
+        title: "Avg. Order Value",
+        value: analytics ? formatCurrency(analytics.avgOrderValue.value) : "-",
+        change: {
+          value: analytics ? formatPercentChange(analytics.avgOrderValue.change) : "0.0%",
+          trend: analytics?.avgOrderValue.direction ?? "up",
+          period: "from last month"
+        },
+        icon: ChartArea,
+        iconBgColor: "bg-blue-100",
+        iconColor: "text-blue-600"
       }
+    ];
+  }, [revenueAnalyticsData]);
 
-      return transformedData.map((item) => ({
-        ...item,
-        orders: Math.max(Math.round(item.orders * operatorFactor), 0)
-      }));
+  const mappedOrderVolumeData: OrderVolumeDataItem[] = useMemo(() => {
+    if (!orderVolumeChartData?.data) {
+      return [];
     }
 
-    // Fallback to mock data
-    if (!operatorId) {
-      return orderVolumeData;
-    }
-
-    return orderVolumeData.map((item) => ({
-      ...item,
-      orders: Math.max(Math.round(item.orders * operatorFactor), 0)
+    return orderVolumeChartData.data.map((item) => ({
+      month: item.label,
+      orders: item.count
     }));
-  }, [operatorFactor, operatorId, ordersChartData]);
+  }, [orderVolumeChartData]);
 
-  const filteredPaymentSuccessData: PaymentSuccessDataItem[] = useMemo(() => {
-    // Use mock data with operator factor adjustment
-    // Note: API provides revenue data, not payment success data, so we use mock data for now
-    if (!operatorId) {
-      return paymentSuccessData;
+  const mappedPaymentSuccessData: PaymentSuccessDataItem[] = useMemo(() => {
+    if (!paymentSuccessChartData?.data) {
+      return [];
     }
 
-    return paymentSuccessData.map((item) => {
-      if (item.name === "Successful") {
-        return {
-          ...item,
-          value: Math.max(Math.min(Math.round(item.value * operatorFactor), 99), 1)
-        };
-      }
-
-      return item;
-    });
-  }, [operatorFactor, operatorId]);
+    return paymentSuccessChartData.data.map((item) => ({
+      name: item.label,
+      value: item.percentage,
+      fill: item.color
+    }));
+  }, [paymentSuccessChartData]);
 
   const filteredOperatorPerformanceData: OperatorPerformanceItem[] = useMemo(() => {
-    // If we have API data, transform it to match component expectations
     if (topOperatorsData?.data && topOperatorsData.data.length > 0) {
       const transformedData = (
         topOperatorsData.data as Array<{
@@ -206,9 +154,7 @@ export function ReportsContent({ operatorId }: ReportsContentProps) {
           totalOrders: number;
         }>
       ).map((operator, index) => {
-        // Deterministically calculate revenue based on totalOrders
         const baseRevenue = (operator.totalOrders ?? 0) * 50;
-        // Deterministically calculate growth based on successRate
         const growth = ((operator.successRate ?? 0) * 0.25).toFixed(1);
 
         return {
@@ -228,19 +174,11 @@ export function ReportsContent({ operatorId }: ReportsContentProps) {
       return transformedData.filter((operator) => operator.id === operatorId);
     }
 
-    // Fallback to mock data
-    if (!operatorId) {
-      return operatorPerformanceData;
-    }
-
-    return operatorPerformanceData.filter(
-      (operator) => operator.operatorId === operatorId || operator.id === operatorId
-    );
+    return [];
   }, [operatorId, topOperatorsData]);
 
-  // NOW we can check loading/error and return conditionally
   const isLoading =
-    statsLoading || revenueLoading || ordersLoading || topOperatorsLoading || performanceLoading;
+    revenueAnalyticsLoading || orderVolumeLoading || paymentSuccessLoading || topOperatorsLoading;
 
   if (isLoading) {
     return (
@@ -252,7 +190,7 @@ export function ReportsContent({ operatorId }: ReportsContentProps) {
     );
   }
 
-  if (statsError) {
+  if (revenueAnalyticsError) {
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
@@ -265,7 +203,7 @@ export function ReportsContent({ operatorId }: ReportsContentProps) {
     <div className="space-y-6">
       {/* Stats Grid */}
       <div className="gap-4 md:grid-cols-2 grid">
-        {filteredStatsData.map((stat) => (
+        {mappedStatsData.map((stat) => (
           <StatsCard
             key={stat.id}
             title={stat.title}
@@ -280,8 +218,8 @@ export function ReportsContent({ operatorId }: ReportsContentProps) {
 
       {/* Charts Grid */}
       <div className="gap-4 lg:grid-cols-2 grid">
-        <OrderVolumeChart data={filteredOrderVolumeData} />
-        <PaymentSuccessRateChart data={filteredPaymentSuccessData} />
+        <OrderVolumeChart data={mappedOrderVolumeData} />
+        <PaymentSuccessRateChart data={mappedPaymentSuccessData} />
       </div>
 
       {/* Operator Performance */}

@@ -1,34 +1,32 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 
-import { Download } from "lucide-react";
-import { toast } from "sonner";
+import { useGetOperators } from "@/lib/actions/operators/use-get-operators";
 
 import { Button } from "@/components/ui";
 import { Combobox } from "@/ui/combobox";
 
-import { operatorsData } from "../common/data/operators";
 import Header from "../components/header";
 import { ReportsContent } from "./components/reports-content";
 import { ReportsSkeleton } from "./components/skeletons";
 
 export default function AdminReportsPage() {
   const [operatorId, setOperatorId] = useState<string | undefined>(undefined);
-  const [isExporting, setIsExporting] = useState(false);
 
-  const onExport = async () => {
-    try {
-      setIsExporting(true);
-      // TODO: Implement actual export to CSV/PDF
-      toast.success("Report exported successfully!");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to export report";
-      toast.error(message);
-    } finally {
-      setIsExporting(false);
-    }
-  };
+  const { data: operatorsResponse, isLoading: operatorsLoading } = useGetOperators({
+    page: 1,
+    limit: 200
+  });
+
+  const operatorOptions = useMemo(() => {
+    return (operatorsResponse?.data ?? [])
+      .map((operator) => ({
+        value: operator.operatorProfile?.id ?? operator.id,
+        label: operator.name
+      }))
+      .filter((operator) => Boolean(operator.value));
+  }, [operatorsResponse?.data]);
 
   return (
     <div className="space-y-6">
@@ -39,15 +37,13 @@ export default function AdminReportsPage() {
           <div className="gap-2 md:flex-row md:items-center flex flex-col">
             <div className="md:w-64 w-full">
               <Combobox
-                options={operatorsData.map((operator) => ({
-                  value: operator.id,
-                  label: operator.name
-                }))}
+                options={operatorOptions}
                 value={operatorId}
-                onValueChange={setOperatorId}
+                onValueChange={(value) => setOperatorId(value || undefined)}
                 placeholder="Filter by operator"
                 searchPlaceholder="Search operators..."
                 emptyText="No operator found."
+                disabled={operatorsLoading}
               />
             </div>
             <Button
@@ -56,9 +52,6 @@ export default function AdminReportsPage() {
               disabled={!operatorId}
             >
               Clear
-            </Button>
-            <Button onClick={onExport} disabled={isExporting}>
-              <Download /> {isExporting ? "Exporting..." : "Export Report"}
             </Button>
           </div>
         }

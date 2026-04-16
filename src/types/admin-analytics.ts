@@ -61,6 +61,29 @@ export interface StorePerformance {
   month?: string;
 }
 
+export interface RevenueAnalyticsStat {
+  value: number;
+  change: number;
+  direction: "up" | "down";
+}
+
+export interface RevenueAnalyticsData {
+  successRate: RevenueAnalyticsStat;
+  avgOrderValue: RevenueAnalyticsStat;
+}
+
+export interface OrderVolumeChartItem {
+  label: string;
+  count: number;
+}
+
+export interface PaymentSuccessChartItem {
+  label: string;
+  count: number;
+  percentage: number;
+  color: string;
+}
+
 // Responses
 export interface AdminAnalyticsStatsResponse {
   success: boolean;
@@ -93,4 +116,25 @@ export interface StorePerformanceResponse {
   success: boolean;
   message: string;
   data: StorePerformance[];
+}
+
+export interface RevenueAnalyticsResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: RevenueAnalyticsData;
+}
+
+export interface OrderVolumeChartResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: OrderVolumeChartItem[];
+}
+
+export interface PaymentSuccessChartResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: PaymentSuccessChartItem[];
 }
