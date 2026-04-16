@@ -13,8 +13,10 @@ import {
 } from "@/lib/actions/operator/use-operator-dashboard";
 import { useGetOperatorMe } from "@/lib/actions/user/get.operator-me";
 
-import Header from "../../components/header";
+import { Card } from "@/components/ui";
+
 import MonthlyRevenueChart from "../../components/monthly-revenue-chart";
+import OperatorStoreCombobox from "../../components/operator-store-combobox";
 import StatsCard from "../../components/statsCard";
 import type { StatsCardData } from "../data/dashboard";
 import RecentOrdersTable from "./recent-orders-table";
@@ -27,16 +29,21 @@ const CURRENCY_FORMATTER = new Intl.NumberFormat("en-US", {
 });
 
 export default function DashboardPage() {
+  const [selectedStoreId, setSelectedStoreId] = useState<string>("");
   const [revenueFilter, setRevenueFilter] = useState<RevenueFilter>(12);
 
   const { data: operatorMe } = useGetOperatorMe();
-  const { data: statsResponse } = useGetOperatorDashboardStats();
-  const { data: revenueChartResponse } = useGetOperatorRevenueChart(revenueFilter);
-  const { data: topServicesResponse } = useGetOperatorTopServices();
+  const storeId = selectedStoreId || undefined;
+
+  const { data: statsResponse } = useGetOperatorDashboardStats({ storeId });
+  const { data: revenueChartResponse } = useGetOperatorRevenueChart(revenueFilter, { storeId });
+  const { data: topServicesResponse } = useGetOperatorTopServices({ storeId });
   const { data: recentOrdersResponse } = useGetMyRecentOrders();
 
   const operatorName = operatorMe?.data?.name || "Operator";
-  const storeName = operatorMe?.data?.operatorProfile?.stores?.[0]?.name || "your store";
+  const dashboardSubtitle = selectedStoreId
+    ? "Here's what's happening in the selected store today."
+    : "Here's what's happening across all stores today.";
 
   const stats = statsResponse?.data;
 
@@ -91,10 +98,18 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <Header
-        title={`Welcome back, ${operatorName}!`}
-        subtitle={`Here's what's happening with ${storeName} today.`}
-      />
+      <Card className="p-6 gap-2 md:flex-row flex-col items-center justify-between">
+        <div className="gap-2 flex flex-col items-start justify-center">
+          <h1 className="text-2xl font-bold">{`Welcome back, ${operatorName}!`}</h1>
+          <p className="text-sm text-muted-foreground">{dashboardSubtitle}</p>
+        </div>
+        <OperatorStoreCombobox
+          value={selectedStoreId}
+          onValueChange={setSelectedStoreId}
+          mode="none"
+          placeholder="All stores"
+        />
+      </Card>
 
       {/* Stats Cards */}
       <div className="gap-4 sm:grid-cols-2 lg:grid-cols-4 grid">

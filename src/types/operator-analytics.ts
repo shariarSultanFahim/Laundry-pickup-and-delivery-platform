@@ -87,3 +87,29 @@ export interface MyOrdersResponse {
   meta: MyOrdersMeta;
   data: MyOrder[];
 }
+
+export type OperatorPayoutStatus = "PAID" | "PENDING" | "FAILED";
+
+export interface OperatorPayoutHistoryItem {
+  transactionId: string;
+  amount: number;
+  type: string;
+  note: string | null;
+  orderNumber: string | null;
+  payoutStatus: OperatorPayoutStatus;
+  createdAt: string;
+  withdrawalId: string | null;
+}
+
+export interface OperatorPayoutHistoryMeta {
+  total: number;
+  totalPages: number;
+  page: number;
+  limit: number;
+}
+
+export interface OperatorPayoutHistoryResponse {
+  success: boolean;
+  meta: OperatorPayoutHistoryMeta;
+  data: OperatorPayoutHistoryItem[];
+}

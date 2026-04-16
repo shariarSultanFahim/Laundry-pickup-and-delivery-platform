@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import type {
   MyOrdersResponse,
   OperatorDashboardStatsResponse,
+  OperatorPayoutHistoryResponse,
   OperatorRevenueChartResponse,
   OperatorTopServicesResponse
 } from "@/types/operator-analytics";
@@ -11,27 +12,76 @@ import { get } from "@/lib/api";
 
 export type RevenueFilter = 3 | 6 | 12;
 
-export function useGetOperatorRevenueChart(filter: RevenueFilter = 12) {
+interface OperatorAnalyticsParams {
+  storeId?: string;
+}
+
+interface PayoutHistoryParams extends OperatorAnalyticsParams {
+  page?: number;
+  limit?: number;
+  status?: "PAID" | "PENDING" | "FAILED";
+  month?: number;
+  year?: number;
+}
+
+export function useGetOperatorRevenueChart(
+  filter: RevenueFilter = 12,
+  params?: OperatorAnalyticsParams
+) {
   return useQuery({
-    queryKey: ["operator-dashboard", "revenue-chart", filter],
+    queryKey: ["operator-dashboard", "revenue-chart", filter, params],
     queryFn: () =>
       get<OperatorRevenueChartResponse>("/operator-analytics/revenue-chart", {
-        params: { filter }
+        params: {
+          filter,
+          storeId: params?.storeId
+        }
       })
   });
 }
 
-export function useGetOperatorDashboardStats() {
+export function useGetOperatorDashboardStats(params?: OperatorAnalyticsParams) {
   return useQuery({
-    queryKey: ["operator-dashboard", "stats"],
-    queryFn: () => get<OperatorDashboardStatsResponse>("/operator-analytics/stats")
+    queryKey: ["operator-dashboard", "stats", params],
+    queryFn: () =>
+      get<OperatorDashboardStatsResponse>("/operator-analytics/stats", {
+        params: {
+          storeId: params?.storeId
+        }
+      })
   });
 }
 
-export function useGetOperatorTopServices() {
+export function useGetOperatorTopServices(params?: OperatorAnalyticsParams) {
   return useQuery({
-    queryKey: ["operator-dashboard", "top-services"],
-    queryFn: () => get<OperatorTopServicesResponse>("/operator-analytics/top-services")
+    queryKey: ["operator-dashboard", "top-services", params],
+    queryFn: () =>
+      get<OperatorTopServicesResponse>("/operator-analytics/top-services", {
+        params: {
+          limit: 10,
+          storeId: params?.storeId
+        }
+      })
+  });
+}
+
+export function useGetOperatorPayoutHistory(params?: PayoutHistoryParams) {
+  const page = params?.page ?? 1;
+  const limit = params?.limit ?? 10;
+
+  return useQuery({
+    queryKey: ["operator-dashboard", "payout-history", params],
+    queryFn: () =>
+      get<OperatorPayoutHistoryResponse>("/operator-analytics/payout-history", {
+        params: {
+          page,
+          limit,
+          storeId: params?.storeId,
+          status: params?.status,
+          month: params?.month,
+          year: params?.year
+        }
+      })
   });
 }
 

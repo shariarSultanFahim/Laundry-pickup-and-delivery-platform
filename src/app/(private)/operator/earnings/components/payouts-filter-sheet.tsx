@@ -6,7 +6,11 @@ import { Button } from "@/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/ui/sheet";
 
-import type { PayoutFilters } from "../data/earnings";
+export interface PayoutFilters {
+  status?: "PAID" | "PENDING" | "FAILED";
+  month?: number;
+  year?: number;
+}
 
 interface PayoutsFilterSheetProps {
   open: boolean;
@@ -16,18 +20,18 @@ interface PayoutsFilterSheetProps {
 }
 
 const months = [
-  { value: "Jan", label: "January" },
-  { value: "Feb", label: "February" },
-  { value: "Mar", label: "March" },
-  { value: "Apr", label: "April" },
-  { value: "May", label: "May" },
-  { value: "Jun", label: "June" },
-  { value: "Jul", label: "July" },
-  { value: "Aug", label: "August" },
-  { value: "Sep", label: "September" },
-  { value: "Oct", label: "October" },
-  { value: "Nov", label: "November" },
-  { value: "Dec", label: "December" }
+  { value: "1", label: "January" },
+  { value: "2", label: "February" },
+  { value: "3", label: "March" },
+  { value: "4", label: "April" },
+  { value: "5", label: "May" },
+  { value: "6", label: "June" },
+  { value: "7", label: "July" },
+  { value: "8", label: "August" },
+  { value: "9", label: "September" },
+  { value: "10", label: "October" },
+  { value: "11", label: "November" },
+  { value: "12", label: "December" }
 ];
 
 const years = Array.from({ length: 5 }, (_, i) => {
@@ -48,9 +52,9 @@ export default function PayoutsFilterSheet({
   const handleApplyFilters = () => {
     const filters: PayoutFilters = {};
 
-    if (selectedMonth) filters.month = selectedMonth;
-    if (selectedYear) filters.year = selectedYear;
-    if (selectedStatus) filters.status = selectedStatus as "Paid" | "Pending";
+    if (selectedMonth) filters.month = Number(selectedMonth);
+    if (selectedYear) filters.year = Number(selectedYear);
+    if (selectedStatus) filters.status = selectedStatus as "PAID" | "PENDING" | "FAILED";
 
     onApplyFilters(filters);
     onOpenChange(false);
@@ -111,8 +115,9 @@ export default function PayoutsFilterSheet({
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Paid">Paid</SelectItem>
-                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="PAID">Paid</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="FAILED">Failed</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -1,8 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { Filter, Search } from "lucide-react";
+
+import type { OperatorPayoutStatus } from "@/types/operator-analytics";
+
+import { useGetOperatorPayoutHistory } from "@/lib/actions/operator/use-operator-dashboard";
+import { formatDate } from "@/lib/date";
 
 import { CustomPagination } from "@/components/ui/custom-pagination";
 import { Badge } from "@/ui/badge";
@@ -11,68 +16,43 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Input } from "@/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 
-import type { PayoutFilters, PayoutHistory } from "../data/earnings";
-import { fetchPayouts } from "./payouts-api";
-import PayoutsFilterSheet from "./payouts-filter-sheet";
+import PayoutsFilterSheet, { type PayoutFilters } from "./payouts-filter-sheet";
 
 const PAGE_SIZE = 10;
 
-function getStatusVariant(status: PayoutHistory["status"]) {
-  if (status === "Paid") {
+interface PayoutHistoryTableProps {
+  storeId?: string;
+}
+
+function getStatusVariant(status: OperatorPayoutStatus) {
+  if (status === "PAID") {
     return "default";
+  }
+
+  if (status === "FAILED") {
+    return "destructive";
   }
 
   return "secondary";
 }
 
-export default function PayoutHistoryTable() {
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+export default function PayoutHistoryTable({ storeId }: PayoutHistoryTableProps) {
   const [filters, setFilters] = useState<PayoutFilters>({});
   const [page, setPage] = useState(1);
-  const [rows, setRows] = useState<PayoutHistory[]>([]);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-    }, 350);
+  const { data: payoutHistoryResponse, isLoading } = useGetOperatorPayoutHistory({
+    page,
+    limit: PAGE_SIZE,
+    storeId,
+    status: filters.status,
+    month: filters.month,
+    year: filters.year
+  });
 
-    return () => clearTimeout(timeout);
-  }, [search]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadPayouts() {
-      setIsLoading(true);
-      const response = await fetchPayouts({
-        page,
-        pageSize: PAGE_SIZE,
-        search: debouncedSearch,
-        filters
-      });
-
-      if (!isMounted) {
-        return;
-      }
-
-      setRows(response.items);
-      setTotal(response.total);
-      setTotalPages(response.totalPages);
-      setIsLoading(false);
-    }
-
-    void loadPayouts();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [debouncedSearch, page, filters]);
+  const rows = payoutHistoryResponse?.data ?? [];
+  const total = payoutHistoryResponse?.meta.total ?? 0;
+  const totalPages = payoutHistoryResponse?.meta.totalPages ?? 1;
 
   const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const rangeEnd = Math.min(page * PAGE_SIZE, total);
@@ -87,9 +67,10 @@ export default function PayoutHistoryTable() {
             <div className="md:w-72 relative w-full">
               <Search className="left-3 h-4 w-4 text-muted-foreground absolute top-1/2 -translate-y-1/2" />
               <Input
-                placeholder="Search by period..."
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search coming soon..."
+                value=""
+                onChange={() => null}
+                disabled
                 className="pl-9"
               />
             </div>
@@ -109,11 +90,10 @@ export default function PayoutHistoryTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Period</TableHead>
-              <TableHead>Gross</TableHead>
-              <TableHead>Net</TableHead>
-              <TableHead>Status</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Details</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -131,14 +111,17 @@ export default function PayoutHistoryTable() {
               </TableRow>
             ) : (
               rows.map((payout) => (
-                <TableRow key={payout.id}>
-                  <TableCell className="font-medium">{payout.period}</TableCell>
-                  <TableCell>${payout.gross.toFixed(2)}</TableCell>
-                  <TableCell className="font-semibold">${payout.net.toFixed(2)}</TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusVariant(payout.status)}>{payout.status}</Badge>
+                <TableRow key={payout.transactionId}>
+                  <TableCell className="text-muted-foreground">
+                    {formatDate(payout.createdAt)}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{payout.date}</TableCell>
+                  <TableCell className="font-semibold">${payout.amount.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Badge variant={getStatusVariant(payout.payoutStatus)}>
+                      {payout.payoutStatus}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{payout.note ?? payout.orderNumber ?? payout.transactionId}</TableCell>
                 </TableRow>
               ))
             )}
