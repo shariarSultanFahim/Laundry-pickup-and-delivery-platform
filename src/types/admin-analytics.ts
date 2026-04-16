@@ -84,6 +84,23 @@ export interface PaymentSuccessChartItem {
   color: string;
 }
 
+export interface OperatorActivityTrendStat {
+  value: number;
+  change: number;
+  direction: "up" | "down";
+}
+
+export interface OperatorActivityShareStat {
+  value: number;
+  percentage: number;
+}
+
+export interface OperatorActivityOverview {
+  totalOperators: OperatorActivityTrendStat;
+  activeOperators: OperatorActivityShareStat;
+  inactiveOperators: OperatorActivityShareStat;
+}
+
 // Responses
 export interface AdminAnalyticsStatsResponse {
   success: boolean;
@@ -137,4 +154,11 @@ export interface PaymentSuccessChartResponse {
   statusCode: number;
   message: string;
   data: PaymentSuccessChartItem[];
+}
+
+export interface OperatorActivityOverviewResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: OperatorActivityOverview;
 }

@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import {
   AdminAnalyticsStatsResponse,
+  OperatorActivityOverviewResponse,
   OrdersChartResponse,
   OrderVolumeChartResponse,
   PaymentSuccessChartResponse,
@@ -95,5 +96,12 @@ export const useGetPaymentSuccessChart = (params?: { operatorId?: string }) => {
       get<PaymentSuccessChartResponse>("/admin-analytics/payment-success-chart", {
         params
       })
+  });
+};
+
+export const useGetOperatorActivityOverview = () => {
+  return useQuery({
+    queryKey: ["operator-activity-overview"],
+    queryFn: () => get<OperatorActivityOverviewResponse>("/admin-analytics/operator-activity")
   });
 };
