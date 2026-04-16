@@ -1,6 +1,6 @@
 "use client";
 
-import { Cell, Legend, Pie, PieChart } from "recharts";
+import { Cell, Pie, PieChart } from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -44,15 +44,15 @@ export default function OrderStatusDistributionChart({ data }: OrderStatusDistri
               data={chartData}
               dataKey="value"
               nameKey="name"
-              innerRadius={30}
-              outerRadius={70}
+              innerRadius={50}
+              outerRadius={120}
               strokeWidth={5}
             >
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fill} />
               ))}
             </Pie>
-            <Legend
+            {/* <Legend
               content={({ payload }) => {
                 return (
                   <div className="mt-6 gap-3 flex flex-col">
@@ -73,7 +73,7 @@ export default function OrderStatusDistributionChart({ data }: OrderStatusDistri
                   </div>
                 );
               }}
-            />
+            /> */}
           </PieChart>
         </ChartContainer>
       </CardContent>
