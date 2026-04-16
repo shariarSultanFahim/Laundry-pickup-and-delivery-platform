@@ -4,6 +4,7 @@ import type {
   MyOrdersResponse,
   OperatorDashboardStatsResponse,
   OperatorPayoutHistoryResponse,
+  OperatorPerformanceMetricsResponse,
   OperatorRevenueChartResponse,
   OperatorTopServicesResponse
 } from "@/types/operator-analytics";
@@ -80,6 +81,18 @@ export function useGetOperatorPayoutHistory(params?: PayoutHistoryParams) {
           status: params?.status,
           month: params?.month,
           year: params?.year
+        }
+      })
+  });
+}
+
+export function useGetOperatorPerformanceMetrics(params?: OperatorAnalyticsParams) {
+  return useQuery({
+    queryKey: ["operator-dashboard", "performance-metrics", params],
+    queryFn: () =>
+      get<OperatorPerformanceMetricsResponse>("/operator-analytics/performance-metrics", {
+        params: {
+          storeId: params?.storeId
         }
       })
   });

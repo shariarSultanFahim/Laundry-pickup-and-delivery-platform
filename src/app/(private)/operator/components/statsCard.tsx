@@ -10,6 +10,7 @@ interface StatsCardProps {
   change?: {
     value: string;
     trend: "up" | "down";
+    tone?: "positive" | "negative";
     period: string;
   };
   subtitle?: string;
@@ -27,6 +28,8 @@ export default function StatsCard({
   iconBgColor,
   iconColor
 }: StatsCardProps) {
+  const trendTone = change?.tone ?? (change?.trend === "up" ? "positive" : "negative");
+
   return (
     <Card className="hover:shadow-md overflow-hidden transition-shadow">
       <CardContent>
@@ -37,14 +40,24 @@ export default function StatsCard({
             {change && (
               <div className="mt-2 gap-1 flex items-center">
                 {change.trend === "up" ? (
-                  <ArrowUp className={cn("h-4 w-4 text-green-500")} />
+                  <ArrowUp
+                    className={cn(
+                      "h-4 w-4",
+                      trendTone === "positive" ? "text-green-500" : "text-red-500"
+                    )}
+                  />
                 ) : (
-                  <ArrowDown className={cn("h-4 w-4 text-red-500")} />
+                  <ArrowDown
+                    className={cn(
+                      "h-4 w-4",
+                      trendTone === "positive" ? "text-green-500" : "text-red-500"
+                    )}
+                  />
                 )}
                 <span
                   className={cn(
-                    "text-sm font-medium" +
-                      (change.trend === "up" ? " text-green-500" : " text-red-500")
+                    "text-sm font-medium",
+                    trendTone === "positive" ? "text-green-500" : "text-red-500"
                   )}
                 >
                   {change.value} {change.period}

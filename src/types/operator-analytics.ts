@@ -113,3 +113,26 @@ export interface OperatorPayoutHistoryResponse {
   meta: OperatorPayoutHistoryMeta;
   data: OperatorPayoutHistoryItem[];
 }
+
+export type OperatorMetricDirection = "up" | "down";
+
+export interface OperatorPerformanceMetric {
+  value: number;
+  change: number;
+  direction: OperatorMetricDirection;
+}
+
+export interface OperatorPerformanceMetricsData {
+  totalOrders: number;
+  cancellationRate: OperatorPerformanceMetric;
+  repeatedCustomerRate: OperatorPerformanceMetric;
+  ontimeCompletion: OperatorPerformanceMetric;
+  averageTicket: OperatorPerformanceMetric;
+}
+
+export interface OperatorPerformanceMetricsResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: OperatorPerformanceMetricsData;
+}
