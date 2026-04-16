@@ -49,6 +49,11 @@ export type {
   OperatorTopServicesResponse
 } from "./operator-analytics";
 export type {
+  AdminReviewRatingChartResponse,
+  AdminReviewStatsData,
+  AdminReviewStatsResponse,
+  AdminReviewTopOperatorsResponse,
+  AdminReviewTrendChartResponse,
   FetchReviewsParams,
   FetchReviewsResponse,
   OperatorRanking,
@@ -58,12 +63,5 @@ export type {
   ReviewManagementReview,
   ReviewStats
 } from "./review-management";
-export type {
-  FetchTicketsParams,
-  FetchTicketsResponse,
-  SupportTicket,
-  TicketFilters,
-  TicketMessage,
-  TicketStats
-} from "./ticket-management";
+export type { SupportTicket } from "./ticket-management";
 export type { UserProfile as User } from "./user";

@@ -5,14 +5,38 @@ import {
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious,
+  PaginationPrevious
 } from "@/components/ui/pagination";
 
 const getVisiblePages = (current: number, total: number) => {
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-  if (current <= 3) return [1, 2, 3, 4, "ellipsis", total];
-  if (current >= total - 2) return [1, "ellipsis", total - 3, total - 2, total - 1, total];
-  return [1, "ellipsis", current - 1, current, current + 1, "ellipsis", total];
+  if (total <= 5) {
+    return Array.from({ length: total }, (_, index) => index + 1);
+  }
+
+  const pageSet = new Set<number>();
+  pageSet.add(1);
+  pageSet.add(2);
+  pageSet.add(total);
+  pageSet.add(current);
+  pageSet.add(Math.min(current + 1, total));
+
+  const sortedPages = Array.from(pageSet)
+    .filter((page) => page >= 1 && page <= total)
+    .sort((a, b) => a - b);
+
+  const visiblePages: Array<number | "ellipsis"> = [];
+
+  sortedPages.forEach((page, index) => {
+    const previousPage = sortedPages[index - 1];
+
+    if (index > 0 && page - previousPage > 1) {
+      visiblePages.push("ellipsis");
+    }
+
+    visiblePages.push(page);
+  });
+
+  return visiblePages;
 };
 
 interface CustomPaginationProps {
@@ -26,15 +50,17 @@ export function CustomPagination({
   page,
   totalPage,
   isLoading = false,
-  setPage,
+  setPage
 }: CustomPaginationProps) {
   return (
-    <div className="gap-2 flex items-center w-auto justify-center sm:justify-end">
+    <div className="gap-2 sm:justify-end flex w-auto items-center justify-center">
       <Pagination>
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
-              className={page <= 1 || isLoading ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              className={
+                page <= 1 || isLoading ? "pointer-events-none opacity-50" : "cursor-pointer"
+              }
               onClick={() => {
                 if (page > 1 && !isLoading) setPage(Math.max(page - 1, 1));
               }}
@@ -61,7 +87,9 @@ export function CustomPagination({
 
           <PaginationItem>
             <PaginationNext
-              className={page >= totalPage || isLoading ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              className={
+                page >= totalPage || isLoading ? "pointer-events-none opacity-50" : "cursor-pointer"
+              }
               onClick={() => {
                 if (page < totalPage && !isLoading) setPage(Math.min(page + 1, totalPage));
               }}

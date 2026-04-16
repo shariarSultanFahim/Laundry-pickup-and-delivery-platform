@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import { MessageSquare, Star, ThumbsDown, ThumbsUp } from "lucide-react";
 
 import type { ReviewStats } from "@/types/review-management";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
+import { useGetAdminReviewStats } from "@/lib/actions/reviews/use-admin-reviews";
 
-import { fetchReviewStats } from "./reviews-api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 
 function getIcon(iconName: ReviewStats["icon"]) {
   switch (iconName) {
@@ -24,16 +22,50 @@ function getIcon(iconName: ReviewStats["icon"]) {
 }
 
 export default function ReviewsStatsCards() {
-  const [stats, setStats] = useState<ReviewStats[]>([]);
+  const { data, isLoading } = useGetAdminReviewStats();
 
-  useEffect(() => {
-    async function loadStats() {
-      const data = await fetchReviewStats();
-      setStats(data);
+  const stats: ReviewStats[] = [
+    {
+      title: "Overall Rating",
+      value: data?.data.overallRating.toFixed(1) ?? "0.0",
+      subtitle: "out of 5.0",
+      icon: "star"
+    },
+    {
+      title: "Total Reviews",
+      value: data?.data.totalReviews.toLocaleString() ?? "0",
+      subtitle: "all ratings",
+      icon: "reviews"
+    },
+    {
+      title: "Positive Reviews",
+      value: data?.data.positiveReviews.toLocaleString() ?? "0",
+      subtitle: "4+ stars",
+      icon: "thumbs-up"
+    },
+    {
+      title: "Negative Reviews",
+      value: data?.data.negativeReviews.toLocaleString() ?? "0",
+      subtitle: "1-2 stars",
+      icon: "thumbs-down"
     }
+  ];
 
-    void loadStats();
-  }, []);
+  if (isLoading) {
+    return (
+      <div className="gap-4 md:grid-cols-2 lg:grid-cols-4 grid">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Card key={index}>
+            <CardContent>
+              <div className="h-24 text-muted-foreground flex items-center justify-center">
+                Loading stats...
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="gap-4 md:grid-cols-2 lg:grid-cols-4 grid">

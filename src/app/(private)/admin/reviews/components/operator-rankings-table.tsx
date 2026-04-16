@@ -1,16 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import { Star, Trophy } from "lucide-react";
 
-import type { OperatorRanking } from "@/types/review-management";
+import { useGetAdminReviewTopOperators } from "@/lib/actions/reviews/use-admin-reviews";
 
 import { Badge } from "@/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
-
-import { fetchOperatorRankings } from "./reviews-api";
 
 function getRankBadgeColor(rank: number) {
   if (rank === 1) return "bg-yellow-500 hover:bg-yellow-600";
@@ -20,19 +16,9 @@ function getRankBadgeColor(rank: number) {
 }
 
 export default function OperatorRankingsTable() {
-  const [rankings, setRankings] = useState<OperatorRanking[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { data, isLoading } = useGetAdminReviewTopOperators();
 
-  useEffect(() => {
-    async function loadRankings() {
-      setIsLoading(true);
-      const data = await fetchOperatorRankings();
-      setRankings(data);
-      setIsLoading(false);
-    }
-
-    void loadRankings();
-  }, []);
+  const rankings = data?.data ?? [];
 
   return (
     <Card>
@@ -71,7 +57,7 @@ export default function OperatorRankingsTable() {
               </TableRow>
             ) : (
               rankings.map((operator) => (
-                <TableRow key={operator.operatorId}>
+                <TableRow key={`${operator.rank}-${operator.operatorName}`}>
                   <TableCell>
                     <Badge className={getRankBadgeColor(operator.rank)}>#{operator.rank}</Badge>
                   </TableCell>
@@ -79,15 +65,15 @@ export default function OperatorRankingsTable() {
                   <TableCell>
                     <div className="gap-1 flex items-center">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-semibold">{operator.averageRating.toFixed(1)}</span>
+                      <span className="font-semibold">{operator.avgRating.toFixed(1)}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-center">{operator.totalReviews}</TableCell>
                   <TableCell className="text-center">
-                    <span className="text-green-600 font-medium">{operator.positiveReviews}</span>
+                    <span className="text-green-600 font-medium">{operator.positive}</span>
                   </TableCell>
                   <TableCell className="text-center">
-                    <span className="text-red-600 font-medium">{operator.negativeReviews}</span>
+                    <span className="text-red-600 font-medium">{operator.negative}</span>
                   </TableCell>
                 </TableRow>
               ))

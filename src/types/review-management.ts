@@ -57,7 +57,25 @@ export interface ReviewManagementReview {
   bundle: {
     id: string;
     name?: string;
+    bundle?: {
+      name: string;
+    } | null;
+    store?: {
+      name: string;
+    } | null;
   } | null;
+}
+
+export interface AdminReviewStatsData {
+  overallRating: number;
+  totalReviews: number;
+  positiveReviews: number;
+  negativeReviews: number;
+}
+
+export interface AdminReviewStatsResponse {
+  success: boolean;
+  data: AdminReviewStatsData;
 }
 
 export interface ReviewStats {
@@ -68,8 +86,13 @@ export interface ReviewStats {
 }
 
 export interface ReviewByRating {
-  stars: number;
+  rating: string;
   count: number;
+}
+
+export interface AdminReviewRatingChartResponse {
+  success: boolean;
+  data: ReviewByRating[];
 }
 
 export interface RatingTrend {
@@ -77,14 +100,24 @@ export interface RatingTrend {
   rating: number;
 }
 
+export interface AdminReviewTrendChartResponse {
+  success: boolean;
+  data: RatingTrend[];
+}
+
 export interface OperatorRanking {
   rank: number;
   operatorName: string;
-  operatorId: string;
-  averageRating: number;
+  operatorId?: string;
+  avgRating: number;
   totalReviews: number;
-  positiveReviews: number;
-  negativeReviews: number;
+  positive: number;
+  negative: number;
+}
+
+export interface AdminReviewTopOperatorsResponse {
+  success: boolean;
+  data: OperatorRanking[];
 }
 
 export interface ReviewFilters {
@@ -96,14 +129,14 @@ export interface ReviewFilters {
 
 export interface FetchReviewsParams {
   page: number;
-  pageSize: number;
+  limit: number;
   search?: string;
 }
 
 export interface FetchReviewsResponse {
   items: ReviewManagementReview[];
   page: number;
-  pageSize: number;
+  limit: number;
   total: number;
   totalPages: number;
 }

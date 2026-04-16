@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 
 import { Star } from "lucide-react";
 
-import type { ReviewManagementReview } from "@/types/review-management";
+import { useGetAdminReviews } from "@/lib/actions/reviews/use-admin-reviews";
+import { formatDate } from "@/lib/date";
 
-import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
+import { CustomPagination } from "@/ui/custom-pagination";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 
-import { fetchReviews } from "./reviews-api";
-
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 1;
 
 function StarRating({ rating }: { rating: number }) {
   return (
@@ -31,41 +30,14 @@ function StarRating({ rating }: { rating: number }) {
 
 export default function ReviewsTable() {
   const [page, setPage] = useState(1);
-  const [rows, setRows] = useState<ReviewManagementReview[]>([]);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const { data, isLoading } = useGetAdminReviews({
+    page,
+    limit: PAGE_SIZE
+  });
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadReviews() {
-      setIsLoading(true);
-      const response = await fetchReviews({
-        page,
-        pageSize: PAGE_SIZE
-      });
-
-      if (!isMounted) {
-        return;
-      }
-
-      setRows(response.items);
-      setTotal(response.total);
-      setTotalPages(response.totalPages);
-      setIsLoading(false);
-    }
-
-    void loadReviews();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [page]);
-
-  const paginationNumbers = useMemo(() => {
-    return Array.from({ length: totalPages }, (_, index) => index + 1);
-  }, [totalPages]);
+  const rows = data?.data ?? [];
+  const total = data?.meta.total ?? 0;
+  const totalPages = data?.meta.totalPage ?? 1;
 
   const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const rangeEnd = Math.min(page * PAGE_SIZE, total);
@@ -115,10 +87,15 @@ export default function ReviewsTable() {
                     <p className="text-sm line-clamp-2">{review.comment}</p>
                   </TableCell>
                   <TableCell>
-                    {review.service?.service?.name ?? review.bundle?.name ?? "-"}
+                    {review.service?.service?.name ??
+                      review.bundle?.bundle?.name ??
+                      review.bundle?.name ??
+                      "-"}
                   </TableCell>
-                  <TableCell>{review.service?.store?.name ?? "-"}</TableCell>
-                  <TableCell>{new Date(review.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    {review.service?.store?.name ?? review.bundle?.store?.name ?? "-"}
+                  </TableCell>
+                  <TableCell>{formatDate(review.createdAt)}</TableCell>
                 </TableRow>
               ))
             )}
@@ -130,37 +107,12 @@ export default function ReviewsTable() {
             Showing {rangeStart}-{rangeEnd} of {total} reviews
           </p>
 
-          <div className="gap-2 flex items-center">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1 || isLoading}
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-            >
-              Previous
-            </Button>
-
-            {paginationNumbers.map((pageNumber) => (
-              <Button
-                key={pageNumber}
-                variant={pageNumber === page ? "default" : "outline"}
-                size="sm"
-                disabled={isLoading}
-                onClick={() => setPage(pageNumber)}
-              >
-                {pageNumber}
-              </Button>
-            ))}
-
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages || isLoading}
-              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-            >
-              Next
-            </Button>
-          </div>
+          <CustomPagination
+            page={page}
+            totalPage={totalPages}
+            isLoading={isLoading}
+            setPage={setPage}
+          />
         </div>
       </CardContent>
     </Card>
