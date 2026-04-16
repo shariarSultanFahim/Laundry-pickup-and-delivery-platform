@@ -2,10 +2,10 @@
 
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
+import { UserGrowthChartItem } from "@/types/user-management";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/ui/chart";
-
-import { growthTrendData } from "../data/users";
 
 const chartConfig = {
   users: {
@@ -14,7 +14,12 @@ const chartConfig = {
   }
 } satisfies ChartConfig;
 
-export default function UsersGrowthChart() {
+interface UsersGrowthChartProps {
+  data: UserGrowthChartItem[];
+  isLoading: boolean;
+}
+
+export default function UsersGrowthChart({ data, isLoading }: UsersGrowthChartProps) {
   return (
     <Card>
       <CardHeader>
@@ -22,9 +27,9 @@ export default function UsersGrowthChart() {
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="">
-          <AreaChart data={growthTrendData} margin={{ left: 8, right: 8 }}>
+          <AreaChart data={data} margin={{ left: 8, right: 8 }}>
             <CartesianGrid vertical={false} />
-            <XAxis dataKey="month" tickLine={false} axisLine={false} />
+            <XAxis dataKey="label" tickLine={false} axisLine={false} />
             <YAxis tickLine={false} axisLine={false} />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             <defs>
@@ -34,7 +39,7 @@ export default function UsersGrowthChart() {
               </linearGradient>
             </defs>
             <Area
-              dataKey="users"
+              dataKey="count"
               type="monotone"
               fill="url(#fillUsers)"
               fillOpacity={0.4}
@@ -43,6 +48,9 @@ export default function UsersGrowthChart() {
             />
           </AreaChart>
         </ChartContainer>
+        {isLoading ? (
+          <p className="mt-2 text-xs text-muted-foreground">Loading chart data...</p>
+        ) : null}
       </CardContent>
     </Card>
   );

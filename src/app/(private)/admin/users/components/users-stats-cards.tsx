@@ -1,8 +1,8 @@
 import { AlertTriangle, TrendingDown, TrendingUp, UserPlus, Users } from "lucide-react";
 
-import { Card, CardContent } from "@/ui/card";
+import { UserStatsAnalytics } from "@/types/user-management";
 
-import { userStatsData } from "../data/users";
+import { Card, CardContent } from "@/ui/card";
 
 const statsIconMap = {
   "Total Users": Users,
@@ -11,10 +11,69 @@ const statsIconMap = {
   "Suspended Users": AlertTriangle
 };
 
-export default function UsersStatsCards() {
+interface UsersStatsCardsProps {
+  data?: UserStatsAnalytics;
+  isLoading: boolean;
+}
+
+interface UsersStatCard {
+  title: keyof typeof statsIconMap;
+  value: string;
+  subtitle: string;
+  trend: "up" | "down";
+}
+
+const formatNumber = (value: number) => value.toLocaleString();
+
+const formatPercent = (value: number) => {
+  const sign = value >= 0 ? "+" : "";
+  return `${sign}${value.toFixed(1)}%`;
+};
+
+const getStatCards = (data?: UserStatsAnalytics): UsersStatCard[] => {
+  if (!data) {
+    return [
+      { title: "Total Users", value: "-", subtitle: "Loading...", trend: "up" },
+      { title: "Active Users", value: "-", subtitle: "Loading...", trend: "up" },
+      { title: "New This Month", value: "-", subtitle: "Loading...", trend: "up" },
+      { title: "Suspended Users", value: "-", subtitle: "Loading...", trend: "down" }
+    ];
+  }
+
+  return [
+    {
+      title: "Total Users",
+      value: formatNumber(data.totalUsers.value),
+      subtitle: `${formatPercent(data.totalUsers.change)} from last month`,
+      trend: data.totalUsers.direction
+    },
+    {
+      title: "Active Users",
+      value: formatNumber(data.activeUsers.value),
+      subtitle: `${data.activeUsers.activationRate.toFixed(1)}% activation rate`,
+      trend: "up"
+    },
+    {
+      title: "New This Month",
+      value: formatNumber(data.newThisMonth.value),
+      subtitle: `${formatPercent(data.newThisMonth.change)} from previous month`,
+      trend: data.newThisMonth.direction
+    },
+    {
+      title: "Suspended Users",
+      value: formatNumber(data.suspendedUsers.value),
+      subtitle: `${formatPercent(data.suspendedUsers.change)} from last month`,
+      trend: data.suspendedUsers.direction
+    }
+  ];
+};
+
+export default function UsersStatsCards({ data, isLoading }: UsersStatsCardsProps) {
+  const stats = getStatCards(data);
+
   return (
     <div className="gap-4 md:grid-cols-2 xl:grid-cols-4 grid">
-      {userStatsData.map((stat) => {
+      {stats.map((stat) => {
         const Icon = statsIconMap[stat.title as keyof typeof statsIconMap] ?? Users;
 
         return (
@@ -30,7 +89,7 @@ export default function UsersStatsCards() {
                     ) : (
                       <TrendingDown className="h-3.5 w-3.5 text-red-600" />
                     )}
-                    <span>{stat.subtitle}</span>
+                    <span>{isLoading ? "Loading..." : stat.subtitle}</span>
                   </div>
                 </div>
                 <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center">

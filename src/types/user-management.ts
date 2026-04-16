@@ -28,6 +28,55 @@ export interface GrowthTrendItem {
   users: number;
 }
 
+export interface UserStatMetric {
+  value: number;
+  change: number;
+  direction: "up" | "down";
+}
+
+export interface ActiveUsersStat {
+  value: number;
+  activationRate: number;
+}
+
+export interface UserStatsAnalytics {
+  totalUsers: UserStatMetric;
+  activeUsers: ActiveUsersStat;
+  newThisMonth: UserStatMetric;
+  suspendedUsers: UserStatMetric;
+}
+
+export interface UserStatsAnalyticsResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: UserStatsAnalytics;
+}
+
+export interface UserRoleChartItem {
+  label: string;
+  count: number;
+}
+
+export interface UserRolesChartResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: UserRoleChartItem[];
+}
+
+export interface UserGrowthChartItem {
+  label: string;
+  count: number;
+}
+
+export interface UserGrowthChartResponse {
+  success: boolean;
+  statusCode: number;
+  message: string;
+  data: UserGrowthChartItem[];
+}
+
 export interface UserFilters {
   role?: UserManagementUser["role"];
   status?: UserManagementUser["status"];
