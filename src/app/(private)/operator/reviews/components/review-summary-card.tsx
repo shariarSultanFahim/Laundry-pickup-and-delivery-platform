@@ -1,17 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import { Star } from "lucide-react";
+
+import { useGetOperatorReviewStats } from "@/lib/actions/operator/use-operator-reviews";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 
-import type { ReviewSummary } from "../data/review";
-import type { OperatorReviewFilters } from "../schema/review-filters.schema";
-import { fetchOperatorReviews } from "./review-api";
-
 interface ReviewSummaryCardProps {
-  filters: OperatorReviewFilters;
+  storeId?: string;
 }
 
 function StarRating({ rating }: { rating: number }) {
@@ -59,41 +55,23 @@ function RatingBar({ stars, count, maxCount }: { stars: number; count: number; m
   );
 }
 
-export default function ReviewSummaryCard({ filters }: ReviewSummaryCardProps) {
-  const [summary, setSummary] = useState<ReviewSummary | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadSummary() {
-      setIsLoading(true);
-      const response = await fetchOperatorReviews({
-        page: 1,
-        pageSize: 1,
-        rating: filters.rating,
-        serviceType: filters.serviceType,
-        sortBy: filters.sortBy
-      });
-
-      if (!isMounted) return;
-
-      setSummary(response.summary);
-      setIsLoading(false);
-    }
-
-    void loadSummary();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [filters]);
+export default function ReviewSummaryCard({ storeId }: ReviewSummaryCardProps) {
+  const { data, isLoading } = useGetOperatorReviewStats({ storeId });
+  const summary = data?.data;
 
   if (isLoading || !summary) {
     return null;
   }
 
-  const maxCount = Math.max(...summary.ratingDistribution.map((r) => r.count));
+  const distributionByStars = [5, 4, 3, 2, 1].map((stars) => {
+    const found = summary.distribution.find((distribution) => distribution.rating === stars);
+    return {
+      stars,
+      count: found?.count ?? 0
+    };
+  });
+
+  const maxCount = Math.max(...distributionByStars.map((distribution) => distribution.count));
 
   return (
     <div className="gap-6 md:grid-cols-2 grid grid-cols-1">
@@ -119,7 +97,7 @@ export default function ReviewSummaryCard({ filters }: ReviewSummaryCardProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {[...summary.ratingDistribution].reverse().map((distribution) => (
+            {distributionByStars.map((distribution) => (
               <RatingBar
                 key={distribution.stars}
                 stars={distribution.stars}

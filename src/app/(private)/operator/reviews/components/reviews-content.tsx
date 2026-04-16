@@ -1,11 +1,11 @@
 "use client";
 
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 
-import type { OperatorReviewFilters } from "../schema/review-filters.schema";
-import ReviewFilters from "./review-filters";
+// import type { OperatorReviewFilters } from "../schema/review-filters.schema";
+// import ReviewFilters from "./review-filters";
 
 const ReviewSummaryCard = lazy(() => import("./review-summary-card"));
 const ReviewList = lazy(() => import("./review-list"));
@@ -39,21 +39,25 @@ function ReviewListLoadingFallback() {
   );
 }
 
-export default function ReviewsContent() {
-  const [filters, setFilters] = useState<OperatorReviewFilters>({
-    sortBy: "newest"
-  });
+interface ReviewsContentProps {
+  storeId?: string;
+}
+
+export default function ReviewsContent({ storeId }: ReviewsContentProps) {
+  // const [filters, setFilters] = useState<OperatorReviewFilters>({
+  //   sortBy: "newest"
+  // });
 
   return (
     <div className="space-y-6">
-      <ReviewFilters filters={filters} onFiltersChange={setFilters} />
+      {/* <ReviewFilters filters={filters} onFiltersChange={setFilters} /> */}
 
       <Suspense fallback={<SummaryLoadingFallback />}>
-        <ReviewSummaryCard filters={filters} />
+        <ReviewSummaryCard storeId={storeId} />
       </Suspense>
 
       <Suspense fallback={<ReviewListLoadingFallback />}>
-        <ReviewList filters={filters} />
+        <ReviewList />
       </Suspense>
     </div>
   );

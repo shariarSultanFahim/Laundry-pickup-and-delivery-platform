@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useState } from "react";
 
 import { Star } from "lucide-react";
 
+import { useGetOperatorReviewFeed } from "@/lib/actions/operator/use-operator-reviews";
+import { formatDate } from "@/lib/date";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/ui/button";
+import { CustomPagination } from "@/components/ui/custom-pagination";
 import { Card, CardContent } from "@/ui/card";
 
-import type { OperatorReview } from "../data/review";
-import type { OperatorReviewFilters } from "../schema/review-filters.schema";
-import { fetchOperatorReviews } from "./review-api";
+// import type { OperatorReviewFilters } from "../schema/review-filters.schema";
 
 const PAGE_SIZE = 10;
 
@@ -29,62 +30,38 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-interface ReviewListProps {
-  filters: OperatorReviewFilters;
-}
+// interface ReviewListProps {
+//   filters: OperatorReviewFilters;
+// }
 
-export default function ReviewList({ filters }: ReviewListProps) {
-  const [reviews, setReviews] = useState<OperatorReview[]>([]);
+export default function ReviewList() {
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const prevFiltersRef = useRef<OperatorReviewFilters | null>(null);
+  // const prevFiltersRef = useRef<OperatorReviewFilters | null>(null);
 
-  useEffect(() => {
-    const filtersChanged =
-      prevFiltersRef.current?.rating !== filters.rating ||
-      prevFiltersRef.current?.serviceType !== filters.serviceType ||
-      prevFiltersRef.current?.sortBy !== filters.sortBy;
+  const { data, isLoading } = useGetOperatorReviewFeed({
+    page,
+    limit: PAGE_SIZE,
+    // rating: filters.rating,
+    // serviceType: filters.serviceType,
+    sortBy: "newest"
+  });
 
-    if (filtersChanged && page !== 1) {
-      setPage(1);
-    }
+  const reviews = data?.data ?? [];
+  const total = data?.meta.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-    prevFiltersRef.current = filters;
-  }, [filters, page]);
+  // useEffect(() => {
+  //   const filtersChanged =
+  //     prevFiltersRef.current?.rating !== filters.rating ||
+  //     prevFiltersRef.current?.serviceType !== filters.serviceType ||
+  //     prevFiltersRef.current?.sortBy !== filters.sortBy;
 
-  useEffect(() => {
-    let isMounted = true;
+  //   if (filtersChanged && page !== 1) {
+  //     setPage(1);
+  //   }
 
-    async function loadReviews() {
-      setIsLoading(true);
-      const response = await fetchOperatorReviews({
-        page,
-        pageSize: PAGE_SIZE,
-        rating: filters.rating,
-        serviceType: filters.serviceType,
-        sortBy: filters.sortBy
-      });
-
-      if (!isMounted) return;
-
-      setReviews(response.items);
-      setTotal(response.total);
-      setTotalPages(response.totalPages);
-      setIsLoading(false);
-    }
-
-    void loadReviews();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [filters, page]);
-
-  const paginationNumbers = useMemo(() => {
-    return Array.from({ length: totalPages }, (_, index) => index + 1);
-  }, [totalPages]);
+  //   prevFiltersRef.current = filters;
+  // }, [filters, page]);
 
   const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const rangeEnd = Math.min(page * PAGE_SIZE, total);
@@ -111,9 +88,9 @@ export default function ReviewList({ filters }: ReviewListProps) {
                 <CardContent className="pt-6">
                   <div className="gap-4 flex">
                     <Avatar className="h-12 w-12 shrink-0">
-                      <AvatarImage src={review.customerImage} alt={review.customerName} />
+                      <AvatarImage src={review.user.avatar ?? undefined} alt={review.user.name} />
                       <AvatarFallback>
-                        {review.customerName
+                        {review.user.name
                           .split(" ")
                           .map((n) => n[0])
                           .join("")}
@@ -123,20 +100,20 @@ export default function ReviewList({ filters }: ReviewListProps) {
                     <div className="flex-1">
                       <div className="gap-2 flex items-start justify-between">
                         <div>
-                          <p className="font-semibold">{review.customerName}</p>
+                          <p className="font-semibold">{review.user.name}</p>
                           <StarRating rating={review.rating} />
                         </div>
                         <p className="text-xs md:text-sm text-muted-foreground">
-                          {review.createdAt}
+                          {formatDate(review.createdAt)}
                         </p>
                       </div>
 
                       <p className="mt-3 text-sm text-foreground">{review.comment}</p>
 
                       <div className="gap-4 mt-3 text-xs text-muted-foreground flex items-center">
-                        <span>Order {review.orderId}</span>
+                        <span>{review.service?.service?.name ?? "Unknown service"}</span>
                         <span>•</span>
-                        <span>{review.serviceType}</span>
+                        <span>{review.service?.store?.name ?? "Unknown store"}</span>
                       </div>
                     </div>
                   </div>
@@ -151,37 +128,12 @@ export default function ReviewList({ filters }: ReviewListProps) {
               Showing {rangeStart}-{rangeEnd} of {total} review{total !== 1 ? "s" : ""}
             </p>
 
-            <div className="gap-2 flex items-center">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page <= 1 || isLoading}
-                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-              >
-                Previous
-              </Button>
-
-              {paginationNumbers.map((pageNumber) => (
-                <Button
-                  key={pageNumber}
-                  variant={pageNumber === page ? "default" : "outline"}
-                  size="sm"
-                  disabled={isLoading}
-                  onClick={() => setPage(pageNumber)}
-                >
-                  {pageNumber}
-                </Button>
-              ))}
-
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page >= totalPages || isLoading}
-                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-              >
-                Next
-              </Button>
-            </div>
+            <CustomPagination
+              page={page}
+              totalPage={totalPages}
+              isLoading={isLoading}
+              setPage={setPage}
+            />
           </div>
         </>
       )}

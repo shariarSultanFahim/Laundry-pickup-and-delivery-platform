@@ -38,18 +38,18 @@ export interface FetchOperatorReviewsResponse {
 }
 
 export const serviceTypeOptions = [
-  { value: "wash-fold", label: "Wash & Fold" },
-  { value: "dry-cleaning", label: "Dry Cleaning" },
-  { value: "express-service", label: "Express Service" },
-  { value: "ironing", label: "Ironing" }
+  { value: "Wash & Fold", label: "Wash & Fold" },
+  { value: "Dry Cleaning", label: "Dry Cleaning" },
+  { value: "Express Service", label: "Express Service" },
+  { value: "Ironing", label: "Ironing" }
 ];
 
 export const ratingOptions = [
   { value: "5", label: "5 Stars" },
-  { value: "4", label: "4+ Stars" },
-  { value: "3", label: "3+ Stars" },
-  { value: "2", label: "2+ Stars" },
-  { value: "1", label: "1+ Stars" }
+  { value: "4+", label: "4+ Stars" },
+  { value: "3+", label: "3+ Stars" },
+  { value: "2+", label: "2+ Stars" },
+  { value: "1+", label: "1+ Stars" }
 ];
 
 export const sortOptions = [
