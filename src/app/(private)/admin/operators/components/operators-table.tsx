@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Eye, Filter, Search } from "lucide-react";
 
@@ -15,6 +15,7 @@ import { useGetOperators } from "@/lib/actions/operators/use-get-operators";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
+import { CustomPagination } from "@/ui/custom-pagination";
 import { Input } from "@/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 
@@ -63,10 +64,6 @@ export default function OperatorsTable() {
   const { data, isLoading } = useGetOperators(queryParams);
   const operators = data?.data ?? [];
   const meta = data?.meta ?? { total: 0, totalPage: 1, page: 1, limit: PAGE_SIZE };
-
-  const paginationNumbers = useMemo(() => {
-    return Array.from({ length: meta.totalPage }, (_, index) => index + 1);
-  }, [meta.totalPage]);
 
   const rangeStart = meta.total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const rangeEnd = Math.min(page * PAGE_SIZE, meta.total);
@@ -180,37 +177,12 @@ export default function OperatorsTable() {
             Showing {rangeStart}-{rangeEnd} of {meta.total} operators
           </p>
 
-          <div className="gap-2 flex items-center">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1 || isLoading}
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-            >
-              Previous
-            </Button>
-
-            {paginationNumbers.map((pageNumber) => (
-              <Button
-                key={pageNumber}
-                variant={pageNumber === page ? "default" : "outline"}
-                size="sm"
-                disabled={isLoading}
-                onClick={() => setPage(pageNumber)}
-              >
-                {pageNumber}
-              </Button>
-            ))}
-
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= meta.totalPage || isLoading}
-              onClick={() => setPage((prev) => Math.min(prev + 1, meta.totalPage))}
-            >
-              Next
-            </Button>
-          </div>
+          <CustomPagination
+            page={page}
+            totalPage={meta.totalPage}
+            isLoading={isLoading}
+            setPage={setPage}
+          />
         </div>
       </CardContent>
 

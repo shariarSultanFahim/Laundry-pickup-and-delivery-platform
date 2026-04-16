@@ -22,7 +22,6 @@ import {
   Star,
   Ticket,
   User,
-  UserLock,
   UserPen
 } from "lucide-react";
 
@@ -90,11 +89,11 @@ const data = {
           url: "/admin/tickets",
           icon: Ticket
         },
-        {
-          title: "Security",
-          url: "/admin/security",
-          icon: UserLock
-        },
+        // {
+        //   title: "Security",
+        //   url: "/admin/security",
+        //   icon: UserLock
+        // },
         {
           title: "Operator Management",
           url: "/admin/operators",

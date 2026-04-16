@@ -1,21 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Filter, Pen, Search, UserRoundPen } from "lucide-react";
 
-import { UserStatus, AdminUserListItem } from "@/types/user";
+import { Filter, Search, UserRoundPen } from "lucide-react";
+
+import { AdminUserListItem, UserStatus } from "@/types/user";
+
 import { useGetUsers, UsersQueryParams } from "@/lib/actions/user/use-get-users";
 import { useUpdateUserStatus } from "@/lib/actions/user/use-update-user-status";
 
+import { CustomPagination } from "@/components/ui/custom-pagination";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
+import { DataValue } from "@/ui/data-value";
 import { Input } from "@/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
-import { CustomPagination } from "@/components/ui/custom-pagination";
-import { DataValue } from "@/ui/data-value";
+
 import UserDetailsSheet from "./user-details-sheet";
 import UsersFilterSheet, { UsersFilterParams } from "./users-filter-sheet";
 
@@ -78,11 +81,14 @@ export default function UsersTable() {
 
   function handleEditSheetSave() {
     if (editingUserId) {
-      updateStatus({ id: editingUserId, status: editingUserStatus }, {
-        onSuccess: () => {
-          handleEditSheetClose();
+      updateStatus(
+        { id: editingUserId, status: editingUserStatus },
+        {
+          onSuccess: () => {
+            handleEditSheetClose();
+          }
         }
-      });
+      );
     }
   }
 
@@ -156,21 +162,52 @@ export default function UsersTable() {
                   className="hover:bg-muted/50 cursor-pointer"
                   onClick={() => handleRowClick(user)}
                 >
-                  <TableCell><DataValue value={user.userId} /></TableCell>
-                  <TableCell><DataValue value={user.name} /></TableCell>
-                  <TableCell><DataValue value={user.email} /></TableCell>
-                  <TableCell><DataValue value={user.phone} /></TableCell>
-                  <TableCell className="capitalize py-4"><DataValue value={user.role} /></TableCell>
+                  <TableCell>
+                    <DataValue value={user.userId} />
+                  </TableCell>
+                  <TableCell>
+                    <DataValue value={user.name} />
+                  </TableCell>
+                  <TableCell>
+                    <DataValue value={user.email} />
+                  </TableCell>
+                  <TableCell>
+                    <DataValue value={user.phone} />
+                  </TableCell>
+                  <TableCell className="py-4 capitalize">
+                    <DataValue value={user.role} />
+                  </TableCell>
                   <TableCell className="text-center">
                     <Badge variant={getStatusVariant(user.status)} className="capitalize">
                       {user.status || "UNKNOWN"}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-center"><DataValue value={user.totalOrders} /></TableCell>
-                  <TableCell className="text-center"><DataValue value={user.totalPaymentAmount ? `$${user.totalPaymentAmount.toLocaleString()}` : null} /></TableCell>
-                  <TableCell className="text-center"><DataValue value={user.averageOrderValue ? `$${user.averageOrderValue.toFixed(2)}` : null} /></TableCell>
-                  <TableCell><DataValue value={new Date(user.createdAt).toLocaleDateString()} /></TableCell>
-                  <TableCell onClick={() => handleEditClick(user)} className="text-center flex h-full justify-center items-center">
+                  <TableCell className="text-center">
+                    <DataValue value={user.totalOrders} />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <DataValue
+                      value={
+                        user.totalPaymentAmount
+                          ? `$${user.totalPaymentAmount.toLocaleString()}`
+                          : null
+                      }
+                    />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <DataValue
+                      value={
+                        user.averageOrderValue ? `$${user.averageOrderValue.toFixed(2)}` : null
+                      }
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <DataValue value={new Date(user.createdAt).toLocaleDateString()} />
+                  </TableCell>
+                  <TableCell
+                    onClick={() => handleEditClick(user)}
+                    className="flex h-full items-center justify-center text-center"
+                  >
                     <UserRoundPen className="h-4 w-4" />
                   </TableCell>
                 </TableRow>
@@ -229,9 +266,7 @@ export default function UsersTable() {
               <label className="text-sm font-medium">Status</label>
               <Select
                 value={editingUserStatus}
-                onValueChange={(value) =>
-                  setEditingUserStatus(value as UserStatus)
-                }
+                onValueChange={(value) => setEditingUserStatus(value as UserStatus)}
               >
                 <SelectTrigger>
                   <SelectValue />
