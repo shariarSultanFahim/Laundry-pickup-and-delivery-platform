@@ -9,7 +9,7 @@ export const disputesData: DisputeManagementDispute[] = [
     customerEmail: "sarah@email.com",
     operatorId: "opr-001",
     operatorName: "Mike's Laundry",
-    status: "escalated",
+    status: "ESCALATED",
     description:
       "My white shirt came back with a large stain that wasn't there before. The collar also appears to be damaged with fraying. I've been a loyal customer for 2 years and this is very disappointing.",
     photos: [
@@ -26,7 +26,7 @@ export const disputesData: DisputeManagementDispute[] = [
     customerEmail: "david@email.com",
     operatorId: "opr-002",
     operatorName: "QuickWash Pro",
-    status: "open",
+    status: "PENDING",
     description: "Item missing from order",
     photos: [
       "https://images.unsplash.com/photo-1612528443702-f6741f70a049?w=300",
@@ -42,7 +42,7 @@ export const disputesData: DisputeManagementDispute[] = [
     customerEmail: "emma@email.com",
     operatorId: "opr-003",
     operatorName: "Fresh Clean Co",
-    status: "resolved",
+    status: "RESOLVED",
     description: "Quality issue resolved",
     photos: [
       "https://images.unsplash.com/photo-1612528443702-f6741f70a049?w=300",
@@ -58,7 +58,7 @@ export const disputesData: DisputeManagementDispute[] = [
     customerEmail: "james@email.com",
     operatorId: "opr-004",
     operatorName: "Express Laundry",
-    status: "open",
+    status: "PENDING",
     description: "Delivery delay complaint",
     photos: [
       "https://images.unsplash.com/photo-1612528443702-f6741f70a049?w=300",
@@ -74,7 +74,7 @@ export const disputesData: DisputeManagementDispute[] = [
     customerEmail: "lisa@email.com",
     operatorId: "opr-001",
     operatorName: "Mike's Laundry",
-    status: "escalated",
+    status: "ESCALATED",
     description: "Damaged clothing claim",
     photos: [
       "https://images.unsplash.com/photo-1612528443702-f6741f70a049?w=300",
@@ -90,7 +90,7 @@ export const disputesData: DisputeManagementDispute[] = [
     customerEmail: "robert@email.com",
     operatorId: "opr-002",
     operatorName: "QuickWash Pro",
-    status: "resolved",
+    status: "RESOLVED",
     description: "Refund processed successfully",
     photos: [
       "https://images.unsplash.com/photo-1612528443702-f6741f70a049?w=300",

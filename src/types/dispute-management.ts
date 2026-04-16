@@ -1,3 +1,9 @@
+export type DisputeStatus = "PENDING" | "RESOLVED" | "ESCALATED" | "REFUNDED";
+
+export type DisputeOperatorAction = "ESCALATE" | "REFUND";
+
+export type DisputeResolveAction = "REFUND" | "DEDUCT_PAYOUT" | "DISMISS";
+
 export interface DisputeManagementDispute {
   id: string;
   claimId: string;
@@ -6,23 +12,59 @@ export interface DisputeManagementDispute {
   customerEmail: string;
   operatorId: string;
   operatorName: string;
-  status: "escalated" | "open" | "resolved";
+  status: DisputeStatus;
   description: string;
   photos: string[];
   createdAt: string;
 }
 
 export interface DisputeAction {
-  type: "override-decision" | "refund" | "issue-credit" | "deduct-payout";
+  type: DisputeResolveAction;
   amount?: number;
-  reason?: string;
+  note?: string;
+}
+
+export interface DisputeOrderAddon {
+  addon: {
+    name: string;
+    price: number;
+  };
+}
+
+export interface DisputeOrderItem {
+  serviceName: string;
+  quantity: number;
+  price: number;
+  orderAddons: DisputeOrderAddon[];
+}
+
+export interface DisputeOrderSummary {
+  orderNumber: string;
+  subtotal: number;
+  pickupAndDeliveryFee: number;
+  totalAmount: number;
+  orderItems: DisputeOrderItem[];
+}
+
+export interface DisputeDetails {
+  id: string;
+  description: string;
+  images: string[];
+  status: DisputeStatus;
+  order: DisputeOrderSummary;
+  user: {
+    name: string;
+    avatar?: string | null;
+  };
+  operator: {
+    user: {
+      name: string;
+    };
+  };
 }
 
 export interface DisputeFilters {
-  status?: DisputeManagementDispute["status"];
-  operatorId?: DisputeManagementDispute["operatorId"];
-  fromDate?: string;
-  toDate?: string;
+  status?: DisputeStatus;
 }
 
 export interface FetchDisputesParams {
@@ -45,4 +87,16 @@ export interface DisputeStats {
   value: string;
   subtitle: string;
   trend: "up" | "down";
+}
+
+export interface ResolveDisputePayload {
+  action: DisputeResolveAction;
+  amount?: number;
+  note?: string;
+}
+
+export interface RespondToDisputePayload {
+  action: DisputeOperatorAction;
+  amount?: number;
+  note?: string;
 }

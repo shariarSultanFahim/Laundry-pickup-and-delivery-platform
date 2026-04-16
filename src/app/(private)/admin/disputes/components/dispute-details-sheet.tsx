@@ -1,16 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 
-import { Flame, Shirt, Sparkles } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 import type { DisputeManagementDispute } from "@/types/dispute-management";
+
+import { useGetDisputeDetails, useResolveDispute } from "@/lib/actions/disputes/use-disputes";
 
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/ui/sheet";
+import { Textarea } from "@/ui/textarea";
 
 interface DisputeDetailsSheetProps {
   open: boolean;
@@ -19,32 +23,77 @@ interface DisputeDetailsSheetProps {
 }
 
 function getStatusVariant(status: DisputeManagementDispute["status"]) {
-  if (status === "resolved") {
+  if (status === "RESOLVED" || status === "REFUNDED") {
     return "default";
   }
 
-  if (status === "open") {
+  if (status === "PENDING") {
     return "secondary";
   }
 
   return "destructive";
 }
 
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value);
+
 export default function DisputeDetailsSheet({
   open,
   onOpenChange,
   dispute
 }: DisputeDetailsSheetProps) {
-  const [refundAmount, setRefundAmount] = useState("");
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+  const { data: details, isLoading: isLoadingDetails } = useGetDisputeDetails(
+    dispute?.id ?? "",
+    open && Boolean(dispute?.id)
+  );
+  const { mutateAsync: runResolveDispute, isPending: isSubmitting } = useResolveDispute();
+
+  const orderItemsCount = useMemo(() => {
+    return details?.order.orderItems.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
+  }, [details]);
 
   if (!dispute) {
     return null;
   }
 
-  const handleAction = (actionType: string) => {
-    console.log(`Action: ${actionType}`, refundAmount);
-    // TODO: Call API to resolve dispute with action
-  };
+  const disputeId = dispute.id;
+
+  async function handleAction(action: "REFUND" | "DEDUCT_PAYOUT" | "DISMISS") {
+    const parsedAmount = Number(amount);
+    const shouldIncludeAmount = action === "REFUND" || action === "DEDUCT_PAYOUT";
+
+    if (action === "DISMISS" && !note.trim()) {
+      toast.error("Please add a dismissal note");
+      return;
+    }
+
+    if (shouldIncludeAmount && (!amount || Number.isNaN(parsedAmount) || parsedAmount <= 0)) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+
+    try {
+      await runResolveDispute({
+        disputeId,
+        payload: {
+          action,
+          amount: shouldIncludeAmount ? parsedAmount : undefined,
+          note: note.trim() || undefined
+        }
+      });
+      toast.success("Dispute action applied successfully");
+      onOpenChange(false);
+    } catch {
+      toast.error("Failed to apply dispute action");
+    }
+  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -53,149 +102,153 @@ export default function DisputeDetailsSheet({
           <SheetTitle>Dispute Details</SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-4">
-          <div className="space-y-3 rounded-lg border-border bg-muted/30 p-4 border">
-            <div className="gap-4 flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Order ID</p>
-                <p className="font-semibold text-foreground">{dispute.orderId}</p>
-              </div>
-              <Badge variant={getStatusVariant(dispute.status)} className="capitalize">
-                {dispute.status}
-              </Badge>
-            </div>
-
-            <div className="gap-3 sm:grid-cols-2 grid">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Customer</p>
-                <p className="font-medium text-foreground">{dispute.customerName}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Operator</p>
-                <p className="font-medium text-foreground">{dispute.operatorName}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="font-semibold text-foreground">View Claim</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">{dispute.description}</p>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-foreground">Order Summary</h3>
-              <span className="text-sm text-muted-foreground">3 Items</span>
-            </div>
-
-            <div className="space-y-2 bg-muted/30 p-3 rounded-lg">
-              <div className="text-sm flex items-center justify-between">
-                <div className="gap-2 flex items-center">
-                  <div className="h-8 w-8 bg-blue-100 rounded text-base flex items-center justify-center">
-                    <Shirt className="h-4 w-4 text-blue-700" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Wash & Fold</p>
-                    <p className="text-xs text-muted-foreground">5 items</p>
-                  </div>
+        {isLoadingDetails || !details ? (
+          <div className="py-10 text-sm text-muted-foreground text-center">Loading details...</div>
+        ) : (
+          <div className="space-y-4">
+            <div className="space-y-3 rounded-lg border-border bg-muted/30 p-4 border">
+              <div className="gap-4 flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Order ID</p>
+                  <p className="font-semibold text-foreground">{details.order.orderNumber}</p>
                 </div>
-                <span className="font-medium">$24.50</span>
+                <Badge variant={getStatusVariant(details.status)}>{details.status}</Badge>
               </div>
 
-              <div className="text-sm flex items-center justify-between">
-                <div className="gap-2 flex items-center">
-                  <div className="h-8 w-8 bg-purple-100 rounded text-base flex items-center justify-center">
-                    <Sparkles className="h-4 w-4 text-purple-700" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Dry Cleaning</p>
-                    <p className="text-xs text-muted-foreground">2 items</p>
-                  </div>
+              <div className="gap-3 sm:grid-cols-2 grid">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Customer</p>
+                  <p className="font-medium text-foreground">{details.user.name}</p>
                 </div>
-                <span className="font-medium">$18.00</span>
-              </div>
-
-              <div className="text-sm flex items-center justify-between">
-                <div className="gap-2 flex items-center">
-                  <div className="h-8 w-8 bg-cyan-100 rounded text-base flex items-center justify-center">
-                    <Flame className="h-4 w-4 text-cyan-700" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Iron & Press</p>
-                    <p className="text-xs text-muted-foreground">3 items</p>
-                  </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Operator</p>
+                  <p className="font-medium text-foreground">{details.operator.user.name}</p>
                 </div>
-                <span className="font-medium">$9.00</span>
               </div>
             </div>
 
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span>$51.50</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Pickup & Delivery</span>
-                <span>$4.99</span>
-              </div>
-              <div className="text-green-600 flex items-center justify-between">
-                <span>Discount (FIRST20)</span>
-                <span>-$10.30</span>
-              </div>
-            </div>
-
-            <div className="text-lg font-bold pt-2 flex items-center justify-between border-t">
-              <span>Total</span>
-              <span className="text-blue-600">$66.19</span>
-            </div>
-          </div>
-
-          {dispute.photos.length > 0 && (
             <div className="space-y-2">
-              <h3 className="font-semibold text-foreground">View Photos</h3>
-              <div className="gap-2 grid grid-cols-3">
-                {dispute.photos.map((photo, index) => (
-                  <div key={index} className="rounded-lg relative aspect-square overflow-hidden">
-                    <Image
-                      src={photo}
-                      alt={`Dispute photo ${index + 1}`}
-                      fill
-                      className="object-cover"
-                    />
+              <h3 className="font-semibold text-foreground">Claim Description</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{details.description}</p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-foreground">Order Summary</h3>
+                <span className="text-sm text-muted-foreground">{orderItemsCount} Items</span>
+              </div>
+
+              <div className="space-y-2 bg-muted/30 p-3 rounded-lg">
+                {details.order.orderItems.map((item, index) => (
+                  <div
+                    key={`${item.serviceName}-${index}`}
+                    className="space-y-1 rounded-md bg-background p-2"
+                  >
+                    <div className="text-sm flex items-center justify-between">
+                      <p className="font-medium">{item.serviceName}</p>
+                      <span className="font-medium">{formatCurrency(item.price)}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{item.quantity} items</p>
+                    {item.orderAddons.map((addon, addonIndex) => (
+                      <div
+                        key={`${item.serviceName}-${index}-addon-${addonIndex}`}
+                        className="text-xs text-muted-foreground flex items-center justify-between"
+                      >
+                        <span>{addon.addon.name}</span>
+                        <span>{formatCurrency(addon.addon.price)}</span>
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
+
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>{formatCurrency(details.order.subtotal)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Pickup & Delivery</span>
+                  <span>{formatCurrency(details.order.pickupAndDeliveryFee)}</span>
+                </div>
+              </div>
+
+              <div className="text-lg font-bold pt-2 flex items-center justify-between border-t">
+                <span>Total</span>
+                <span className="text-blue-600">{formatCurrency(details.order.totalAmount)}</span>
+              </div>
             </div>
-          )}
 
-          <div className="space-y-3">
-            <h3 className="font-semibold text-foreground">Actions</h3>
+            {details.images.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="font-semibold text-foreground">Photos</h3>
+                <div className="gap-2 grid grid-cols-3">
+                  {details.images.map((photo, index) => (
+                    <div
+                      key={photo + index.toString()}
+                      className="rounded-lg relative aspect-square overflow-hidden"
+                    >
+                      <Image
+                        src={photo}
+                        alt={`Dispute photo ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-            <Button className="bg-sky-400 hover:bg-sky-500 w-full">Override Decision</Button>
+            <div className="space-y-3">
+              <h3 className="font-semibold text-foreground">Resolution Actions</h3>
 
-            <div className="gap-2 flex">
+              <Textarea
+                placeholder="Add a note for this action (optional)"
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
+                className="min-h-20"
+              />
+
               <Input
                 placeholder="Amount"
                 type="number"
-                value={refundAmount}
-                onChange={(e) => setRefundAmount(e.target.value)}
-                className="flex-1"
+                min="0"
+                step="0.01"
+                value={amount}
+                onChange={(event) => setAmount(event.target.value)}
               />
+
               <Button
-                className="bg-green-600 hover:bg-green-700"
-                onClick={() => handleAction("refund")}
+                className="bg-green-600 hover:bg-green-700 w-full"
+                disabled={isSubmitting}
+                onClick={() => void handleAction("REFUND")}
               >
-                Refund
+                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Refund"}
+              </Button>
+
+              <Button
+                className="bg-red-600 hover:bg-red-700 w-full"
+                disabled={isSubmitting}
+                onClick={() => void handleAction("DEDUCT_PAYOUT")}
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Deduct from Operator Payout"
+                )}
+              </Button>
+
+              <Button
+                className="bg-slate-600 hover:bg-slate-700 w-full"
+                disabled={isSubmitting}
+                onClick={() => void handleAction("DISMISS")}
+              >
+                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Dismiss"}
               </Button>
             </div>
-
-            <Button className="bg-purple-500 hover:bg-purple-600 w-full">Issue Credit</Button>
-
-            <Button className="bg-red-600 hover:bg-red-700 w-full">
-              Deduct from Operator Payout
-            </Button>
           </div>
-        </div>
+        )}
       </SheetContent>
     </Sheet>
   );

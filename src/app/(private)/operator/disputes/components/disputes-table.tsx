@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Search } from "lucide-react";
 
 import type { DisputeManagementDispute } from "@/types/dispute-management";
+
+import { useGetDisputes } from "@/lib/actions/disputes/use-disputes";
 
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -13,16 +15,15 @@ import { Input } from "@/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 
 import DisputeResponseSheet from "./dispute-response-sheet";
-import { fetchDisputes } from "./disputes-api";
 
 const PAGE_SIZE = 10;
 
 function getStatusVariant(status: DisputeManagementDispute["status"]) {
-  if (status === "resolved") {
+  if (status === "RESOLVED" || status === "REFUNDED") {
     return "default";
   }
 
-  if (status === "open") {
+  if (status === "PENDING") {
     return "secondary";
   }
 
@@ -33,12 +34,24 @@ export default function DisputesTable() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [rows, setRows] = useState<DisputeManagementDispute[]>([]);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedDispute, setSelectedDispute] = useState<DisputeManagementDispute | null>(null);
   const [responseSheetOpen, setResponseSheetOpen] = useState(false);
+
+  const queryParams = useMemo(
+    () => ({
+      page,
+      pageSize: PAGE_SIZE,
+      search: debouncedSearch,
+      filters: {}
+    }),
+    [page, debouncedSearch]
+  );
+
+  const { data: disputesResponse, isLoading } = useGetDisputes(queryParams, "operator");
+
+  const rows = disputesResponse?.items ?? [];
+  const total = disputesResponse?.total ?? 0;
+  const totalPages = disputesResponse?.totalPages ?? 1;
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -48,35 +61,6 @@ export default function DisputesTable() {
 
     return () => clearTimeout(timeout);
   }, [search]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadDisputes() {
-      setIsLoading(true);
-      const response = await fetchDisputes({
-        page,
-        pageSize: PAGE_SIZE,
-        search: debouncedSearch,
-        filters: {}
-      });
-
-      if (!isMounted) {
-        return;
-      }
-
-      setRows(response.items);
-      setTotal(response.total);
-      setTotalPages(response.totalPages);
-      setIsLoading(false);
-    }
-
-    loadDisputes();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [page, debouncedSearch]);
 
   const handleViewDispute = (dispute: DisputeManagementDispute) => {
     setSelectedDispute(dispute);
@@ -99,7 +83,7 @@ export default function DisputesTable() {
           <div className="relative">
             <Search className="left-3 top-2.5 h-4 w-4 text-muted-foreground absolute" />
             <Input
-              placeholder="Search by Order ID, customer name, or description..."
+              placeholder="Search by Order ID, customer name, or operator name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10"
@@ -131,9 +115,7 @@ export default function DisputesTable() {
                       <TableCell className="font-medium">{dispute.orderId}</TableCell>
                       <TableCell>{dispute.customerName}</TableCell>
                       <TableCell>
-                        <Badge variant={getStatusVariant(dispute.status)} className="capitalize">
-                          {dispute.status}
-                        </Badge>
+                        <Badge variant={getStatusVariant(dispute.status)}>{dispute.status}</Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {new Date(dispute.createdAt).toLocaleDateString()}
@@ -210,9 +192,6 @@ export default function DisputesTable() {
         open={responseSheetOpen}
         onOpenChange={handleResponseSheetClose}
         dispute={selectedDispute}
-        onRefresh={() => {
-          setPage(1);
-        }}
       />
     </>
   );
