@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import {
+  BadgeDollarSign,
   Bell,
   Briefcase,
   CircleDollarSign,
@@ -90,6 +91,11 @@ const data = {
           title: "Membership",
           url: "/operator/membership",
           icon: Users
+        },
+        {
+          title: "Ads",
+          url: "/operator/ads",
+          icon: BadgeDollarSign
         },
         {
           title: "Notifications",
