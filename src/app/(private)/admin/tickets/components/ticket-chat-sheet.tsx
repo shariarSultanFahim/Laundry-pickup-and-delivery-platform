@@ -7,6 +7,7 @@ import { Send } from "lucide-react";
 
 import type { ChatMessage, SupportTicket } from "@/types/ticket-management";
 
+import { useTicketUnreadIndicators } from "@/lib/actions/tickets/ticket-message-indicators";
 import { useInfiniteChatMessages } from "@/lib/actions/tickets/use-chat-messages";
 import { useGetMe } from "@/lib/actions/user/use-get-me";
 
@@ -35,9 +36,11 @@ export default function TicketChatSheet({ open, onOpenChange, ticket }: TicketCh
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const topObserverRef = useRef<HTMLDivElement>(null);
   const hasAutoScrolledOnOpenRef = useRef(false);
+  const previousMessageCountRef = useRef(0);
   const { data: user } = useGetMe();
   const adminId = user?.data?.id;
   const chatRoom = ticket?.chatRooms[0];
+  const { markRoomAsRead, setActiveRoom } = useTicketUnreadIndicators();
 
   const {
     data: messagesData,
@@ -66,20 +69,44 @@ export default function TicketChatSheet({ open, onOpenChange, ticket }: TicketCh
   }, []);
 
   useEffect(() => {
-    if (!open) {
+    if (!chatRoom || !open) {
+      setActiveRoom(null);
       hasAutoScrolledOnOpenRef.current = false;
+      previousMessageCountRef.current = 0;
       return;
     }
 
-    if (hasAutoScrolledOnOpenRef.current || isLoading || allMessages.length === 0) {
+    setActiveRoom(chatRoom.id);
+    markRoomAsRead(chatRoom.id);
+    previousMessageCountRef.current = 0;
+    hasAutoScrolledOnOpenRef.current = false;
+
+    void queryClient.invalidateQueries({ queryKey: ["chat-messages", chatRoom.id] });
+  }, [chatRoom?.id, markRoomAsRead, open, queryClient, setActiveRoom]);
+
+  useEffect(() => {
+    if (!open || !chatRoom || isLoading || allMessages.length === 0) {
       return;
     }
 
-    requestAnimationFrame(() => {
-      scrollToBottom();
-      hasAutoScrolledOnOpenRef.current = true;
-    });
-  }, [open, isLoading, allMessages.length, scrollToBottom]);
+    const previousMessageCount = previousMessageCountRef.current;
+    previousMessageCountRef.current = allMessages.length;
+
+    if (!hasAutoScrolledOnOpenRef.current) {
+      requestAnimationFrame(() => {
+        scrollToBottom();
+        hasAutoScrolledOnOpenRef.current = true;
+      });
+
+      return;
+    }
+
+    if (allMessages.length > previousMessageCount && !isFetchingNextPage) {
+      requestAnimationFrame(() => {
+        scrollToBottom();
+      });
+    }
+  }, [allMessages.length, chatRoom, isFetchingNextPage, isLoading, open, scrollToBottom]);
 
   // Handle infinite scroll (load older messages when reaching top)
   useEffect(() => {
@@ -99,29 +126,12 @@ export default function TicketChatSheet({ open, onOpenChange, ticket }: TicketCh
     return () => observer.disconnect();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  // Socket event handling
+  // Keep the room joined while the sheet is open so live updates continue to flow.
   useEffect(() => {
     if (!socket || !chatRoom || !open) return;
 
-    // Join the room
     socket.emit("join-room", chatRoom.id);
-
-    // Listen for new incoming messages
-    const handleNewMessage = () => {
-      // Refetch messages to keep in sync with server
-      void queryClient.invalidateQueries({ queryKey: ["chat-messages", chatRoom.id] }).then(() => {
-        requestAnimationFrame(() => {
-          scrollToBottom();
-        });
-      });
-    };
-
-    socket.on("new-message", handleNewMessage);
-
-    return () => {
-      socket.off("new-message", handleNewMessage);
-    };
-  }, [socket, chatRoom, open, queryClient, scrollToBottom]);
+  }, [socket, chatRoom, open]);
 
   const handleSendMessage = useCallback(() => {
     if (!message.trim() || isSending || !socket || !chatRoom) return;

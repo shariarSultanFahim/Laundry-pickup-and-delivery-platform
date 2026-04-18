@@ -9,6 +9,7 @@ import {
   Bell,
   ChartArea,
   ChartBarStacked,
+  CircleAlert,
   CreditCard,
   Flag,
   FolderKanban,
@@ -26,6 +27,7 @@ import {
 } from "lucide-react";
 
 import { useUnreadNotificationsIndicator } from "@/lib/actions/notifications/use-unread-notifications-indicator";
+import { useTicketUnreadIndicators } from "@/lib/actions/tickets/ticket-message-indicators";
 import { useGetMe } from "@/lib/actions/user/use-get-me";
 
 import { useLogout } from "@/hooks/use-logout";
@@ -89,11 +91,6 @@ const data = {
           url: "/admin/tickets",
           icon: Ticket
         },
-        // {
-        //   title: "Security",
-        //   url: "/admin/security",
-        //   icon: UserLock
-        // },
         {
           title: "Operator Management",
           url: "/admin/operators",
@@ -149,6 +146,7 @@ export function AdminAppSidebar({ ...props }: React.ComponentProps<typeof Sideba
   const { logout } = useLogout();
   const { data: user } = useGetMe();
   const { hasUnread } = useUnreadNotificationsIndicator();
+  const { hasUnread: hasUnreadTickets } = useTicketUnreadIndicators();
 
   const isItemActive = (itemUrl: string) => {
     if (itemUrl === "/admin") {
@@ -182,7 +180,6 @@ export function AdminAppSidebar({ ...props }: React.ComponentProps<typeof Sideba
       <SidebarContent>
         {data.navMain.map((group) => (
           <SidebarGroup key={group.title}>
-            {/* <SidebarGroupLabel>{group.title}</SidebarGroupLabel> */}
             <SidebarGroupContent>
               <SidebarMenu>
                 {group.items.map((item) => (
@@ -192,6 +189,12 @@ export function AdminAppSidebar({ ...props }: React.ComponentProps<typeof Sideba
                         <item.icon />
                         <span className="gap-2 inline-flex items-center">
                           {item.title}
+                          {item.url === "/admin/tickets" && hasUnreadTickets ? (
+                            <CircleAlert
+                              className="size-4 text-rose-500"
+                              aria-label="Unread ticket messages"
+                            />
+                          ) : null}
                           {item.url === "/admin/notifications" && hasUnread ? (
                             <span
                               className="h-2.5 w-2.5 bg-red-500 rounded-full"

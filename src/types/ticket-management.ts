@@ -24,6 +24,16 @@ export interface ChatMessage {
   senderOperator?: SenderUser | null;
 }
 
+export type TicketChatMessageEvent =
+  | ChatMessage
+  | {
+      roomId?: string;
+      chatRoomId?: string;
+      message?: ChatMessage;
+      data?: ChatMessage;
+    }
+  | undefined;
+
 // ─── User Type (embedded in ticket) ───────────────────────────────────────────
 export interface TicketUser {
   id: string;

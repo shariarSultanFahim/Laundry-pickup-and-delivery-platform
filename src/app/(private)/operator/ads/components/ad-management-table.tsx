@@ -13,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
   Skeleton,
-  Switch,
   Table,
   TableBody,
   TableCell,
@@ -42,7 +41,6 @@ export default function AdManagementTable({
   page,
   totalPage,
   setPage,
-  onToggleStatus,
   onDelete
 }: AdManagementTableProps) {
   return (
@@ -56,7 +54,7 @@ export default function AdManagementTable({
             <TableHeader>
               <TableRow>
                 <TableHead>Promotion</TableHead>
-                <TableHead>Store</TableHead>
+                {/* <TableHead>Store</TableHead> */}
                 <TableHead>Rating</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -88,7 +86,7 @@ export default function AdManagementTable({
                         <p className="text-xs text-muted-foreground">ID: {ad.id.slice(0, 8)}</p>
                       </div>
                     </TableCell>
-                    <TableCell>{ad.store?.name ?? "Unknown store"}</TableCell>
+                    {/* <TableCell>{ad.storeService?.service.name ?? "Unknown store"}</TableCell> */}
                     <TableCell>
                       {Number(ad.avgRating ?? 0).toFixed(1)} ({ad.totalReviewCount ?? 0})
                     </TableCell>
@@ -97,11 +95,11 @@ export default function AdManagementTable({
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="gap-2 flex items-center justify-end">
-                        <Switch
+                        {/* <Switch
                           checked={ad.status === "ACTIVE"}
                           onCheckedChange={() => onToggleStatus(ad)}
                           aria-label="Toggle ad status"
-                        />
+                        /> */}
                         <Button variant="ghost" size="icon" onClick={() => onDelete(ad.id)}>
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>

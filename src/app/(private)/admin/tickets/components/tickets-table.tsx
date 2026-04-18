@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from "react";
 
-import { Filter, Search, User } from "lucide-react";
+import { CircleAlert, Filter, Search, User } from "lucide-react";
 
 import type { SupportTicket, SupportTicketStatus } from "@/types/ticket-management";
 
 import { useGetTickets } from "@/lib/actions/tickets/get-tickets";
+import { useTicketUnreadIndicators } from "@/lib/actions/tickets/ticket-message-indicators";
 import { useUpdateTicketStatus } from "@/lib/actions/tickets/update-ticket-status";
 
 import { Badge } from "@/ui/badge";
@@ -49,6 +50,7 @@ export default function TicketsTable() {
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
   const { mutate: updateStatus } = useUpdateTicketStatus();
+  const { hasUnreadForRoom } = useTicketUnreadIndicators();
 
   const { data, isLoading, isError } = useGetTickets({
     page,
@@ -127,62 +129,75 @@ export default function TicketsTable() {
             No tickets found.
           </div>
         ) : (
-          rows.map((ticket) => (
-            <Card
-              key={ticket.id}
-              className="hover:bg-muted/50 p-0 cursor-pointer transition-colors"
-              onClick={() => {
-                setSelectedTicket(ticket);
-                setChatSheetOpen(true);
-              }}
-            >
-              <CardContent className="p-4">
-                <div className="gap-4 flex items-start justify-between">
-                  <div className="space-y-2 flex-1">
-                    <div className="gap-2 flex items-center">
-                      <span className="font-semibold text-sm">#{ticket.ticketNumber}</span>
-                      <Badge variant={getStatusBadgeVariant(ticket.status)} className="text-xs">
-                        {getStatusLabel(ticket.status)}
-                      </Badge>
-                    </div>
+          rows.map((ticket) => {
+            const chatRoomId = ticket.chatRooms[0]?.id;
+            const hasUnreadMessage = hasUnreadForRoom(chatRoomId);
 
-                    <h3 className="font-semibold text-foreground">{ticket.subject}</h3>
-                    <p className="text-muted-foreground text-sm line-clamp-1">
-                      {ticket.description}
-                    </p>
-
-                    <div className="gap-2 text-muted-foreground text-xs flex items-center">
-                      <div className="gap-1 flex items-center">
-                        <User className="h-3 w-3" />
-                        <span>{ticket.user.name}</span>
+            return (
+              <Card
+                key={ticket.id}
+                className="hover:bg-muted/50 p-0 cursor-pointer transition-colors"
+                onClick={() => {
+                  setSelectedTicket(ticket);
+                  setChatSheetOpen(true);
+                }}
+              >
+                <CardContent className="p-4">
+                  <div className="gap-4 flex items-start justify-between">
+                    <div className="space-y-2 flex-1">
+                      <div className="gap-2 flex items-center">
+                        <span className="font-semibold text-sm">#{ticket.ticketNumber}</span>
+                        <Badge variant={getStatusBadgeVariant(ticket.status)} className="text-xs">
+                          {getStatusLabel(ticket.status)}
+                        </Badge>
                       </div>
-                      <span>•</span>
-                      <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
+
+                      <h3 className="gap-1 font-semibold text-foreground inline-flex items-center">
+                        <span>{ticket.subject}</span>
+                        {hasUnreadMessage ? (
+                          <CircleAlert
+                            className="size-4 text-rose-500"
+                            aria-label="Unread message"
+                          />
+                        ) : null}
+                      </h3>
+                      <p className="text-muted-foreground text-sm line-clamp-1">
+                        {ticket.description}
+                      </p>
+
+                      <div className="gap-2 text-muted-foreground text-xs flex items-center">
+                        <div className="gap-1 flex items-center">
+                          <User className="h-3 w-3" />
+                          <span>{ticket.user.name}</span>
+                        </div>
+                        <span>•</span>
+                        <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+
+                    <div className="gap-3 flex items-center" onClick={(e) => e.stopPropagation()}>
+                      <Select
+                        value={ticket.status}
+                        onValueChange={(value) => {
+                          handleStatusChange(ticket.id, value as SupportTicketStatus);
+                        }}
+                      >
+                        <SelectTrigger className="w-44">
+                          <SelectValue placeholder="Change status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="OPEN">Open</SelectItem>
+                          <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                          <SelectItem value="RESOLVED">Resolved</SelectItem>
+                          <SelectItem value="CLOSED">Closed</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
-
-                  <div className="gap-3 flex items-center" onClick={(e) => e.stopPropagation()}>
-                    <Select
-                      value={ticket.status}
-                      onValueChange={(value) => {
-                        handleStatusChange(ticket.id, value as SupportTicketStatus);
-                      }}
-                    >
-                      <SelectTrigger className="w-44">
-                        <SelectValue placeholder="Change status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="OPEN">Open</SelectItem>
-                        <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                        <SelectItem value="RESOLVED">Resolved</SelectItem>
-                        <SelectItem value="CLOSED">Closed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            );
+          })
         )}
 
         {rows.length > 0 && (

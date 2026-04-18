@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useContext, useEffect } from "react";
+import { createContext, ReactNode, useContext } from "react";
 
 import { Socket } from "socket.io-client";
 
@@ -13,22 +13,6 @@ interface SocketContextType {
 const SocketContext = createContext<SocketContextType>({ socket: null });
 
 export function SocketProvider({ children }: { children: ReactNode }) {
-  useEffect(() => {
-    const socket = getSocket();
-
-    socket.on("connect", () => {
-      console.log("Socket connected:", socket.id);
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Socket disconnected");
-    });
-
-    return () => {
-      // Keep socket alive for reconnection
-    };
-  }, []);
-
   return (
     <SocketContext.Provider value={{ socket: getSocket() }}>{children}</SocketContext.Provider>
   );
