@@ -1,3 +1,5 @@
+import { PaginationMeta } from "./ticket-management";
+
 export interface Operator {
   id: string;
   name: string;

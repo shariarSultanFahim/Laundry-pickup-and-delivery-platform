@@ -14,12 +14,6 @@ import {
   type ChartConfig
 } from "@/components/ui/chart";
 
-import { OrdersData } from "../../admin/(dashboard)/data/dashboard";
-
-interface OrdersChartProps {
-  data: OrdersData[];
-}
-
 const chartConfig = {
   orders: {
     label: "Orders",
@@ -27,7 +21,7 @@ const chartConfig = {
   }
 } satisfies ChartConfig;
 
-export default function OrdersChart({ data }: OrdersChartProps) {
+export default function OrdersChart({ data }: { data: { day: string; orders: number }[] }) {
   const [period] = useState("weekly");
 
   return (
@@ -67,7 +61,7 @@ export default function OrdersChart({ data }: OrdersChartProps) {
               fillOpacity={0.4}
               stroke="var(--color-orders)"
               strokeWidth={2}
-              dot={({ cx, cy, index }: any) => (
+              dot={({ cx, cy, index }: { cx: number; cy: number; index: number }) => (
                 <Dot
                   key={`dot-${index}`}
                   cx={cx}

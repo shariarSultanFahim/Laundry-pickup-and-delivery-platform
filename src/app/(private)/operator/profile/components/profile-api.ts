@@ -15,14 +15,11 @@ export async function updateProfileInformation(data: ProfileInformationFormData)
     formData.append("email", data.email);
     formData.append("phoneNumber", data.phoneNumber);
     formData.append("jobTitle", data.jobTitle);
-    formData.append("avatarUrl", data.avatarUrl);
+    // formData.append("avatarUrl", data.avatarUrl);
 
     if (data.avatarFile) {
       formData.append("avatar", data.avatarFile);
     }
-
-    // TODO: Implement actual API call to update profile information
-    // await post("/profile/information", formData);
 
     console.log("Profile information updated:", {
       fullName: data.fullName,

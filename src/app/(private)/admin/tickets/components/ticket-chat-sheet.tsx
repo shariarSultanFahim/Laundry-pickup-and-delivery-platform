@@ -82,7 +82,7 @@ export default function TicketChatSheet({ open, onOpenChange, ticket }: TicketCh
     hasAutoScrolledOnOpenRef.current = false;
 
     void queryClient.invalidateQueries({ queryKey: ["chat-messages", chatRoom.id] });
-  }, [chatRoom?.id, markRoomAsRead, open, queryClient, setActiveRoom]);
+  }, [chatRoom?.id, markRoomAsRead, open, queryClient, setActiveRoom, chatRoom]);
 
   useEffect(() => {
     if (!open || !chatRoom || isLoading || allMessages.length === 0) {

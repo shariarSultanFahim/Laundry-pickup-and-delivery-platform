@@ -64,6 +64,10 @@ export default function DisputeResponseSheet({
   }
 
   async function handleRespond(action: "ESCALATE" | "REFUND") {
+    if (!dispute) {
+      return;
+    }
+
     if (action === "ESCALATE" && !responseNote.trim()) {
       toast.error("Escalation reason is required");
       return;

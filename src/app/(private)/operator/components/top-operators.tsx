@@ -1,13 +1,11 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { TopOperatorData } from "../../admin/(dashboard)/data/dashboard";
-
-interface TopOperatorsProps {
-  data: TopOperatorData[];
-}
-
-export default function TopOperators({ data }: TopOperatorsProps) {
+export default function TopOperators({
+  data
+}: {
+  data: { name: string; avatar: string; successRate: string }[];
+}) {
   const getInitials = (name: string) => {
     return name
       .split(" ")
