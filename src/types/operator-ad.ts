@@ -22,9 +22,22 @@ export interface AdSubscriptionPlan {
   id: string;
   name: string;
   price: number;
-  durationDays: number;
+  durationDays?: number;
+  durationMonth?: number;
   description?: string;
   isActive?: boolean;
+}
+
+export interface CreateAdSubscriptionPlanPayload {
+  name: string;
+  price: number;
+  durationMonth: number;
+}
+
+export interface CreateAdSubscriptionPlanResponse {
+  success: boolean;
+  message?: string;
+  data: AdSubscriptionPlan;
 }
 
 export interface AdSubscriptionCheckoutSessionPayload {

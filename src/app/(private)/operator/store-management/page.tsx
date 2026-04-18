@@ -1,24 +1,20 @@
 "use client";
 
-import { Plus } from "lucide-react";
 import { useState } from "react";
+
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
-import {
-  Button,
-  Card,
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger
-} from "@/ui";
-import { useGetOperatorMe } from "@/lib/actions/user/get.operator-me";
+import { Store } from "@/types/store";
+
 import { useGetMyStores } from "@/lib/actions/store/get.my-stores";
 import { useUpdateStore } from "@/lib/actions/store/update.store";
-import { Store } from "@/types/store";
-import StoresTable from "./components/stores-table";
+import { useGetOperatorMe } from "@/lib/actions/user/get.operator-me";
+
+import { Button, Card, Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/ui";
+
 import AddStoreForm from "./components/add-store-form";
+import StoresTable from "./components/stores-table";
 
 export default function StoreManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -51,6 +47,7 @@ export default function StoreManagementPage() {
         payload: { isActive: !store.isActive }
       });
       toast.success(`Store status updated to ${!store.isActive ? "Active" : "Inactive"}`);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       toast.error(error.message || "Failed to update store status");
     }
@@ -73,7 +70,7 @@ export default function StoreManagementPage() {
     <div className="space-y-6">
       <div className="flex justify-end">
         <Sheet open={isSheetOpen} onOpenChange={handleSheetOpenChange}>
-          <Card className="p-6 gap-2 w-full flex-row items-center justify-between flex">
+          <Card className="p-6 gap-2 flex w-full flex-row items-center justify-between">
             <div className="gap-2 flex flex-col items-start justify-center">
               <h1 className="text-2xl font-bold">Store Management</h1>
               <p className="text-sm text-muted-foreground">Manage your laundry outlets</p>

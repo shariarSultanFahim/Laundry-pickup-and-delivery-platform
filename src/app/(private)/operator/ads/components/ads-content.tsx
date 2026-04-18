@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { isAxiosError } from "axios";
 import { toast } from "sonner";
 
 import type { OperatorAd } from "@/types/operator-ad";
@@ -40,6 +41,10 @@ import AdSubscriptionsTable from "./ad-subscriptions-table";
 import PromotionForm from "./promotion-form";
 
 const LIST_LIMIT = 10;
+
+interface ApiErrorResponse {
+  message?: string;
+}
 
 const getListPayload = <T,>(response?: {
   data?:
@@ -157,8 +162,14 @@ export default function AdsContent() {
       }
 
       toast.success("Ad created successfully.", { position: "top-center" });
-    } catch (error) {
-      toast.error((error as Error).message || "Failed to create ad.", {
+    } catch (error: unknown) {
+      const errorMessage = isAxiosError<ApiErrorResponse>(error)
+        ? (error.response?.data?.message ?? error.message)
+        : error instanceof Error
+          ? error.message
+          : "Failed to create ad.";
+
+      toast.error(errorMessage, {
         position: "top-center"
       });
     }

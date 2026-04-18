@@ -15,12 +15,12 @@ import { Button, Card, CardContent, CardHeader, CardTitle } from "@/ui";
 export default function StripeConnectSection() {
   const { data: operatorData, isLoading: isLoadingOperator } = useGetOperatorMe();
   const { mutateAsync: setupStripeConnect, isPending: isSettingUp } = useSetupStripeConnect();
-  const { mutateAsync: verifyOnboarding, isPending: isVerifying } = useVerifyStripeOnboarding();
+  const { mutateAsync: verifyOnboarding } = useVerifyStripeOnboarding();
 
   const operatorProfile = operatorData?.data?.operatorProfile;
   const operatorId = operatorProfile?.id;
   const stripeConnected = operatorProfile?.stripeAccountId;
-  const onboardingComplete = operatorProfile?.stripeAccountStatus === "ACTIVE";
+  const onboardingComplete = operatorProfile?.stripeAccountStatus;
 
   // Auto-verify on page load if user just returned from Stripe
   useEffect(() => {
@@ -70,23 +70,23 @@ export default function StripeConnectSection() {
     }
   }
 
-  async function handleVerifyOnboarding() {
-    if (!operatorId) {
-      toast.error("Unable to get operator ID", { position: "top-center" });
-      return;
-    }
+  // async function handleVerifyOnboarding() {
+  //   if (!operatorId) {
+  //     toast.error("Unable to get operator ID", { position: "top-center" });
+  //     return;
+  //   }
 
-    try {
-      await verifyOnboarding(operatorId);
-      toast.success("Stripe account verified successfully!", {
-        position: "top-center"
-      });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to verify Stripe account", {
-        position: "top-center"
-      });
-    }
-  }
+  //   try {
+  //     await verifyOnboarding(operatorId);
+  //     toast.success("Stripe account verified successfully!", {
+  //       position: "top-center"
+  //     });
+  //   } catch (error) {
+  //     toast.error(error instanceof Error ? error.message : "Failed to verify Stripe account", {
+  //       position: "top-center"
+  //     });
+  //   }
+  // }
 
   if (isLoadingOperator) {
     return (
@@ -99,7 +99,7 @@ export default function StripeConnectSection() {
   }
 
   // Stripe already connected and complete
-  if (onboardingComplete && stripeConnected) {
+  if (onboardingComplete === "ACTIVE" && stripeConnected) {
     return (
       <Card className="border-green-200 bg-green-50">
         <CardHeader>
@@ -121,41 +121,21 @@ export default function StripeConnectSection() {
             <p className="text-sm text-muted-foreground">
               <strong>Stripe Account ID:</strong> {stripeConnected.slice(0, 20)}...
             </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Stripe onboarding in progress
-  if (stripeConnected && !onboardingComplete) {
-    return (
-      <Card className="border-orange-200 bg-orange-50">
-        <CardHeader>
-          <div className="gap-2 flex items-center">
-            <CreditCard className="h-5 w-5" />
-            <CardTitle>Stripe Connect - Onboarding In Progress</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Alert className="border-orange-300 bg-white">
-            <AlertCircle className="h-4 w-4 text-orange-600" />
-            <AlertTitle>Complete Your Stripe Setup</AlertTitle>
-            <AlertDescription>
-              Your Stripe onboarding is not yet complete. Please complete the onboarding process to
-              start receiving payouts.
-            </AlertDescription>
-          </Alert>
-
-          <div className="gap-3 flex">
-            <Button onClick={handleVerifyOnboarding} disabled={isVerifying} className="gap-2">
-              {isVerifying ? (
+            <Button
+              onClick={handleConnectStripe}
+              disabled={isSettingUp}
+              className="gap-2 sm:w-auto w-full"
+            >
+              {isSettingUp ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Checking Status...
+                  Setting Up...
                 </>
               ) : (
-                "Check Onboarding Status"
+                <>
+                  <CreditCard className="h-4 w-4" />
+                  Update Stripe Account
+                </>
               )}
             </Button>
           </div>
@@ -163,6 +143,43 @@ export default function StripeConnectSection() {
       </Card>
     );
   }
+
+  // Stripe onboarding in progress
+  // if (onboardingComplete === "ONBOARDING") {
+  //   return (
+  //     <Card className="border-orange-200 bg-orange-50">
+  //       <CardHeader>
+  //         <div className="gap-2 flex items-center">
+  //           <CreditCard className="h-5 w-5" />
+  //           <CardTitle>Stripe Connect - Onboarding In Progress</CardTitle>
+  //         </div>
+  //       </CardHeader>
+  //       <CardContent className="space-y-4">
+  //         <Alert className="border-orange-300 bg-white">
+  //           <AlertCircle className="h-4 w-4 text-orange-600" />
+  //           <AlertTitle>Complete Your Stripe Setup</AlertTitle>
+  //           <AlertDescription>
+  //             Your Stripe onboarding is not yet complete. Please complete the onboarding process to
+  //             start receiving payouts.
+  //           </AlertDescription>
+  //         </Alert>
+
+  //         <div className="gap-3 flex">
+  //           <Button onClick={handleVerifyOnboarding} disabled={isVerifying} className="gap-2">
+  //             {isVerifying ? (
+  //               <>
+  //                 <Loader2 className="h-4 w-4 animate-spin" />
+  //                 Checking Status...
+  //               </>
+  //             ) : (
+  //               "Check Onboarding Status"
+  //             )}
+  //           </Button>
+  //         </div>
+  //       </CardContent>
+  //     </Card>
+  //   );
+  // }
 
   // No Stripe account - need to setup
   return (

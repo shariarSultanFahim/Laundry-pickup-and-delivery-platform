@@ -1,10 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import dynamic from "next/dynamic";
+
 import { ImagePlus, Loader2, X } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { isAxiosError } from "axios";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+
+import { Store } from "@/types/store";
+
+import { useCreateStore } from "@/lib/actions/store/create.store";
+import { useUpdateStore } from "@/lib/actions/store/update.store";
 
 import {
   Button,
@@ -17,20 +25,25 @@ import {
   Input,
   Switch
 } from "@/ui";
+
 import { StoreFormData, storeSchema } from "../schema/store.schema";
-import { useCreateStore } from "@/lib/actions/store/create.store";
-import { useUpdateStore } from "@/lib/actions/store/update.store";
-import { Store } from "@/types/store";
-import dynamic from "next/dynamic";
 
 const DynamicMap = dynamic(() => import("@/components/map/LeafletMap"), {
   ssr: false,
-  loading: () => <div className="h-64 h-100 flex items-center justify-center border rounded-lg bg-muted/20 text-muted-foreground animate-pulse">Loading map...</div>
+  loading: () => (
+    <div className="h-64 h-100 rounded-lg bg-muted/20 text-muted-foreground animate-pulse flex items-center justify-center border">
+      Loading map...
+    </div>
+  )
 });
 
 interface AddStoreFormProps {
   onSuccess?: () => void;
   editingStore?: Store | null;
+}
+
+interface ApiErrorResponse {
+  message?: string;
 }
 
 export default function AddStoreForm({ onSuccess, editingStore }: AddStoreFormProps) {
@@ -72,6 +85,7 @@ export default function AddStoreForm({ onSuccess, editingStore }: AddStoreFormPr
         logo: null, // Reset images so we don't accidentally update them unless specifically selected
         banner: null
       });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLogoPreview(editingStore.logo);
       setBannerPreview(editingStore.banner);
     } else {
@@ -93,7 +107,10 @@ export default function AddStoreForm({ onSuccess, editingStore }: AddStoreFormPr
     }
   }, [editingStore, form]);
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>, onChange: (...event: any[]) => void) => {
+  const handleLogoChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    onChange: (...event: unknown[]) => void
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       onChange(file);
@@ -103,7 +120,10 @@ export default function AddStoreForm({ onSuccess, editingStore }: AddStoreFormPr
     }
   };
 
-  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>, onChange: (...event: any[]) => void) => {
+  const handleBannerChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    onChange: (...event: unknown[]) => void
+  ) => {
     const file = e.target.files?.[0];
     if (file) {
       onChange(file);
@@ -148,15 +168,19 @@ export default function AddStoreForm({ onSuccess, editingStore }: AddStoreFormPr
       setLogoPreview(null);
       setBannerPreview(null);
       onSuccess?.();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to save store");
+    } catch (error: unknown) {
+      const errorMessage = isAxiosError<ApiErrorResponse>(error)
+        ? (error.response?.data?.message ?? error.message)
+        : "Failed to save store";
+
+      toast.error(errorMessage);
     }
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="md:grid-cols-2 gap-4 grid grid-cols-1">
           <FormField
             control={form.control}
             name="logo"
@@ -166,13 +190,20 @@ export default function AddStoreForm({ onSuccess, editingStore }: AddStoreFormPr
                 <FormControl>
                   <div className="space-y-4">
                     {logoPreview ? (
-                      <div className="relative h-32 w-32 rounded-lg overflow-hidden border">
-                        <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
+                      <div className="h-32 w-32 rounded-lg relative overflow-hidden border">
+                        <img src={logoPreview} alt="Logo" className="h-full w-full object-cover" />
+                        {/* <Image
+                          src="/images/edit-overlay.png"
+                          alt="Edit"
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        /> */}
                         <Button
                           type="button"
                           variant="destructive"
                           size="icon"
-                          className="absolute top-2 right-2 h-6 w-6"
+                          className="top-2 right-2 h-6 w-6 absolute"
                           onClick={() => {
                             setLogoPreview(null);
                             field.onChange(null);
@@ -182,9 +213,9 @@ export default function AddStoreForm({ onSuccess, editingStore }: AddStoreFormPr
                         </Button>
                       </div>
                     ) : (
-                      <label className="flex flex-col items-center justify-center h-32 w-32 rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer">
+                      <label className="h-32 w-32 rounded-lg border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 flex cursor-pointer flex-col items-center justify-center border-2 border-dashed transition-all">
                         <ImagePlus className="h-6 w-6 text-muted-foreground mb-1" />
-                        <span className="text-[10px] font-medium text-center">Upload Logo</span>
+                        <span className="font-medium text-center text-[10px]">Upload Logo</span>
                         <Input
                           type="file"
                           accept="image/*"
@@ -209,13 +240,17 @@ export default function AddStoreForm({ onSuccess, editingStore }: AddStoreFormPr
                 <FormControl>
                   <div className="space-y-4">
                     {bannerPreview ? (
-                      <div className="relative aspect-video w-full rounded-lg overflow-hidden border">
-                        <img src={bannerPreview} alt="Banner" className="w-full h-full object-cover" />
+                      <div className="aspect-video rounded-lg relative w-full overflow-hidden border">
+                        <img
+                          src={bannerPreview}
+                          alt="Banner"
+                          className="h-full w-full object-cover"
+                        />
                         <Button
                           type="button"
                           variant="destructive"
                           size="icon"
-                          className="absolute top-2 right-2 h-6 w-6"
+                          className="top-2 right-2 h-6 w-6 absolute"
                           onClick={() => {
                             setBannerPreview(null);
                             field.onChange(null);
@@ -225,9 +260,9 @@ export default function AddStoreForm({ onSuccess, editingStore }: AddStoreFormPr
                         </Button>
                       </div>
                     ) : (
-                      <label className="flex flex-col items-center justify-center aspect-video w-full rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer">
+                      <label className="aspect-video rounded-lg border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 flex w-full cursor-pointer flex-col items-center justify-center border-2 border-dashed transition-all">
                         <ImagePlus className="h-6 w-6 text-muted-foreground mb-1" />
-                        <span className="text-[10px] font-medium text-center">Upload Banner</span>
+                        <span className="font-medium text-center text-[10px]">Upload Banner</span>
                         <Input
                           type="file"
                           accept="image/*"
@@ -272,7 +307,7 @@ export default function AddStoreForm({ onSuccess, editingStore }: AddStoreFormPr
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="gap-4 grid grid-cols-2">
           <FormField
             control={form.control}
             name="city"
@@ -301,7 +336,7 @@ export default function AddStoreForm({ onSuccess, editingStore }: AddStoreFormPr
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="gap-4 grid grid-cols-2">
           <FormField
             control={form.control}
             name="country"
@@ -332,7 +367,7 @@ export default function AddStoreForm({ onSuccess, editingStore }: AddStoreFormPr
 
         <div className="space-y-4">
           <FormLabel>Location</FormLabel>
-          <div className="flex gap-4">
+          <div className="gap-4 flex">
             <FormField
               control={form.control}
               name="lat"
@@ -340,7 +375,12 @@ export default function AddStoreForm({ onSuccess, editingStore }: AddStoreFormPr
                 <FormItem className="flex-1">
                   <FormLabel className="text-xs">Latitude</FormLabel>
                   <FormControl>
-                    <Input type="number" step="any" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                    <Input
+                      type="number"
+                      step="any"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -352,7 +392,12 @@ export default function AddStoreForm({ onSuccess, editingStore }: AddStoreFormPr
                 <FormItem className="flex-1">
                   <FormLabel className="text-xs">Longitude</FormLabel>
                   <FormControl>
-                    <Input type="number" step="any" {...field} onChange={e => field.onChange(Number(e.target.value))} />
+                    <Input
+                      type="number"
+                      step="any"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -370,7 +415,7 @@ export default function AddStoreForm({ onSuccess, editingStore }: AddStoreFormPr
           control={form.control}
           name="isActive"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm bg-muted/30">
+            <FormItem className="rounded-lg p-4 shadow-sm bg-muted/30 flex flex-row items-center justify-between border">
               <div className="space-y-0.5">
                 <FormLabel>Active Status</FormLabel>
                 <div className="text-xs text-muted-foreground">Is this store active?</div>
@@ -382,11 +427,7 @@ export default function AddStoreForm({ onSuccess, editingStore }: AddStoreFormPr
           )}
         />
 
-        <Button
-          type="submit"
-          className="w-full h-11"
-          disabled={isCreating || isUpdating}
-        >
+        <Button type="submit" className="h-11 w-full" disabled={isCreating || isUpdating}>
           {isCreating || isUpdating ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

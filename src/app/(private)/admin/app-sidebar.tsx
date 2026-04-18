@@ -10,6 +10,7 @@ import {
   ChartArea,
   ChartBarStacked,
   CircleAlert,
+  CircleDollarSign,
   CreditCard,
   Flag,
   FolderKanban,
@@ -85,6 +86,11 @@ const data = {
           title: "Service",
           url: "/admin/services",
           icon: ChartBarStacked
+        },
+        {
+          title: "Subscription Plans",
+          url: "/admin/subscription-plans",
+          icon: CircleDollarSign
         },
         {
           title: "Tickets",
