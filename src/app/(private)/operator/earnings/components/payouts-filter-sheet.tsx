@@ -47,14 +47,14 @@ export default function PayoutsFilterSheet({
 }: PayoutsFilterSheetProps) {
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
+  // const [selectedStatus, setSelectedStatus] = useState("");
 
   const handleApplyFilters = () => {
     const filters: PayoutFilters = {};
 
     if (selectedMonth) filters.month = Number(selectedMonth);
     if (selectedYear) filters.year = Number(selectedYear);
-    if (selectedStatus) filters.status = selectedStatus as "PAID" | "PENDING" | "FAILED";
+    // if (selectedStatus) filters.status = selectedStatus as "PAID" | "PENDING" | "FAILED";
 
     onApplyFilters(filters);
     onOpenChange(false);
@@ -63,7 +63,7 @@ export default function PayoutsFilterSheet({
   const handleClearFilters = () => {
     setSelectedMonth("");
     setSelectedYear("");
-    setSelectedStatus("");
+    // setSelectedStatus("");
     onClearFilters();
     onOpenChange(false);
   };
@@ -107,7 +107,7 @@ export default function PayoutsFilterSheet({
               </SelectContent>
             </Select>
           </div>
-
+          {/* 
           <div className="space-y-2">
             <label className="text-sm font-medium">Status</label>
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
@@ -120,7 +120,7 @@ export default function PayoutsFilterSheet({
                 <SelectItem value="FAILED">Failed</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
         </div>
 
         <div className="gap-2 pt-4 flex">

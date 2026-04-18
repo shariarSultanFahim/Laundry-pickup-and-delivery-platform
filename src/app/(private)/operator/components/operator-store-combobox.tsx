@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 
 import { useGetMyStores } from "@/lib/actions/store/get.my-stores";
@@ -65,6 +65,18 @@ export default function OperatorStoreCombobox({
   }, [mode, stores, value]);
 
   const canClear = mode === "none" && Boolean(resolvedValue);
+
+  useEffect(() => {
+    if (mode !== "first") {
+      return;
+    }
+
+    if (!resolvedValue || value === resolvedValue) {
+      return;
+    }
+
+    onValueChange(resolvedValue);
+  }, [mode, onValueChange, resolvedValue, value]);
 
   if (!isLoading && stores.length === 0) {
     return (

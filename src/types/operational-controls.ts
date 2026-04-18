@@ -1,12 +1,13 @@
 export interface OperationalControls {
+  id: string;
+  operatorId: string;
   pauseNewOrders: boolean;
-  acceptingOrders: boolean;
   dailyCapacityLimit: number;
-  blackoutDates: string[]; // ISO date strings
-  serviceRadius: number; // in km
+  blackoutDates: string[];
+  serviceRadius: number;
 }
 
-export interface UpdateOperationalControlsRequest {
+export interface UpdateOperationalSettingsRequest {
   pauseNewOrders?: boolean;
   dailyCapacityLimit?: number;
   blackoutDates?: string[];
@@ -15,6 +16,7 @@ export interface UpdateOperationalControlsRequest {
 
 export interface OperationalControlsResponse {
   success: boolean;
+  statusCode: number;
   message: string;
-  data?: OperationalControls;
+  data: OperationalControls;
 }

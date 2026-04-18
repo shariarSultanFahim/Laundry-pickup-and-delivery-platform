@@ -7,6 +7,9 @@ import { toast } from "sonner";
 
 import type { OperationalControls } from "@/types/operational-controls";
 
+import { useStoreOperationalSettings } from "@/lib/actions/store/use-store-operational-settings";
+import { useUpdateStoreOperationalSettings } from "@/lib/actions/store/use-update-store-operational-settings";
+
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
@@ -14,96 +17,78 @@ import { Input } from "@/ui/input";
 import { Slider } from "@/ui/slider";
 import { Switch } from "@/ui/switch";
 
-import {
-  addBlackoutDate,
-  fetchOperationalControls,
-  removeBlackoutDate,
-  updateDailyCapacityLimit,
-  updatePauseNewOrders,
-  updateServiceRadius
-} from "./operational-controls-api";
+interface OperationalControlsContentProps {
+  selectedStoreId?: string;
+}
 
-export default function OperationalControlsContent() {
-  const [controls, setControls] = useState<OperationalControls | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isUpdating, setIsUpdating] = useState(false);
+function toIsoBlackoutDate(dateValue: string) {
+  const parsedDate = dateValue.includes("T")
+    ? new Date(dateValue)
+    : new Date(`${dateValue}T00:00:00.000Z`);
 
-  // Pause Orders
-  const [pauseNewOrders, setPauseNewOrders] = useState(false);
-
-  // Daily Capacity
-  const [dailyCapacity, setDailyCapacity] = useState("25");
-  const [capacityError, setCapacityError] = useState("");
-
-  // Blackout Dates
-  const [blackoutDateInput, setBlackoutDateInput] = useState("");
-  const [blackoutDates, setBlackoutDates] = useState<string[]>([]);
-
-  // Service Radius
-  const [serviceRadius, setServiceRadius] = useState(5);
-
-  useEffect(() => {
-    loadControls();
-  }, []);
-
-  async function loadControls() {
-    try {
-      setIsLoading(true);
-      const response = await fetchOperationalControls();
-      if (response.success && response.data) {
-        setControls(response.data);
-        setPauseNewOrders(response.data.pauseNewOrders);
-        setDailyCapacity(response.data.dailyCapacityLimit.toString());
-        setBlackoutDates(response.data.blackoutDates);
-        setServiceRadius(response.data.serviceRadius);
-      }
-    } catch (error) {
-      console.error("Error loading operational controls:", error);
-      toast.error("Failed to load operational controls");
-    } finally {
-      setIsLoading(false);
-    }
+  if (Number.isNaN(parsedDate.getTime())) {
+    return dateValue;
   }
 
+  return parsedDate.toISOString();
+}
+
+function normalizeBlackoutDates(blackoutDates: string[]) {
+  return [...new Set(blackoutDates.map((date) => toIsoBlackoutDate(date)))].sort();
+}
+
+export default function OperationalControlsContent({
+  selectedStoreId
+}: OperationalControlsContentProps) {
+  const [pauseNewOrders, setPauseNewOrders] = useState<boolean | null>(null);
+  const [dailyCapacity, setDailyCapacity] = useState<string | null>(null);
+  const [capacityError, setCapacityError] = useState("");
+  const [blackoutDateInput, setBlackoutDateInput] = useState("");
+  const [blackoutDates, setBlackoutDates] = useState<string[] | null>(null);
+  const [serviceRadius, setServiceRadius] = useState<number | null>(null);
+
+  const { data, isLoading, isError } = useStoreOperationalSettings(selectedStoreId);
+  const { mutateAsync: updateSettings, isPending: isUpdating } = useUpdateStoreOperationalSettings({
+    storeId: selectedStoreId
+  });
+
+  const controls: OperationalControls | null = data?.data ?? null;
+  const resolvedPauseNewOrders = pauseNewOrders ?? controls?.pauseNewOrders ?? false;
+  const resolvedDailyCapacity = dailyCapacity ?? controls?.dailyCapacityLimit.toString() ?? "25";
+  const resolvedBlackoutDates =
+    blackoutDates ?? normalizeBlackoutDates(controls?.blackoutDates ?? []);
+  const resolvedServiceRadius = serviceRadius ?? controls?.serviceRadius ?? 5;
+
+  useEffect(() => {
+    if (isError) {
+      toast.error("Failed to load operational settings");
+    }
+  }, [isError]);
+
   async function handleTogglePause() {
-    setIsUpdating(true);
     try {
-      const response = await updatePauseNewOrders(!pauseNewOrders);
-      if (response.success) {
-        setPauseNewOrders(!pauseNewOrders);
-        toast.success(response.message);
-      } else {
-        toast.error(response.message);
-      }
-    } catch (error) {
-      console.error("Error updating pause status:", error);
+      const response = await updateSettings({ pauseNewOrders: !resolvedPauseNewOrders });
+      setPauseNewOrders(response.data.pauseNewOrders);
+      toast.success(response.message);
+    } catch {
       toast.error("Failed to update pause status");
-    } finally {
-      setIsUpdating(false);
     }
   }
 
   async function handleUpdateCapacity() {
-    const capacity = parseInt(dailyCapacity);
+    const capacity = parseInt(resolvedDailyCapacity);
     if (isNaN(capacity) || capacity < 1) {
       setCapacityError("Please enter a valid number greater than 0");
       return;
     }
 
     setCapacityError("");
-    setIsUpdating(true);
     try {
-      const response = await updateDailyCapacityLimit(capacity);
-      if (response.success) {
-        toast.success(response.message);
-      } else {
-        toast.error(response.message);
-      }
-    } catch (error) {
-      console.error("Error updating capacity:", error);
+      const response = await updateSettings({ dailyCapacityLimit: capacity });
+      setDailyCapacity(response.data.dailyCapacityLimit.toString());
+      toast.success(response.message);
+    } catch {
       toast.error("Failed to update capacity limit");
-    } finally {
-      setIsUpdating(false);
     }
   }
 
@@ -113,63 +98,58 @@ export default function OperationalControlsContent() {
       return;
     }
 
-    setIsUpdating(true);
     try {
-      const response = await addBlackoutDate(blackoutDateInput);
-      if (response.success && response.data) {
-        setBlackoutDates(response.data.blackoutDates);
-        setBlackoutDateInput("");
-        toast.success(response.message);
-      } else {
-        toast.error(response.message);
-      }
-    } catch (error) {
-      console.error("Error adding blackout date:", error);
+      const nextDates = normalizeBlackoutDates([...resolvedBlackoutDates, blackoutDateInput]);
+      const response = await updateSettings({ blackoutDates: nextDates });
+      setBlackoutDates(normalizeBlackoutDates(response.data.blackoutDates));
+      setBlackoutDateInput("");
+      toast.success(response.message);
+    } catch {
       toast.error("Failed to add blackout date");
-    } finally {
-      setIsUpdating(false);
     }
   }
 
   async function handleRemoveBlackoutDate(date: string) {
-    setIsUpdating(true);
     try {
-      const response = await removeBlackoutDate(date);
-      if (response.success && response.data) {
-        setBlackoutDates(response.data.blackoutDates);
-        toast.success(response.message);
-      } else {
-        toast.error(response.message);
-      }
-    } catch (error) {
-      console.error("Error removing blackout date:", error);
+      const nextDates = resolvedBlackoutDates.filter((d) => d !== date);
+      const response = await updateSettings({ blackoutDates: nextDates });
+      setBlackoutDates(normalizeBlackoutDates(response.data.blackoutDates));
+      toast.success(response.message);
+    } catch {
       toast.error("Failed to remove blackout date");
-    } finally {
-      setIsUpdating(false);
     }
   }
 
   async function handleUpdateServiceRadius() {
-    setIsUpdating(true);
     try {
-      const response = await updateServiceRadius(serviceRadius);
-      if (response.success) {
-        toast.success(response.message);
-      } else {
-        toast.error(response.message);
-      }
-    } catch (error) {
-      console.error("Error updating service radius:", error);
+      const response = await updateSettings({ serviceRadius: resolvedServiceRadius });
+      setServiceRadius(response.data.serviceRadius);
+      toast.success(response.message);
+    } catch {
       toast.error("Failed to update service radius");
-    } finally {
-      setIsUpdating(false);
     }
+  }
+
+  if (!selectedStoreId) {
+    return (
+      <div className="rounded-lg h-40 text-sm text-muted-foreground flex items-center justify-center border border-dashed">
+        Select a store to manage operational settings.
+      </div>
+    );
   }
 
   if (isLoading) {
     return (
       <div className="h-40 flex items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!controls && !isLoading) {
+    return (
+      <div className="rounded-lg h-40 text-sm text-muted-foreground flex items-center justify-center border border-dashed">
+        Operational settings are unavailable for this store.
       </div>
     );
   }
@@ -187,7 +167,7 @@ export default function OperationalControlsContent() {
               <div>
                 <CardTitle className="text-lg">Pause New Orders</CardTitle>
                 <CardDescription className="text-xs mt-1">
-                  {!pauseNewOrders ? (
+                  {!resolvedPauseNewOrders ? (
                     <span className="gap-1 text-green-600 flex items-center">
                       <span className="h-2 w-2 bg-green-600 rounded-full" />
                       Accepting orders
@@ -202,7 +182,7 @@ export default function OperationalControlsContent() {
               </div>
             </div>
             <Switch
-              checked={pauseNewOrders}
+              checked={resolvedPauseNewOrders}
               onCheckedChange={handleTogglePause}
               disabled={isUpdating}
             />
@@ -232,7 +212,7 @@ export default function OperationalControlsContent() {
         <CardContent className="space-y-4">
           <Input
             type="number"
-            value={dailyCapacity}
+            value={resolvedDailyCapacity}
             onChange={(e) => {
               setDailyCapacity(e.target.value);
               setCapacityError("");
@@ -288,9 +268,9 @@ export default function OperationalControlsContent() {
             </Button>
           </div>
 
-          {blackoutDates.length > 0 ? (
+          {resolvedBlackoutDates.length > 0 ? (
             <div className="space-y-2">
-              {blackoutDates.map((date) => (
+              {resolvedBlackoutDates.map((date) => (
                 <div key={date} className="bg-muted p-2 rounded flex items-center justify-between">
                   <span className="text-sm">
                     {new Date(date).toLocaleDateString("en-US", {
@@ -334,12 +314,12 @@ export default function OperationalControlsContent() {
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Coverage area</span>
               <Badge variant="outline" className="text-blue-600 border-blue-600">
-                {serviceRadius} km
+                {resolvedServiceRadius} km
               </Badge>
             </div>
 
             <Slider
-              value={[serviceRadius]}
+              value={[resolvedServiceRadius]}
               onValueChange={(value) => setServiceRadius(value[0])}
               min={1}
               max={20}
@@ -352,10 +332,6 @@ export default function OperationalControlsContent() {
               <span>1 km</span>
               <span>20 km</span>
             </div>
-          </div>
-
-          <div className="bg-muted p-3 rounded text-center">
-            <p className="text-xs text-muted-foreground">Service area preview</p>
           </div>
 
           <Button onClick={handleUpdateServiceRadius} disabled={isUpdating} className="w-full">

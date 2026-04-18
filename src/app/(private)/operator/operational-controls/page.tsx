@@ -5,7 +5,6 @@ import { useState } from "react";
 import { Card } from "@/components/ui";
 
 import OperatorStoreCombobox from "../components/operator-store-combobox";
-
 import OperationalControlsContent from "./components/operational-controls-content";
 
 export default function OperatorOperationalControlsPage() {
@@ -25,7 +24,10 @@ export default function OperatorOperationalControlsPage() {
         />
       </Card>
 
-      <OperationalControlsContent />
+      <OperationalControlsContent
+        key={selectedStoreId || "no-store"}
+        selectedStoreId={selectedStoreId || undefined}
+      />
     </div>
   );
 }
