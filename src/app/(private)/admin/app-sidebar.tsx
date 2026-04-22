@@ -9,7 +9,6 @@ import {
   Bell,
   ChartArea,
   ChartBarStacked,
-  CircleAlert,
   CircleDollarSign,
   CreditCard,
   Flag,
@@ -47,6 +46,7 @@ import {
   SidebarMenuItem,
   SidebarRail
 } from "@/components/ui/sidebar";
+import { Badge } from "@/ui/badge";
 
 const data = {
   info: {
@@ -152,7 +152,7 @@ export function AdminAppSidebar({ ...props }: React.ComponentProps<typeof Sideba
   const { logout } = useLogout();
   const { data: user } = useGetMe();
   const { hasUnread } = useUnreadNotificationsIndicator();
-  const { hasUnread: hasUnreadTickets } = useTicketUnreadIndicators();
+  const { totalUnreadCount: totalUnreadTickets } = useTicketUnreadIndicators();
 
   const isItemActive = (itemUrl: string) => {
     if (itemUrl === "/admin") {
@@ -195,11 +195,14 @@ export function AdminAppSidebar({ ...props }: React.ComponentProps<typeof Sideba
                         <item.icon />
                         <span className="gap-2 inline-flex items-center">
                           {item.title}
-                          {item.url === "/admin/tickets" && hasUnreadTickets ? (
-                            <CircleAlert
-                              className="size-4 text-rose-500"
-                              aria-label="Unread ticket messages"
-                            />
+                          {item.url === "/admin/tickets" && totalUnreadTickets > 0 ? (
+                            <Badge
+                              variant="destructive"
+                              className="h-5 min-w-5 px-1.5 font-semibold justify-center rounded-full text-[10px]"
+                              aria-label={`${totalUnreadTickets} unread ticket messages`}
+                            >
+                              {totalUnreadTickets > 99 ? "99+" : totalUnreadTickets}
+                            </Badge>
                           ) : null}
                           {item.url === "/admin/notifications" && hasUnread ? (
                             <span

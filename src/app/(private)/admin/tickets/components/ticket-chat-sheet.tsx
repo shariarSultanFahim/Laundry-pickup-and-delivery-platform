@@ -7,7 +7,10 @@ import { Send } from "lucide-react";
 
 import type { ChatMessage, SupportTicket } from "@/types/ticket-management";
 
-import { useTicketUnreadIndicators } from "@/lib/actions/tickets/ticket-message-indicators";
+import {
+  useMarkChatRoomAsRead,
+  useTicketUnreadIndicators
+} from "@/lib/actions/tickets/ticket-message-indicators";
 import { useInfiniteChatMessages } from "@/lib/actions/tickets/use-chat-messages";
 import { useGetMe } from "@/lib/actions/user/use-get-me";
 
@@ -40,7 +43,8 @@ export default function TicketChatSheet({ open, onOpenChange, ticket }: TicketCh
   const { data: user } = useGetMe();
   const adminId = user?.data?.id;
   const chatRoom = ticket?.chatRooms[0];
-  const { markRoomAsRead, setActiveRoom } = useTicketUnreadIndicators();
+  const { setActiveRoom } = useTicketUnreadIndicators();
+  const { mutateAsync: markChatRoomAsRead } = useMarkChatRoomAsRead();
 
   const {
     data: messagesData,
@@ -77,12 +81,12 @@ export default function TicketChatSheet({ open, onOpenChange, ticket }: TicketCh
     }
 
     setActiveRoom(chatRoom.id);
-    markRoomAsRead(chatRoom.id);
+    void markChatRoomAsRead(chatRoom.id);
     previousMessageCountRef.current = 0;
     hasAutoScrolledOnOpenRef.current = false;
 
     void queryClient.invalidateQueries({ queryKey: ["chat-messages", chatRoom.id] });
-  }, [chatRoom?.id, markRoomAsRead, open, queryClient, setActiveRoom, chatRoom]);
+  }, [chatRoom?.id, markChatRoomAsRead, open, queryClient, setActiveRoom, chatRoom]);
 
   useEffect(() => {
     if (!open || !chatRoom || isLoading || allMessages.length === 0) {

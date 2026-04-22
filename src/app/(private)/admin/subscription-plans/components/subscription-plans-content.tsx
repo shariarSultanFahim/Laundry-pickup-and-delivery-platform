@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isAxiosError } from "axios";
 import { useForm } from "react-hook-form";
@@ -13,9 +13,11 @@ import type { AdSubscriptionPlan } from "@/types/operator-ad";
 
 import {
   useCreateAdSubscriptionPlan,
+  useDeleteAdSubscriptionPlan,
   useGetAdSubscriptionPlans
 } from "@/lib/actions/operator/use-operator-ads";
 
+import DeleteConfirmationModal from "@/components/modals/delete-confirmation-modal";
 import {
   Button,
   Card,
@@ -51,6 +53,7 @@ const createPlanSchema = z.object({
 });
 
 type CreatePlanFormValues = z.infer<typeof createPlanSchema>;
+type CreatePlanFormInput = z.input<typeof createPlanSchema>;
 
 interface ApiErrorResponse {
   message?: string;
@@ -80,11 +83,14 @@ function getPlanDurationLabel(plan: AdSubscriptionPlan) {
 
 export default function SubscriptionPlansContent() {
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [planToDelete, setPlanToDelete] = useState<AdSubscriptionPlan | null>(null);
 
   const { data, isLoading, isError } = useGetAdSubscriptionPlans();
   const { mutateAsync: createPlan, isPending: isCreating } = useCreateAdSubscriptionPlan();
+  const { mutateAsync: deletePlan, isPending: isDeleting } = useDeleteAdSubscriptionPlan();
 
-  const form = useForm<CreatePlanFormValues>({
+  const form = useForm<CreatePlanFormInput, unknown, CreatePlanFormValues>({
     resolver: zodResolver(createPlanSchema),
     defaultValues: {
       name: "",
@@ -97,8 +103,10 @@ export default function SubscriptionPlansContent() {
 
   async function handleCreatePlan(values: CreatePlanFormValues) {
     try {
-      await createPlan(values);
-      toast.success("Subscription plan created successfully");
+      const response = await createPlan(values);
+      toast.success(response.message ?? "Subscription plan created successfully", {
+        position: "top-center"
+      });
       form.reset({
         name: "",
         price: 0,
@@ -110,7 +118,37 @@ export default function SubscriptionPlansContent() {
         ? (error.response?.data?.message ?? error.message)
         : "Failed to create subscription plan";
 
-      toast.error(errorMessage);
+      toast.error(errorMessage, {
+        position: "top-center"
+      });
+    }
+  }
+
+  function handleOpenDeleteModal(plan: AdSubscriptionPlan) {
+    setPlanToDelete(plan);
+    setIsDeleteModalOpen(true);
+  }
+
+  async function handleConfirmDelete() {
+    if (!planToDelete) {
+      return;
+    }
+
+    try {
+      const response = await deletePlan(planToDelete.id);
+      toast.success(response.message ?? "Subscription plan deleted successfully", {
+        position: "top-center"
+      });
+      setIsDeleteModalOpen(false);
+      setPlanToDelete(null);
+    } catch (error: unknown) {
+      const errorMessage = isAxiosError<ApiErrorResponse>(error)
+        ? (error.response?.data?.message ?? error.message)
+        : "Failed to delete subscription plan";
+
+      toast.error(errorMessage, {
+        position: "top-center"
+      });
     }
   }
 
@@ -151,6 +189,7 @@ export default function SubscriptionPlansContent() {
                   <TableHead>Name</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Duration</TableHead>
+                  <TableHead className="w-20">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -159,6 +198,18 @@ export default function SubscriptionPlansContent() {
                     <TableCell className="font-medium">{plan.name}</TableCell>
                     <TableCell>{formatPlanPrice(plan.price)}</TableCell>
                     <TableCell>{getPlanDurationLabel(plan)}</TableCell>
+                    <TableCell>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleOpenDeleteModal(plan)}
+                        disabled={isDeleting}
+                        aria-label={`Delete ${plan.name}`}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -196,7 +247,21 @@ export default function SubscriptionPlansContent() {
                   <FormItem>
                     <FormLabel>Price</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" min="0" placeholder="99.95" {...field} />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="99.95"
+                        name={field.name}
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        onChange={field.onChange}
+                        value={
+                          typeof field.value === "number" || typeof field.value === "string"
+                            ? field.value
+                            : ""
+                        }
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -210,7 +275,21 @@ export default function SubscriptionPlansContent() {
                   <FormItem>
                     <FormLabel>Duration (Months)</FormLabel>
                     <FormControl>
-                      <Input type="number" min="1" step="1" placeholder="1" {...field} />
+                      <Input
+                        type="number"
+                        min="1"
+                        step="1"
+                        placeholder="1"
+                        name={field.name}
+                        ref={field.ref}
+                        onBlur={field.onBlur}
+                        onChange={field.onChange}
+                        value={
+                          typeof field.value === "number" || typeof field.value === "string"
+                            ? field.value
+                            : ""
+                        }
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -224,6 +303,15 @@ export default function SubscriptionPlansContent() {
           </Form>
         </SheetContent>
       </Sheet>
+
+      <DeleteConfirmationModal
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
+        title="Delete Subscription Plan"
+        description={`Are you sure you want to delete "${planToDelete?.name ?? "this plan"}"? This action cannot be undone.`}
+      />
     </>
   );
 }

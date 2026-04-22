@@ -40,6 +40,12 @@ export interface CreateAdSubscriptionPlanResponse {
   data: AdSubscriptionPlan;
 }
 
+export interface DeleteAdSubscriptionPlanResponse {
+  success: boolean;
+  message?: string;
+  data: AdSubscriptionPlan;
+}
+
 export interface AdSubscriptionCheckoutSessionPayload {
   planId: string;
 }

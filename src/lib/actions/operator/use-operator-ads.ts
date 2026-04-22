@@ -12,6 +12,7 @@ import type {
   CreateAdSubscriptionPlanPayload,
   CreateAdSubscriptionPlanResponse,
   DeleteAdResponse,
+  DeleteAdSubscriptionPlanResponse,
   DeleteMyActiveAdResponse,
   MyActiveAdResponse,
   OperatorAdListQueryParams,
@@ -82,6 +83,18 @@ export function useCreateAdSubscriptionPlan() {
         `${API_AD_SUBSCRIPTION_PLAN_BASE}/`,
         payload
       ),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["ad-subscription-plans"] });
+    }
+  });
+}
+
+export function useDeleteAdSubscriptionPlan() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (planId: string) =>
+      del<DeleteAdSubscriptionPlanResponse>(`${API_AD_SUBSCRIPTION_PLAN_BASE}/${planId}`),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["ad-subscription-plans"] });
     }

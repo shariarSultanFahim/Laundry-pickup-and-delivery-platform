@@ -78,6 +78,11 @@ export interface PaginationMeta {
   totalPage: number;
 }
 
+export interface UnreadTicketMessageCount {
+  roomId: string;
+  unreadMessageCount: number;
+}
+
 // ─── Query Params ────────────────────────────────────────────────────────────
 export interface GetTicketsQueryParams {
   page?: number;
@@ -117,4 +122,19 @@ export interface GetChatMessagesResponse {
   message: string;
   meta: PaginationMeta;
   data: ChatMessage[];
+}
+
+export interface MarkChatRoomAsReadResponse {
+  success: boolean;
+  message: string;
+  data?: unknown;
+}
+
+export interface GetUnreadTicketMessagesResponse {
+  success: boolean;
+  message: string;
+  meta: {
+    total: number;
+  };
+  data: UnreadTicketMessageCount[];
 }

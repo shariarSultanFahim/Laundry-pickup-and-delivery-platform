@@ -35,15 +35,15 @@ export default function DeleteConfirmationModal({
 }: DeleteConfirmationModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
-          <div className="flex items-center gap-2 text-destructive mb-2">
+          <div className="gap-2 text-destructive mb-2 flex items-center">
             <AlertTriangle className="h-5 w-5" />
             <DialogTitle>{title}</DialogTitle>
           </div>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <DialogFooter className="flex justify-end gap-3 mt-4">
+        <DialogFooter className="gap-3 mt-4 flex justify-end">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
             {cancelText}
           </Button>

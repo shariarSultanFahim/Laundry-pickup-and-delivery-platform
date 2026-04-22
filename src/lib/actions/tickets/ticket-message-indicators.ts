@@ -1,16 +1,23 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { TicketChatMessageEvent } from "@/types/ticket-management";
+import type {
+  GetUnreadTicketMessagesResponse,
+  MarkChatRoomAsReadResponse,
+  TicketChatMessageEvent,
+  UnreadTicketMessageCount
+} from "@/types/ticket-management";
+
+import { api, get } from "@/lib/api";
 
 import { useSocket } from "@/providers/SocketProvider";
 
 export const ticketMessageIndicatorQueryKeys = {
   activeRoom: ["ticket-message-indicators", "active-room"] as const,
-  unreadRooms: ["ticket-message-indicators", "unread-rooms"] as const
+  unreadCounts: ["ticket-message-indicators", "unread-counts"] as const
 };
 
 const ticketsQueryKey = ["tickets"] as const;
@@ -41,18 +48,28 @@ function getRoomIdFromEvent(event: TicketChatMessageEvent): string | null {
   return null;
 }
 
-function addUnreadRoomId(currentRoomIds: string[] | undefined, roomId: string) {
-  const roomIds = currentRoomIds ?? [];
-
-  if (roomIds.includes(roomId)) {
-    return roomIds;
+function removeUnreadRoomCount(
+  currentData: GetUnreadTicketMessagesResponse | undefined,
+  roomId: string
+) {
+  if (!currentData) {
+    return currentData;
   }
 
-  return [...roomIds, roomId];
-}
+  const roomCount = currentData.data.find((item) => item.roomId === roomId);
 
-function removeUnreadRoomId(currentRoomIds: string[] | undefined, roomId: string) {
-  return (currentRoomIds ?? []).filter((currentRoomId) => currentRoomId !== roomId);
+  if (!roomCount) {
+    return currentData;
+  }
+
+  return {
+    ...currentData,
+    meta: {
+      ...currentData.meta,
+      total: Math.max(0, currentData.meta.total - roomCount.unreadMessageCount)
+    },
+    data: currentData.data.filter((item) => item.roomId !== roomId)
+  } satisfies GetUnreadTicketMessagesResponse;
 }
 
 export function TicketMessageListener() {
@@ -69,6 +86,9 @@ export function TicketMessageListener() {
 
       if (!roomId) {
         void queryClient.invalidateQueries({ queryKey: ticketsQueryKey });
+        void queryClient.invalidateQueries({
+          queryKey: ticketMessageIndicatorQueryKeys.unreadCounts
+        });
         return;
       }
 
@@ -78,14 +98,13 @@ export function TicketMessageListener() {
 
       void queryClient.invalidateQueries({ queryKey: ["chat-messages", roomId] });
       void queryClient.invalidateQueries({ queryKey: ticketsQueryKey });
+      void queryClient.invalidateQueries({
+        queryKey: ticketMessageIndicatorQueryKeys.unreadCounts
+      });
 
       if (activeRoomId === roomId) {
         return;
       }
-
-      queryClient.setQueryData<string[]>(ticketMessageIndicatorQueryKeys.unreadRooms, (current) =>
-        addUnreadRoomId(current, roomId)
-      );
     };
 
     socket.on("new-message", handleNewMessage);
@@ -101,20 +120,31 @@ export function TicketMessageListener() {
 export function useTicketUnreadIndicators() {
   const queryClient = useQueryClient();
 
-  const unreadRoomsQuery = useQuery({
-    queryKey: ticketMessageIndicatorQueryKeys.unreadRooms,
-    queryFn: async () => [] as string[],
-    enabled: false,
-    initialData: [] as string[]
+  const unreadCountsQuery = useQuery({
+    queryKey: ticketMessageIndicatorQueryKeys.unreadCounts,
+    queryFn: () => get<GetUnreadTicketMessagesResponse>("/chatmessage/admin/unread-messages")
   });
 
-  const unreadRoomIds = unreadRoomsQuery.data ?? [];
+  const unreadMessageCounts = unreadCountsQuery.data?.data ?? [];
+  const unreadCountByRoomId = useMemo(() => {
+    return new Map<string, number>(
+      unreadMessageCounts.map((item: UnreadTicketMessageCount) => [
+        item.roomId,
+        item.unreadMessageCount
+      ])
+    );
+  }, [unreadMessageCounts]);
 
   const markRoomAsRead = useCallback(
     (roomId: string) => {
-      queryClient.setQueryData<string[]>(ticketMessageIndicatorQueryKeys.unreadRooms, (current) =>
-        removeUnreadRoomId(current, roomId)
+      queryClient.setQueryData<GetUnreadTicketMessagesResponse>(
+        ticketMessageIndicatorQueryKeys.unreadCounts,
+        (current) => removeUnreadRoomCount(current, roomId)
       );
+
+      void queryClient.invalidateQueries({
+        queryKey: ticketMessageIndicatorQueryKeys.unreadCounts
+      });
     },
     [queryClient]
   );
@@ -127,15 +157,48 @@ export function useTicketUnreadIndicators() {
   );
 
   const hasUnreadForRoom = useCallback(
-    (roomId?: string | null) => Boolean(roomId && unreadRoomIds.includes(roomId)),
-    [unreadRoomIds]
+    (roomId?: string | null) => Boolean(roomId && (unreadCountByRoomId.get(roomId) ?? 0) > 0),
+    [unreadCountByRoomId]
+  );
+
+  const getUnreadCountForRoom = useCallback(
+    (roomId?: string | null) => {
+      if (!roomId) {
+        return 0;
+      }
+
+      return unreadCountByRoomId.get(roomId) ?? 0;
+    },
+    [unreadCountByRoomId]
   );
 
   return {
-    unreadRoomIds,
-    hasUnread: unreadRoomIds.length > 0,
+    unreadMessageCounts,
+    totalUnreadCount: unreadCountsQuery.data?.meta.total ?? 0,
+    hasUnread: (unreadCountsQuery.data?.meta.total ?? 0) > 0,
     hasUnreadForRoom,
+    getUnreadCountForRoom,
     markRoomAsRead,
     setActiveRoom
   };
+}
+
+export function useMarkChatRoomAsRead() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (roomId: string) => {
+      const { data } = await api.patch<MarkChatRoomAsReadResponse>(
+        `/chatmessage/${roomId}/mark-read`
+      );
+
+      return data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ticketMessageIndicatorQueryKeys.unreadCounts
+      });
+      await queryClient.invalidateQueries({ queryKey: ["tickets"] });
+    }
+  });
 }

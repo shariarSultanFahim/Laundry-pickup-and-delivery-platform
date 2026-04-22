@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-import { CircleAlert, Filter, Search, User } from "lucide-react";
+import { Filter, Search, User } from "lucide-react";
 
 import type { SupportTicket, SupportTicketStatus } from "@/types/ticket-management";
 
@@ -50,7 +50,7 @@ export default function TicketsTable() {
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
   const { mutate: updateStatus } = useUpdateTicketStatus();
-  const { hasUnreadForRoom } = useTicketUnreadIndicators();
+  const { getUnreadCountForRoom } = useTicketUnreadIndicators();
 
   const { data, isLoading, isError } = useGetTickets({
     page,
@@ -131,7 +131,7 @@ export default function TicketsTable() {
         ) : (
           rows.map((ticket) => {
             const chatRoomId = ticket.chatRooms[0]?.id;
-            const hasUnreadMessage = hasUnreadForRoom(chatRoomId);
+            const unreadMessageCount = getUnreadCountForRoom(chatRoomId);
 
             return (
               <Card
@@ -154,11 +154,14 @@ export default function TicketsTable() {
 
                       <h3 className="gap-1 font-semibold text-foreground inline-flex items-center">
                         <span>{ticket.subject}</span>
-                        {hasUnreadMessage ? (
-                          <CircleAlert
-                            className="size-4 text-rose-500"
-                            aria-label="Unread message"
-                          />
+                        {unreadMessageCount > 0 ? (
+                          <Badge
+                            variant="destructive"
+                            className="h-5 min-w-5 px-1.5 font-semibold justify-center rounded-full text-[10px]"
+                            aria-label={`${unreadMessageCount} unread messages`}
+                          >
+                            {unreadMessageCount > 99 ? "99+" : unreadMessageCount}
+                          </Badge>
                         ) : null}
                       </h3>
                       <p className="text-muted-foreground text-sm line-clamp-1">
